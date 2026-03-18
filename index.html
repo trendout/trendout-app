@@ -307,6 +307,8 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Helvetica Neue',He
   <meta property="og:title" content="Trendout">
   <meta property="og:url" content="https://app.trendout.pt">
   <link rel="manifest" href="data:application/json,%7B%22name%22%3A%22Trendout%22%2C%22short_name%22%3A%22Trendout%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23000000%22%2C%22theme_color%22%3A%22%23000000%22%7D">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div id="app">
@@ -2524,7 +2526,118 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Helvetica Neue',He
 <script>
 
   // ═══════════════════════════════════════════════════════════════════════
-  // SUPABASE INTEGRATION — Guia de implementação
+  // SUPABASE — Ligado e activo
+  // ═══════════════════════════════════════════════════════════════════════
+  var SUPA_URL = 'https://btzcyvksxlmkosluytaz.supabase.co';
+  var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ0emN5dmtzeGxta29zbHV5dGF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NDU3NzYsImV4cCI6MjA4OTQyMTc3Nn0.f9pjtUyp7SlJ8dal5xJ180TD9TWvVWDj86u9ZLmyUs0';
+  var _db = null;
+
+  // Init Supabase after DOM ready
+  document.addEventListener('DOMContentLoaded', function() {
+    try {
+      _db = supabase.createClient(SUPA_URL, SUPA_KEY);
+      console.log('✅ Supabase connected');
+      // Check if user already logged in
+      _db.auth.getSession().then(function(res) {
+        if (res.data && res.data.session) {
+          var user = res.data.session.user;
+          supaLoadData(user);
+        }
+      });
+      // Listen for auth changes
+      _db.auth.onAuthStateChange(function(event, session) {
+        if (event === 'SIGNED_IN' && session) {
+          supaLoadData(session.user);
+        }
+        if (event === 'SIGNED_OUT') {
+          doLogout();
+        }
+      });
+    } catch(e) { console.error('Supabase init error:', e); }
+  });
+
+  // ── AUTH ──
+  async function supaLogin(email, pass) {
+    if (!_db) return false;
+    var res = await _db.auth.signInWithPassword({ email: email, password: pass });
+    if (res.error) { toast('❌ ' + res.error.message); return false; }
+    return true;
+  }
+
+  async function supaRegister(email, pass, name) {
+    if (!_db) return false;
+    var res = await _db.auth.signUp({
+      email: email, password: pass,
+      options: { data: { name: name } }
+    });
+    if (res.error) { toast('❌ ' + res.error.message); return false; }
+    toast('✅ Verifica o teu email para confirmar o registo!');
+    return true;
+  }
+
+  async function supaLogout() {
+    if (_db) await _db.auth.signOut();
+  }
+
+  // ── LOAD ALL USER DATA ──
+  async function supaLoadData(user) {
+    if (!_db || !user) return;
+    try {
+      var [actsRes, moodsRes, weightsRes, profileRes] = await Promise.all([
+        _db.from('activities').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+        _db.from('moods').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+        _db.from('weights').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+        _db.from('profiles').select('*').eq('id', user.id).single()
+      ]);
+      if (actsRes.data)    _allActivities = actsRes.data;
+      if (moodsRes.data)   _happinessLog  = moodsRes.data;
+      if (weightsRes.data) _weightLog     = weightsRes.data;
+      var userData = { name: user.email, email: user.email };
+      if (profileRes.data) {
+        var p = profileRes.data;
+        userData.name = (p.name || '') + (p.last ? ' '+p.last : '') || user.email;
+        if (p.name)   _profile.name  = p.name;
+        if (p.last)   _profile.last  = p.last;
+        if (p.bio)    _profile.bio   = p.bio;
+        if (p.city)   _profile.city  = p.city;
+        if (p.sports) _profile.sports = p.sports;
+        if (p.photo)  _profile.photo  = p.photo;
+      }
+      launchApp(userData);
+    } catch(e) { console.error('supaLoadData error:', e); }
+  }
+
+  // ── SYNC HELPERS ──
+  async function dbSyncActivity(act) {
+    if (!_db) return;
+    var user = (await _db.auth.getUser()).data.user;
+    if (!user) return;
+    await _db.from('activities').insert({ ...act, user_id: user.id });
+  }
+
+  async function dbSyncMood(m) {
+    if (!_db) return;
+    var user = (await _db.auth.getUser()).data.user;
+    if (!user) return;
+    // Upsert by date
+    await _db.from('moods').upsert({ ...m, user_id: user.id }, { onConflict: 'user_id,date' });
+  }
+
+  async function dbSyncWeight(w) {
+    if (!_db) return;
+    var user = (await _db.auth.getUser()).data.user;
+    if (!user) return;
+    await _db.from('weights').upsert({ ...w, user_id: user.id }, { onConflict: 'user_id,date' });
+  }
+
+  async function dbSyncProfile(p) {
+    if (!_db) return;
+    var user = (await _db.auth.getUser()).data.user;
+    if (!user) return;
+    await _db.from('profiles').upsert({ ...p, id: user.id });
+  }
+
+  // ── SUPABASE INTEGRATION — Guia de implementação
   // ═══════════════════════════════════════════════════════════════════════
   //
   // PASSO 1 — Adiciona antes deste bloco script:
@@ -4227,7 +4340,7 @@ function saveHappiness() {
   var existing = _happinessLog.find(function(e){ return e.date===today; });
   if (existing) { existing.score=_hapScore; existing.note=note; }
   else _happinessLog.push({date:today, score:_hapScore, note:note});
-  // SUPA: dbSyncMood({date:today, score:_hapScore, note:note});
+  dbSyncMood({date:today, score:_hapScore, note:note});
   closeHappinessLog();
   renderHappinessMeter();
   toast(_hapEmojis[_hapScore]+' Humor registado — '+_hapLabels[_hapScore]);
@@ -4645,7 +4758,7 @@ function saveWeight() {
   var existing = _weightLog.find(function(e){ return e.date===today; });
   if (existing) { existing.weight=val; existing.note=note; }
   else _weightLog.push({date:today, weight:val, note:note});
-  // SUPA: dbSyncWeight({date:today, weight:val, note:note});
+  dbSyncWeight({date:today, weight:val, note:note});
   if (_weightLog.length > 90) _weightLog = _weightLog.slice(-90);
   closeWeightLog();
   renderWeightChart();
@@ -5581,7 +5694,7 @@ function saveProfile() {
     // Keep last 90 entries
     if (_weightLog.length > 90) _weightLog = _weightLog.slice(-90);
   }
-  // SUPA: dbSyncProfile(_profile);
+  dbSyncProfile(_profile);
   closeEditProfile();
   renderProfile();
   toast('✅ Perfil guardado!');
@@ -5769,7 +5882,7 @@ var _actIcons = {
 
 function addActivity(act) {
   _allActivities.unshift(act);
-  // SUPA: dbSyncActivity(act);
+  dbSyncActivity(act);
   renderHomeActs();
   renderStatsCard();
   renderHistory();
@@ -5875,6 +5988,7 @@ function autoSplash() {
 }
 
 function doLogout() {
+  supaLogout();
   _user = null;
   var shell = document.getElementById('app-shell');
   if (shell) shell.classList.remove('active');
@@ -6092,6 +6206,12 @@ function verifySMS() {
 
 // ── EMAIL LOGIN ──
 function doLogin() {
+  var email = (document.getElementById('login-email') || document.getElementById('reg-email') || {}).value || '';
+  var pass  = (document.getElementById('login-pass')  || document.getElementById('reg-pass')  || {}).value || '';
+  if (email && pass && _db) {
+    supaLogin(email, pass);
+    return;
+  }
   var email = document.getElementById('login-email').value.trim();
   var pass = document.getElementById('login-pass').value;
   if (!email || !pass) { toast('✉️ Preenche email e password'); return; }
@@ -6145,6 +6265,13 @@ function checkPassStrength() {
 }
 
 function doRegister() {
+  var name  = (document.getElementById('reg-name')  || {}).value || '';
+  var email = (document.getElementById('reg-email') || {}).value || '';
+  var pass  = (document.getElementById('reg-pass')  || {}).value || '';
+  if (name && email && pass && _db) {
+    supaRegister(email, pass, name);
+    return;
+  }
   var name = document.getElementById('reg-name').value.trim();
   var last = document.getElementById('reg-last').value.trim();
   var email = document.getElementById('reg-email').value.trim();
