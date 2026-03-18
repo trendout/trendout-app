@@ -2549,6 +2549,13 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Helvetica Neue',He
       });
       // Listen for auth changes
       _db.auth.onAuthStateChange(function(event, session) {
+        if (event === 'PASSWORD_RECOVERY') {
+          document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+          var shell = document.getElementById('app-shell');
+          if (shell) shell.classList.remove('active');
+          go('s-new-pass');
+          return;
+        }
         if (event === 'SIGNED_IN' && session) {
           supaLoadData(session.user);
         }
@@ -4011,6 +4018,20 @@ function exportInsightPDF(btn) {
 }
 
 
+// ── RECOVERY LINK DETECTION ──
+(function() {
+  var hash = window.location.hash || '';
+  if (hash.indexOf('type=recovery') > -1 || hash.indexOf('type%3Drecovery') > -1) {
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(function() {
+        document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+        go('s-new-pass');
+        history.replaceState(null, '', window.location.pathname);
+      }, 400);
+    });
+  }
+})();
+
 // ── SPLASH AUTO-ADVANCE ──
 // Shows splash for 2s then goes to welcome if no user session
 (function() {
@@ -4031,7 +4052,7 @@ async function doResetPassword() {
   
   if (_db) {
     var res = await _db.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + window.location.pathname
+      redirectTo: 'https://app.trendout.es'
     });
     if (res.error) {
       toast('❌ ' + res.error.message);
