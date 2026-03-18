@@ -2633,24 +2633,32 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Helvetica Neue',He
   // ── SYNC HELPERS ──
   async function dbSyncActivity(act) {
     if (!_db) return;
-    var user = (await _db.auth.getUser()).data.user;
-    if (!user) return;
-    await _db.from('activities').insert({ ...act, user_id: user.id });
+    try {
+      var userRes = await _db.auth.getUser();
+      if (!userRes.data || !userRes.data.user) return;
+      var uid = userRes.data.user.id;
+      await _db.from('activities').insert({ type:act.type, title:act.title, dist:act.dist, dur:act.dur, pace:act.pace, cal:act.cal, date:act.date, source:act.source||'manual', user_id:uid });
+    } catch(e) { console.error('dbSyncActivity:', e); }
   }
 
   async function dbSyncMood(m) {
     if (!_db) return;
-    var user = (await _db.auth.getUser()).data.user;
-    if (!user) return;
-    // Upsert by date
-    await _db.from('moods').upsert({ ...m, user_id: user.id }, { onConflict: 'user_id,date' });
+    try {
+      var userRes = await _db.auth.getUser();
+      if (!userRes.data || !userRes.data.user) return;
+      var uid = userRes.data.user.id;
+      await _db.from('moods').upsert({ date:m.date, score:m.score, note:m.note||'', user_id:uid }, { onConflict: 'user_id,date' });
+    } catch(e) { console.error('dbSyncMood:', e); }
   }
 
   async function dbSyncWeight(w) {
     if (!_db) return;
-    var user = (await _db.auth.getUser()).data.user;
-    if (!user) return;
-    await _db.from('weights').upsert({ ...w, user_id: user.id }, { onConflict: 'user_id,date' });
+    try {
+      var userRes = await _db.auth.getUser();
+      if (!userRes.data || !userRes.data.user) return;
+      var uid = userRes.data.user.id;
+      await _db.from('weights').upsert({ date:w.date, weight:w.weight, note:w.note||'', user_id:uid }, { onConflict: 'user_id,date' });
+    } catch(e) { console.error('dbSyncWeight:', e); }
   }
 
   async function dbSyncProfile(p) {
@@ -2705,7 +2713,7 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Helvetica Neue',He
   // async function supaLoadData(userId)     { const [acts,moods,wts] = await Promise.all([_db.from('activities').select('*').eq('user_id',userId).order('created_at',{ascending:false}), _db.from('moods').select('*').eq('user_id',userId).order('date',{ascending:false}), _db.from('weights').select('*').eq('user_id',userId).order('date',{ascending:false})]); _allActivities=acts.data||[]; _happinessLog=moods.data||[]; _weightLog=wts.data||[]; }
 
   // Sync helpers — adicionar no final de cada função de registo:
-  // function dbSyncActivity(act) { /* SUPA: _db.from('activities').insert({...act, user_id: _db.auth.getUser()?.id}) */ }
+  // async function dbSyncActivity(act) { /* SUPA: _db.from('activities').insert({...act, user_id: _db.auth.getUser()?.id}) */ }
   // function dbSyncMood(m)       { /* SUPA: _db.from('moods').insert({...m,      user_id: _db.auth.getUser()?.id}) */ }
   // function dbSyncWeight(w)     { /* SUPA: _db.from('weights').insert({...w,    user_id: _db.auth.getUser()?.id}) */ }
   // function dbSyncProfile(p)    { /* SUPA: _db.from('profiles').upsert({...p,   id: _db.auth.getUser()?.id}) */ }
