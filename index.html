@@ -2595,15 +2595,38 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Helvetica Neue',He
       var userData = { name: user.email, email: user.email };
       if (profileRes.data) {
         var p = profileRes.data;
-        userData.name = (p.name || '') + (p.last ? ' '+p.last : '') || user.email;
-        if (p.name)   _profile.name  = p.name;
-        if (p.last)   _profile.last  = p.last;
-        if (p.bio)    _profile.bio   = p.bio;
-        if (p.city)   _profile.city  = p.city;
-        if (p.sports) _profile.sports = p.sports;
+        // Restore full profile
+        if (p.name)   _profile.name   = p.name;
+        if (p.last)   _profile.last   = p.last;
+        if (p.bio)    _profile.bio    = p.bio;
+        if (p.city)   _profile.city   = p.city;
+        if (p.dob)    _profile.dob    = p.dob;
+        if (p.sports) _profile.sports = Array.isArray(p.sports) ? p.sports : [];
         if (p.photo)  _profile.photo  = p.photo;
+        userData.name  = ((p.name || '') + (p.last ? ' '+p.last : '')).trim() || user.email;
+        userData.email = user.email;
       }
       launchApp(userData);
+      // Re-render profile after launchApp to show all loaded data
+      setTimeout(function() {
+        renderProfile();
+        // Restore avatar photo if saved
+        if (_profile.photo) {
+          var avatarEl     = document.getElementById('app-avatar');
+          var profAvatarEl = document.getElementById('profile-avatar');
+          var editAvatarEl = document.getElementById('edit-avatar');
+          if (avatarEl)     { avatarEl.innerHTML     = '<img src="'+_profile.photo+'" style="width:100%;height:100%;object-fit:cover">'; }
+          if (profAvatarEl) { profAvatarEl.innerHTML  = '<img src="'+_profile.photo+'" style="width:100%;height:100%;object-fit:cover">'; }
+          if (editAvatarEl) { editAvatarEl.innerHTML  = '<img src="'+_profile.photo+'" style="width:100%;height:100%;object-fit:cover">'; }
+        }
+        // Restore weight chart if data loaded
+        if (_weightLog.length > 0) renderWeightChart();
+        // Restore happiness if data loaded
+        if (_happinessLog.length > 0) renderHappinessMeter();
+        // Restore stats
+        renderStatsCard();
+        renderHomeActs();
+      }, 300);
     } catch(e) { console.error('supaLoadData error:', e); }
   }
 
@@ -2632,9 +2655,21 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Helvetica Neue',He
 
   async function dbSyncProfile(p) {
     if (!_db) return;
-    var user = (await _db.auth.getUser()).data.user;
-    if (!user) return;
-    await _db.from('profiles').upsert({ ...p, id: user.id });
+    try {
+      var userRes = await _db.auth.getUser();
+      if (!userRes.data || !userRes.data.user) return;
+      var uid = userRes.data.user.id;
+      await _db.from('profiles').upsert({
+        id:     uid,
+        name:   p.name   || null,
+        last:   p.last   || null,
+        bio:    p.bio    || null,
+        city:   p.city   || null,
+        dob:    p.dob    || null,
+        photo:  p.photo  || null,
+        sports: p.sports || []
+      }, { onConflict: 'id' });
+    } catch(e) { console.error('dbSyncProfile error:', e); }
   }
 
   // ── SUPABASE INTEGRATION — Guia de implementação
