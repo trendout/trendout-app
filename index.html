@@ -491,7 +491,7 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Helvetica Neue',He
   </div>
 
   <div style="text-align:right;margin-bottom:20px">
-    <span style="font-size:13px;color:rgba(255,255,255,.4);cursor:pointer" onclick="toast('📧 Recuperação de password enviada!')">Esqueci a password</span>
+    <span style="font-size:13px;color:rgba(255,255,255,.4);cursor:pointer" onclick="go('s-reset-pass')">Esqueci a password</span>
   </div>
 
   <button class="btn btn-white" id="login-btn" onclick="doLogin()">Entrar</button>
@@ -4020,6 +4020,47 @@ function exportInsightPDF(btn) {
   }
 })();
 
+
+// ── PASSWORD RESET ──
+async function doResetPassword() {
+  var email = (document.getElementById('reset-email').value || '').trim();
+  if (!email) { toast('⚠️ Introduz o teu email'); return; }
+  
+  var btn = document.getElementById('reset-btn');
+  if (btn) { btn.textContent = '⏳ A enviar...'; btn.style.opacity = '0.6'; }
+  
+  if (_db) {
+    var res = await _db.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + window.location.pathname
+    });
+    if (res.error) {
+      toast('❌ ' + res.error.message);
+      if (btn) { btn.textContent = 'Enviar link de recuperação'; btn.style.opacity = '1'; }
+      return;
+    }
+  }
+  
+  // Show success
+  var successEl = document.getElementById('reset-success');
+  if (successEl) successEl.style.display = 'block';
+  if (btn) { btn.textContent = 'Email enviado ✅'; btn.style.opacity = '0.5'; btn.style.cursor = 'not-allowed'; }
+  toast('📧 Link de recuperação enviado para ' + email);
+}
+
+
+async function doUpdatePassword() {
+  var pass1 = (document.getElementById('new-pass').value || '').trim();
+  var pass2 = (document.getElementById('new-pass-confirm').value || '').trim();
+  if (!pass1 || pass1.length < 6) { toast('⚠️ Password deve ter mínimo 6 caracteres'); return; }
+  if (pass1 !== pass2) { toast('⚠️ As passwords não coincidem'); return; }
+  if (!_db) return;
+  var res = await _db.auth.updateUser({ password: pass1 });
+  if (res.error) { toast('❌ ' + res.error.message); return; }
+  toast('✅ Password actualizada! Faz login com a nova password.');
+  history.replaceState(null, '', window.location.pathname);
+  setTimeout(function() { go('s-login'); }, 1500);
+}
+
 // ── PUSH NOTIFICATIONS ──
 var _notifPermission = 'default';
 
@@ -6858,6 +6899,76 @@ function initPerfAdv() {
       </div>
     </div>
   </div>
+
+
+<!-- ═══ RESET PASSWORD SCREEN ═══ -->
+<div id="s-reset-pass" class="screen" style="padding:max(env(safe-area-inset-top,0px),52px) 28px 0">
+  <button class="back-btn" onclick="go('s-login')">
+    <span class="arrow">←</span> Voltar
+  </button>
+
+  <div style="margin-top:32px;margin-bottom:32px">
+    <div style="font-size:32px;margin-bottom:16px">🔑</div>
+    <div style="font-size:26px;font-weight:800;color:#fff;margin-bottom:6px">Recuperar password</div>
+    <div style="font-size:14px;color:rgba(255,255,255,.45);line-height:1.5">Indica o teu email e enviamos um link para criares uma nova password.</div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:24px">
+    <div>
+      <div class="label">Email</div>
+      <div class="input-wrap">
+        <div class="ico">✉️</div>
+        <input id="reset-email" type="email" inputmode="email" placeholder="joao@email.com" autocomplete="email"/>
+      </div>
+    </div>
+  </div>
+
+  <div id="reset-success" style="display:none;background:rgba(34,197,94,.1);border:1.5px solid rgba(34,197,94,.3);border-radius:14px;padding:14px 16px;margin-bottom:20px;font-size:13px;color:#4ADE80;line-height:1.5">
+    ✅ Email enviado! Verifica a tua caixa de correio e clica no link para redefinir a password.
+  </div>
+
+  <button class="btn btn-white" onclick="doResetPassword()" id="reset-btn">
+    Enviar link de recuperação
+  </button>
+
+  <div style="text-align:center;margin-top:20px">
+    <span style="font-size:13px;color:rgba(255,255,255,.4)">Lembraste da password? </span>
+    <span style="font-size:13px;color:#fff;font-weight:700;cursor:pointer" onclick="go('s-login')">Entrar</span>
+  </div>
+</div>
+
+
+<!-- ═══ NEW PASSWORD SCREEN ═══ -->
+<div id="s-new-pass" class="screen" style="padding:max(env(safe-area-inset-top,0px),52px) 28px 0">
+  <div style="margin-top:32px;margin-bottom:32px">
+    <div style="font-size:32px;margin-bottom:16px">🔐</div>
+    <div style="font-size:26px;font-weight:800;color:#fff;margin-bottom:6px">Nova password</div>
+    <div style="font-size:14px;color:rgba(255,255,255,.45)">Escolhe uma nova password para a tua conta.</div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:24px">
+    <div>
+      <div class="label">Nova password</div>
+      <div class="input-wrap">
+        <div class="ico">🔒</div>
+        <input id="new-pass" type="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password"/>
+        <button class="eye" onclick="togglePass('new-pass',this)">👁</button>
+      </div>
+    </div>
+    <div>
+      <div class="label">Confirmar password</div>
+      <div class="input-wrap">
+        <div class="ico">🔒</div>
+        <input id="new-pass-confirm" type="password" placeholder="Repete a nova password" autocomplete="new-password"/>
+        <button class="eye" onclick="togglePass('new-pass-confirm',this)">👁</button>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn btn-white" onclick="doUpdatePassword()">
+    Guardar nova password
+  </button>
+</div>
 
 
 </body>
