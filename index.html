@@ -2881,7 +2881,7 @@ function latLng2px(lat,lng,centerLat,centerLng,zoom,W,H){
   return { x: W/2+(toX(lng)-cx), y: H/2+(toY(lat)-cy) };
 }
 
-function drawTileMap(canvasId, lat, lng, zoom, route, callback) {
+function drawTileMap(canvasId, lat, lng, zoom, route, callback, hideDot) {
   var canvas = document.getElementById(canvasId);
   if (!canvas) return;
   var W = canvas.parentElement.offsetWidth  || 400;
@@ -2951,7 +2951,7 @@ function drawTileMap(canvasId, lat, lng, zoom, route, callback) {
     loaded++;
     if(loaded>=pending){
       drawRoute();
-      drawDot();
+      if (!hideDot) drawDot();
       if(callback) callback();
     }
   }
@@ -4727,7 +4727,7 @@ function renderActDetailMap(a) {
   // Draw OSM tile map
   var centerLat = a.centerLat || route.reduce(function(s,p){return s+p.lat;},0)/route.length;
   var centerLng = a.centerLng || route.reduce(function(s,p){return s+p.lng;},0)/route.length;
-  drawTileMap('det-map', centerLat, centerLng, 15, route, null);
+  drawTileMap('det-map', centerLat, centerLng, 15, route, null, true);
 
   // Draw route overlay
   var lats = route.map(function(p){return p.lat;});
@@ -4739,40 +4739,42 @@ function renderActDetailMap(a) {
   function toX(lng){ return pad + (lng-minLng)/(maxLng-minLng||0.001)*(W-pad*2); }
   function toY(lat){ return H-pad - (lat-minLat)/(maxLat-minLat||0.001)*(H-pad*2); }
 
-  // Route line
+  // Route line — clean thin green
   ctx.beginPath();
   ctx.strokeStyle = '#22C55E';
-  ctx.lineWidth = 3;
+  ctx.lineWidth = 2.5;
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
-  ctx.shadowColor = '#22C55E';
-  ctx.shadowBlur = 8;
+  ctx.shadowBlur = 0;
   route.forEach(function(p, i) {
     i === 0 ? ctx.moveTo(toX(p.lng), toY(p.lat)) : ctx.lineTo(toX(p.lng), toY(p.lat));
   });
   ctx.stroke();
-  ctx.shadowBlur = 0;
 
-  // Start dot
-  ctx.fillStyle = '#22C55E';
+  // Start dot — dark blue
+  ctx.shadowColor = '#1D4ED8'; ctx.shadowBlur = 8;
+  ctx.fillStyle = '#1E40AF';
   ctx.beginPath();
-  ctx.arc(toX(route[0].lng), toY(route[0].lat), 6, 0, Math.PI*2);
+  ctx.arc(toX(route[0].lng), toY(route[0].lat), 7, 0, Math.PI*2);
   ctx.fill();
-  ctx.fillStyle = '#000';
+  ctx.fillStyle = '#fff';
   ctx.beginPath();
   ctx.arc(toX(route[0].lng), toY(route[0].lat), 3, 0, Math.PI*2);
   ctx.fill();
+  ctx.shadowBlur = 0;
 
-  // End dot
+  // End dot — red
   var last = route[route.length-1];
+  ctx.shadowColor = '#EF4444'; ctx.shadowBlur = 8;
   ctx.fillStyle = '#EF4444';
   ctx.beginPath();
-  ctx.arc(toX(last.lng), toY(last.lat), 6, 0, Math.PI*2);
+  ctx.arc(toX(last.lng), toY(last.lat), 7, 0, Math.PI*2);
   ctx.fill();
   ctx.fillStyle = '#fff';
   ctx.beginPath();
   ctx.arc(toX(last.lng), toY(last.lat), 3, 0, Math.PI*2);
   ctx.fill();
+  ctx.shadowBlur = 0;
 }
 
 function renderActSplits(a) {
