@@ -3570,6 +3570,13 @@ function selectPlan(plan) {
     if(summaryDesc)  summaryDesc.textContent  = 'Faturado mensalmente';
     if(summaryPrice) { summaryPrice.textContent = '4,99€'; summaryPrice.style.color='#fff'; }
   }
+
+  // Re-render PayPal buttons if PayPal is the selected payment method
+  if (_selectedPayment === 'paypal') {
+    var container = document.getElementById('paypal-button-container');
+    if (container) container.innerHTML = '';
+    renderPayPalButtons();
+  }
 }
 
 function selectPayment(method, btn) {
