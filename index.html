@@ -310,7 +310,6 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Helvetica Neue',He
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <script src="https://www.paypal.com/sdk/js?client-id=AdXNX58YuTsSq-kTxiNTHMGmkEdcbDWIskdwcS_6fbC3q71WaiGKfhfKWrtOn6k5Ytqm4b6LjLf5_sEf&vault=true&intent=subscription&currency=EUR"></script>
 </head>
 <body>
 <div id="app">
@@ -3607,7 +3606,7 @@ function selectPayment(method, btn) {
 
   var submitBtn = document.getElementById('pay-submit-btn');
   if(submitBtn) {
-    var labels = { card:'🔒 Subscrever agora', mbway:'📱 Enviar pedido MB WAY', multibanco:'🏧 Já paguei / Confirmar', paypal:'🅿️ Continuar para PayPal' };
+    var labels = { card:'🔒 Subscrever agora', mbway:'📱 Enviar pedido MB WAY', multibanco:'🏧 Já paguei / Confirmar', paypal:'⏳ A carregar PayPal...' };
     submitBtn.textContent = labels[method] || '🔒 Subscrever agora';
   }
 }
@@ -3660,6 +3659,17 @@ function submitPayment() {
   showPaymentSuccess();
 }
 
+function loadPayPalSDK(callback) {
+  if (typeof paypal !== 'undefined') { callback(); return; }
+  var script = document.createElement('sc' + 'ript');
+  script.src = 'https://www.paypal.com/sdk/js?client-id=AdXNX58YuTsSq-kTxiNTHMGmkEdcbDWIskdwcS_6fbC3q71WaiGKfhfKWrtOn6k5Ytqm4b6LjLf5_sEf&vault=true&intent=subscription&currency=EUR';
+  script.onload = function() { callback(); };
+  script.onerror = function() {
+    toast('❌ Erro ao carregar PayPal. Verifica a tua ligação.');
+  };
+  document.head.appendChild(script);
+}
+
 function renderPayPalButtons() {
   var container = document.getElementById('paypal-button-container');
   if (!container) return;
@@ -3669,19 +3679,15 @@ function renderPayPalButtons() {
   var paypalForm = document.getElementById('form-paypal');
   if (paypalForm) paypalForm.style.display = 'block';
 
-  container.innerHTML = '';
-
-  // Hide the submit button while PayPal is shown
+  // Hide submit button
   var submitBtn = document.getElementById('pay-submit-btn');
   if (submitBtn) submitBtn.style.display = 'none';
 
-  var planId = _selectedPlan === 'annual' ? 'P-5PS541302W915221KNG57FKI' : 'P-67143904RS374224PNG57DUY';
+  container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,.45);font-size:12px;padding:20px">⏳ A carregar PayPal...</div>';
 
-  if (typeof paypal === 'undefined') {
-    container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,.4);font-size:12px;padding:16px">A carregar PayPal...</div>';
-    setTimeout(renderPayPalButtons, 1000);
-    return;
-  }
+  loadPayPalSDK(function() {
+    container.innerHTML = '';
+    var planId = _selectedPlan === 'annual' ? 'P-5PS541302W915221KNG57FKI' : 'P-67143904RS374224PNG57DUY';
 
   try {
     paypal.Buttons({
@@ -3734,8 +3740,11 @@ function renderPayPalButtons() {
     }).render('#paypal-button-container');
   } catch(e) {
     console.error('PayPal render error:', e);
-    container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,.4);font-size:12px;padding:16px">Erro ao carregar PayPal. Refresca e tenta novamente.</div>';
+    container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,.4);font-size:12px;padding:16px">❌ Erro ao carregar PayPal. Tenta novamente.</div>';
+    var submitBtn = document.getElementById('pay-submit-btn');
+    if (submitBtn) submitBtn.style.display = 'block';
   }
+  }); // end loadPayPalSDK
 }
 
 function showPaymentSuccess() {
