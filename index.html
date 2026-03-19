@@ -2752,7 +2752,7 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
         // Restore weight chart if data loaded
         if (_weightLog.length > 0) renderWeightChart();
         // Restore happiness if data loaded
-        if (_happinessLog.length > 0) renderHappinessMeter();
+        if (_happinessLog.length > 0) { renderHappinessMeter(); }
         // Restore stats
         renderStatsCard();
         renderHomeActs();
@@ -5254,6 +5254,40 @@ function renderHappinessMeter() {
 
   // Draw chart
   drawHappinessChart();
+
+  // Sync perf page happiness meter
+  syncPerfHappiness();
+}
+
+function syncPerfHappiness() {
+  if (!_happinessLog.length) return;
+  var last  = _happinessLog[_happinessLog.length - 1];
+  var score = last.score;
+
+  var phEmoji = document.getElementById('ph-emoji');
+  var phScore = document.getElementById('ph-score');
+  var phLabel = document.getElementById('ph-label');
+  var phTrend = document.getElementById('ph-trend');
+  var phBar   = document.getElementById('ph-bar');
+
+  if (phEmoji) phEmoji.textContent = _hapEmojis[score];
+  if (phScore) { phScore.textContent = score; phScore.style.color = _hapColors ? _hapColors[score] : '#22C55E'; }
+  if (phLabel) phLabel.textContent = _hapLabels ? (_hapLabels[score] || '') : '';
+
+  if (phTrend && _happinessLog.length > 1) {
+    var prev = _happinessLog[_happinessLog.length - 2].score;
+    var diff = score - prev;
+    phTrend.textContent = diff > 0 ? '↑ +' + diff + ' vs anterior' : diff < 0 ? '↓ ' + diff + ' vs anterior' : '→ igual ao anterior';
+    phTrend.style.color  = diff > 0 ? '#22C55E' : diff < 0 ? '#EF4444' : 'rgba(255,255,255,.4)';
+  }
+
+  if (phBar) {
+    phBar.style.width      = (score * 10) + '%';
+    phBar.style.background = _hapColors ? (_hapColors[score] || '#22C55E') : '#22C55E';
+  }
+
+  // Redraw perf happiness chart
+  if (typeof drawPerfHapChart === 'function') drawPerfHapChart();
 }
 
 var _hapChartPeriod = 'month';
