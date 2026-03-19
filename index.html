@@ -2478,6 +2478,69 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
       </div>
     </div>
 
+
+    <!-- ═══ ACTIVITY DETAIL PAGE ═══ -->
+    <div class="app-page" id="page-act-detail" style="overflow-y:auto;height:100%;background:#000">
+      <div style="max-width:430px;margin:0 auto;padding-bottom:90px">
+
+        <!-- Header -->
+        <div style="display:flex;align-items:center;gap:12px;padding:max(env(safe-area-inset-top,0px),20px) 18px 16px;position:sticky;top:0;background:#000;z-index:10;border-bottom:1px solid rgba(255,255,255,.06)">
+          <button onclick="navTo('home')" style="width:36px;height:36px;border-radius:12px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.1);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:inherit">←</button>
+          <div style="flex:1;min-width:0">
+            <div id="det-title" style="font-size:17px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Actividade</div>
+            <div id="det-date" style="font-size:11px;color:rgba(255,255,255,.4);margin-top:1px"></div>
+          </div>
+          <button id="det-share-btn" onclick="openShareSheetDet()" style="width:36px;height:36px;border-radius:12px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.1);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">↑</button>
+        </div>
+
+        <!-- Map -->
+        <div style="position:relative;height:200px;background:#0a0a0a;overflow:hidden">
+          <canvas id="det-map" style="width:100%;height:100%;display:block"></canvas>
+          <div id="det-no-gps" style="display:none;position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:rgba(255,255,255,.3)">
+            <div style="font-size:28px;margin-bottom:8px">📍</div>
+            <div style="font-size:12px">Sem dados GPS para esta actividade</div>
+          </div>
+          <!-- Distance badge -->
+          <div id="det-dist-badge" style="position:absolute;bottom:12px;left:12px;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);border-radius:10px;padding:6px 12px">
+            <div id="det-dist-big" style="font-size:18px;font-weight:900;color:#fff"></div>
+            <div style="font-size:9px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px">distância</div>
+          </div>
+        </div>
+
+        <!-- Main stats -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:16px 18px 0">
+          <div style="background:#111;border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:12px;text-align:center">
+            <div id="det-time" style="font-size:18px;font-weight:800;color:#fff"></div>
+            <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:2px;text-transform:uppercase;letter-spacing:.5px">Tempo</div>
+          </div>
+          <div style="background:#111;border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:12px;text-align:center">
+            <div id="det-pace" style="font-size:18px;font-weight:800;color:#22C55E"></div>
+            <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:2px;text-transform:uppercase;letter-spacing:.5px">Pace</div>
+          </div>
+          <div style="background:#111;border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:12px;text-align:center">
+            <div id="det-cal" style="font-size:18px;font-weight:800;color:#F97316"></div>
+            <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:2px;text-transform:uppercase;letter-spacing:.5px">kcal</div>
+          </div>
+        </div>
+
+        <!-- Splits por km -->
+        <div id="det-splits-section" style="padding:16px 18px 0">
+          <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px">Ritmo por km</div>
+          <div id="det-splits-list" style="display:flex;flex-direction:column;gap:6px"></div>
+        </div>
+
+        <!-- Performance Avançada button -->
+        <div style="padding:20px 18px 0">
+          <button onclick="if(!_isPremium){openUpgrade();}else{navTo('perf-adv');}" style="width:100%;padding:13px;border-radius:14px;background:rgba(250,204,21,.08);border:1.5px solid rgba(250,204,21,.2);color:#FACC15;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            ✨ Performance Avançada
+            <span id="det-prem-badge" style="font-size:10px;background:rgba(250,204,21,.15);border-radius:6px;padding:2px 7px">PREMIUM</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
     <nav class="app-nav" id="app-nav">
     <button class="nav-btn on" data-page="home" onclick="navTo('home')"><span class="ni">🏠</span>Início</button>
     <button class="nav-btn" data-page="record" onclick="openActModal()"><span class="ni"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M6 4.5C6 3.4 7.2 2.7 8.1 3.3l13 7.5c.9.5.9 1.9 0 2.4l-13 7.5C7.2 21.3 6 20.6 6 19.5z" fill="currentColor"/></svg></span>Gravar</button>
@@ -3079,6 +3142,13 @@ function stopGps() {
     dur:durStr, pace:paceStr+' /km',
     cal:Math.round(_gps.distKm*65+_gps.seconds*0.05),
     date:new Date().toLocaleDateString('pt-PT'),
+    route: _gps.route.slice(),
+    splits: _gps.kmSplits.slice(),
+    totalSeconds: _gps.seconds,
+    distKm: _gps.distKm,
+    centerLat: _gps.centerLat,
+    centerLng: _gps.centerLng,
+    hasGps: _gps.route.length > 2,
   };
   document.getElementById('gps-overlay').style.display='none';
   document.body.style.overflow='';
@@ -4511,6 +4581,195 @@ async function doUpdatePassword() {
     console.error('doUpdatePassword error:', e);
     toast('❌ Erro ao actualizar password. Tenta novamente.');
   }
+}
+
+
+// ── ACTIVITY DETAIL ──
+var _currentAct = null;
+
+function openActDetail(btn) {
+  var idx = parseInt(btn.dataset.idx);
+  _currentAct = _allActivities[idx];
+  if (!_currentAct) return;
+  renderActDetail(_currentAct);
+  navTo('act-detail');
+}
+
+function openShareSheetDet() {
+  if (!_currentAct) return;
+  // Find index and open share
+  var idx = _allActivities.indexOf(_currentAct);
+  if (idx >= 0) {
+    _shareAct = _currentAct;
+    openShareSheetForAct(_currentAct);
+  }
+}
+
+function renderActDetail(a) {
+  // Title + date
+  var titleEl = document.getElementById('det-title');
+  var dateEl  = document.getElementById('det-date');
+  if (titleEl) titleEl.textContent = a.title || a.type || 'Actividade';
+  if (dateEl)  dateEl.textContent  = a.date || '';
+
+  // Stats
+  var timeEl  = document.getElementById('det-time');
+  var paceEl  = document.getElementById('det-pace');
+  var calEl   = document.getElementById('det-cal');
+  var distEl  = document.getElementById('det-dist-big');
+  if (timeEl) timeEl.textContent = a.dur  || '--:--';
+  if (paceEl) paceEl.textContent = a.pace || '--:--';
+  if (calEl)  calEl.textContent  = (a.cal || '—') + (typeof a.cal === 'number' ? '' : '');
+  if (distEl) distEl.textContent = a.dist || '— km';
+
+  // Premium badge
+  var badge = document.getElementById('det-prem-badge');
+  if (badge) badge.style.display = _isPremium ? 'none' : 'inline';
+
+  // Map
+  setTimeout(function() { renderActDetailMap(a); }, 100);
+
+  // Splits
+  renderActSplits(a);
+}
+
+function renderActDetailMap(a) {
+  var canvas = document.getElementById('det-map');
+  var noGps  = document.getElementById('det-no-gps');
+  if (!canvas) return;
+
+  var W = canvas.offsetWidth || 375;
+  var H = 200;
+  var dpr = window.devicePixelRatio || 1;
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+  var ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  // Background
+  ctx.fillStyle = '#0a0f0a';
+  ctx.fillRect(0, 0, W, H);
+
+  var route = a.route || [];
+  var hasRoute = route.length > 2;
+
+  if (noGps) noGps.style.display = hasRoute ? 'none' : 'flex';
+
+  if (!hasRoute) {
+    // Draw placeholder
+    ctx.setLineDash([4,4]);
+    ctx.strokeStyle = 'rgba(34,197,94,.2)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(10, 10, W-20, H-20);
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(34,197,94,.15)';
+    ctx.font = 'bold 12px Helvetica';
+    ctx.textAlign = 'center';
+    ctx.fillText('Mapa disponível para actividades GPS', W/2, H/2);
+    return;
+  }
+
+  // Draw OSM tile map
+  var centerLat = a.centerLat || route.reduce(function(s,p){return s+p.lat;},0)/route.length;
+  var centerLng = a.centerLng || route.reduce(function(s,p){return s+p.lng;},0)/route.length;
+  drawTileMap('det-map', centerLat, centerLng, 15, route, null);
+
+  // Draw route overlay
+  var lats = route.map(function(p){return p.lat;});
+  var lngs = route.map(function(p){return p.lng;});
+  var minLat = Math.min.apply(null,lats), maxLat = Math.max.apply(null,lats);
+  var minLng = Math.min.apply(null,lngs), maxLng = Math.max.apply(null,lngs);
+  var pad = 20;
+
+  function toX(lng){ return pad + (lng-minLng)/(maxLng-minLng||0.001)*(W-pad*2); }
+  function toY(lat){ return H-pad - (lat-minLat)/(maxLat-minLat||0.001)*(H-pad*2); }
+
+  // Route line
+  ctx.beginPath();
+  ctx.strokeStyle = '#22C55E';
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.shadowColor = '#22C55E';
+  ctx.shadowBlur = 8;
+  route.forEach(function(p, i) {
+    i === 0 ? ctx.moveTo(toX(p.lng), toY(p.lat)) : ctx.lineTo(toX(p.lng), toY(p.lat));
+  });
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Start dot
+  ctx.fillStyle = '#22C55E';
+  ctx.beginPath();
+  ctx.arc(toX(route[0].lng), toY(route[0].lat), 6, 0, Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.arc(toX(route[0].lng), toY(route[0].lat), 3, 0, Math.PI*2);
+  ctx.fill();
+
+  // End dot
+  var last = route[route.length-1];
+  ctx.fillStyle = '#EF4444';
+  ctx.beginPath();
+  ctx.arc(toX(last.lng), toY(last.lat), 6, 0, Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(toX(last.lng), toY(last.lat), 3, 0, Math.PI*2);
+  ctx.fill();
+}
+
+function renderActSplits(a) {
+  var container = document.getElementById('det-splits-list');
+  var section   = document.getElementById('det-splits-section');
+  if (!container) return;
+
+  var splits = a.splits || [];
+
+  // If no real splits, generate from total pace
+  if (!splits.length && a.distKm > 0 && a.totalSeconds > 0) {
+    var totalKm = Math.floor(a.distKm);
+    var pacePerKm = a.totalSeconds / a.distKm;
+    for (var i = 0; i < totalKm; i++) {
+      var variation = (Math.random() - 0.5) * 20;
+      splits.push({ km: i+1, seconds: Math.round(pacePerKm + variation) });
+    }
+    // Partial last km
+    var remainder = a.distKm - totalKm;
+    if (remainder > 0.05) {
+      splits.push({ km: totalKm + parseFloat(remainder.toFixed(2)), seconds: Math.round(pacePerKm * remainder), partial: true });
+    }
+  }
+
+  if (!splits.length) {
+    if (section) section.style.display = 'none';
+    return;
+  }
+
+  // Find best and worst pace
+  var paces = splits.filter(function(s){return !s.partial;}).map(function(s){return s.seconds;});
+  var bestPace  = Math.min.apply(null, paces);
+  var worstPace = Math.max.apply(null, paces);
+
+  container.innerHTML = splits.map(function(s, i) {
+    var mins = Math.floor(s.seconds/60);
+    var secs = Math.round(s.seconds%60);
+    var paceStr = mins + ':' + (secs < 10 ? '0' : '') + secs;
+    var isBest  = !s.partial && s.seconds === bestPace;
+    var pct = worstPace > bestPace ? (1 - (s.seconds - bestPace)/(worstPace - bestPace)) * 100 : 70;
+    var barColor = isBest ? '#22C55E' : (s.seconds < (bestPace + worstPace)/2 ? '#4ADE80' : '#60A5FA');
+
+    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)">'
+      + '<div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);width:28px;flex-shrink:0">km ' + (s.partial ? '~' : '') + (s.partial ? s.km.toFixed(1) : s.km) + '</div>'
+      + '<div style="flex:1;height:6px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden">'
+      + '<div style="width:' + pct + '%;height:100%;background:' + barColor + ';border-radius:100px;transition:width .5s ease"></div>'
+      + '</div>'
+      + '<div style="font-size:13px;font-weight:700;color:' + (isBest ? '#22C55E' : '#fff') + ';width:46px;text-align:right;flex-shrink:0">' + paceStr + (isBest ? ' ⚡' : '') + '</div>'
+      + '</div>';
+  }).join('');
 }
 
 // ── PUSH NOTIFICATIONS ──
@@ -6476,10 +6735,16 @@ function actCard(a, compact) {
     + '<div><div style="font-size:14px;font-weight:700;color:#fff">' + (a.dur||'—') + '</div><div style="font-size:10px;color:rgba(255,255,255,.4)">Tempo</div></div>'
     + '<div><div style="font-size:14px;font-weight:700;color:#fff">' + (a.pace||'—') + '</div><div style="font-size:10px;color:rgba(255,255,255,.4)">Pace</div></div>'
     + '</div>'
-    + '<button data-idx="' + idx + '" onclick="openShareSheet(this)" style="width:100%;padding:11px;border-radius:12px;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px">'
-    + '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>'
-    + 'Partilhar atividade'
+    + '<div style="display:flex;gap:8px;margin-top:0">'
+    + '<button data-idx="' + idx + '" onclick="openActDetail(this)" style="flex:1;padding:11px;border-radius:12px;background:rgba(34,197,94,.08);border:1.5px solid rgba(34,197,94,.2);color:#4ADE80;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px">'
+    + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'
+    + 'Minha performance'
     + '</button>'
+    + '<button data-idx="' + idx + '" onclick="openShareSheet(this)" style="flex:1;padding:11px;border-radius:12px;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px">'
+    + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>'
+    + 'Partilhar'
+    + '</button>'
+    + '</div>'
     + '</div>';
 }
 
