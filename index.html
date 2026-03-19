@@ -4138,9 +4138,40 @@ async function doUpdatePassword() {
     _recoveryAccessToken = null;
     _recoveryRefreshToken = null;
 
-    toast('✅ Password actualizada! Faz login com a nova password.');
+    // Get email before signing out
+    var userEmail = '';
+    try {
+      var userRes = await _db.auth.getUser();
+      if (userRes.data && userRes.data.user) userEmail = userRes.data.user.email || '';
+    } catch(e) {}
+
     await _db.auth.signOut();
-    setTimeout(function() { go('s-login'); }, 1500);
+
+    toast('✅ Password actualizada com sucesso!');
+
+    setTimeout(function() {
+      go('s-login');
+      // Pre-fill email on login screen
+      setTimeout(function() {
+        var emailEl = document.getElementById('login-email');
+        var passEl  = document.getElementById('login-pass');
+        if (emailEl && userEmail) emailEl.value = userEmail;
+        if (passEl)  passEl.value = '';
+        if (passEl)  passEl.focus();
+        // Show success banner on login screen
+        var existing = document.getElementById('login-success-banner');
+        if (!existing) {
+          var banner = document.createElement('div');
+          banner.id = 'login-success-banner';
+          banner.style.cssText = 'background:rgba(34,197,94,.1);border:1.5px solid rgba(34,197,94,.3);border-radius:12px;padding:10px 14px;font-size:12px;color:#4ADE80;line-height:1.5;margin-bottom:16px';
+          banner.innerHTML = '✅ Password actualizada! Entra com a tua nova password.';
+          var loginForm = document.getElementById('login-email');
+          if (loginForm && loginForm.parentElement && loginForm.parentElement.parentElement) {
+            loginForm.parentElement.parentElement.parentElement.insertBefore(banner, loginForm.parentElement.parentElement);
+          }
+        }
+      }, 100);
+    }, 1200);
 
   } catch(e) {
     console.error('doUpdatePassword error:', e);
