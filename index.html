@@ -2570,7 +2570,10 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
         }
 
         if (event === 'SIGNED_OUT') {
-          doLogout();
+          // Don't logout if payment is in progress (PayPal popup)
+          if (!_paymentInProgress) {
+            doLogout();
+          }
         }
       });
     } catch(e) { console.error('Supabase init error:', e); }
@@ -3638,6 +3641,7 @@ function loadPayPalSDK(callback) {
 }
 
 function renderPayPalButtons() {
+  _paymentInProgress = true;
   var container = document.getElementById('paypal-button-container');
   if (!container) return;
 
@@ -3668,6 +3672,7 @@ function renderPayPalButtons() {
         return actions.subscription.create({ plan_id: planId });
       },
       onApprove: function(data, actions) {
+        _paymentInProgress = false;
         console.log('PayPal subscription approved:', data.subscriptionID);
         if (!data.subscriptionID) {
           toast('❌ Pagamento não confirmado. Tenta novamente.');
@@ -3694,12 +3699,14 @@ function renderPayPalButtons() {
         showPaymentSuccess();
       },
       onError: function(err) {
+        _paymentInProgress = false;
         console.error('PayPal error:', err);
         toast('❌ Erro no pagamento PayPal. Tenta novamente.');
         var submitBtn = document.getElementById('pay-submit-btn');
         if (submitBtn) submitBtn.style.display = 'block';
       },
       onCancel: function() {
+        _paymentInProgress = false;
         toast('⚠️ Pagamento cancelado.');
         var submitBtn = document.getElementById('pay-submit-btn');
         if (submitBtn) submitBtn.style.display = 'block';
@@ -4500,6 +4507,7 @@ async function doUpdatePassword() {
 // ── PUSH NOTIFICATIONS ──
 var _recoveryAccessToken = null;
 var _recoveryRefreshToken = null;
+var _paymentInProgress = false;
 var _notifPermission = 'default';
 
 function requestNotifPermission(callback) {
