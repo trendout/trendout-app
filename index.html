@@ -3573,11 +3573,9 @@ function selectPlan(plan) {
 }
 
 function selectPayment(method, btn) {
-  // If switching away from paypal, restore submit button
-  if (_selectedPayment === 'paypal' && method !== 'paypal') {
-    var submitBtn = document.getElementById('pay-submit-btn');
-    if (submitBtn) submitBtn.style.display = 'block';
-  }
+  // Show/hide submit button based on method
+  var submitBtn = document.getElementById('pay-submit-btn');
+  if (submitBtn) submitBtn.style.display = (method === 'paypal') ? 'none' : 'block';
   _selectedPayment = method;
   ['card','mbway','multibanco','paypal'].forEach(function(m) {
     var b = document.getElementById('pay-'+m);
@@ -3588,6 +3586,11 @@ function selectPayment(method, btn) {
   if(btn) { btn.style.background='rgba(255,255,255,.12)'; btn.style.borderColor='#fff'; btn.style.color='#fff'; }
   var form = document.getElementById('form-'+method);
   if(form) form.style.display = method==='card'||method==='mbway' ? 'flex' : 'block';
+
+  // Auto-render PayPal buttons when selected
+  if (method === 'paypal') {
+    renderPayPalButtons();
+  }
 
   // Generate MB ref if multibanco
   if (method==='multibanco') {
