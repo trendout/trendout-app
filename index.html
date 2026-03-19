@@ -2546,8 +2546,9 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Helvetica Neue',He
       });
       // Listen for auth changes
       _db.auth.onAuthStateChange(function(event, session) {
+        console.log('Auth event:', event, session ? session.user.email : 'no session');
+
         if (event === 'PASSWORD_RECOVERY') {
-          // Store tokens for use in doUpdatePassword
           if (session) {
             _recoveryAccessToken  = session.access_token;
             _recoveryRefreshToken = session.refresh_token;
@@ -2558,9 +2559,18 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Helvetica Neue',He
           go('s-new-pass');
           return;
         }
-        if (event === 'SIGNED_IN' && session) {
-          supaLoadData(session.user);
+
+        // Handle Google OAuth and all sign-ins (including INITIAL_SESSION after redirect)
+        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && session && session.user) {
+          // Only launch if not already in app
+          var shell = document.getElementById('app-shell');
+          var alreadyIn = shell && shell.classList.contains('active');
+          if (!alreadyIn) {
+            supaLoadData(session.user);
+          }
+          return;
         }
+
         if (event === 'SIGNED_OUT') {
           doLogout();
         }
