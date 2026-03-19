@@ -309,6 +309,8 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Helvetica Neue',He
   <link rel="manifest" href="data:application/json,%7B%22name%22%3A%22Trendout%22%2C%22short_name%22%3A%22Trendout%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23000000%22%2C%22theme_color%22%3A%22%23000000%22%7D">
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script src="https://www.paypal.com/sdk/js?client-id=AdXNX58YuTsSq-kTxiNTHMGmkEdcbDWIskdwcS_6fbC3q71WaiGKfhfKWrtOn6k5Ytqm4b6LjLf5_sEf&vault=true&intent=subscription&currency=EUR"></script>
 </head>
 <body>
 <div id="app">
@@ -759,10 +761,20 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Helvetica Neue',He
       </div>
     </div>
 
-    <!-- PayPal form -->
+    <!-- PayPal Subscriptions -->
     <div id="form-paypal" style="display:none;margin-bottom:20px">
-      <div style="background:rgba(0,48,135,.15);border:1px solid rgba(0,48,135,.3);border-radius:16px;padding:20px;text-align:center">
-        <div style="font-size:36px;margin-bottom:10px">🅿️</div>
+      <div style="background:rgba(0,48,135,.1);border:1px solid rgba(0,48,135,.25);border-radius:16px;padding:20px">
+        <div style="text-align:center;margin-bottom:16px">
+          <div style="font-size:32px;margin-bottom:6px">🅿️</div>
+          <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:4px">Pagamento seguro via PayPal</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.45)">Podes pagar com conta PayPal ou cartão de crédito</div>
+        </div>
+        <div id="paypal-button-container" style="min-height:50px"></div>
+        <div style="text-align:center;margin-top:12px;font-size:10px;color:rgba(255,255,255,.3)">
+          🔒 Pagamento processado pelo PayPal · Cancela quando quiseres
+        </div>
+      </div>
+    </div></div>
         <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:6px">Pagar com PayPal</div>
         <div style="font-size:12px;color:rgba(255,255,255,.5);line-height:1.6">Serás redirecionado para o PayPal para completar o pagamento em segurança.</div>
       </div>
@@ -3632,10 +3644,82 @@ function submitPayment() {
   } else if (_selectedPayment==='mbway') {
     var phone = (document.getElementById('pay-mbway-num').value||'').replace(/\s/g,'');
     if(phone.length<9) { toast('⚠️ Introduz um número de telemóvel válido'); return; }
+    showPaymentSuccess();
+    return;
+  } else if (_selectedPayment==='paypal') {
+    renderPayPalButtons();
+    return;
   }
 
-  // Show success
+  // Show success for card/multibanco
   showPaymentSuccess();
+}
+
+function renderPayPalButtons() {
+  var container = document.getElementById('paypal-button-container');
+  if (!container) return;
+  container.innerHTML = '';
+
+  // Hide the submit button while PayPal is shown
+  var submitBtn = document.getElementById('pay-submit-btn');
+  if (submitBtn) submitBtn.style.display = 'none';
+
+  var planId = _selectedPlan === 'annual' ? 'P-5PS541302W915221KNG57FKI' : 'P-67143904RS374224PNG57DUY';
+
+  if (typeof paypal === 'undefined') {
+    container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,.4);font-size:12px;padding:16px">A carregar PayPal...</div>';
+    setTimeout(renderPayPalButtons, 1000);
+    return;
+  }
+
+  try {
+    paypal.Buttons({
+      style: {
+        shape:  'rect',
+        color:  'gold',
+        layout: 'vertical',
+        label:  'subscribe'
+      },
+      createSubscription: function(data, actions) {
+        return actions.subscription.create({ plan_id: planId });
+      },
+      onApprove: function(data, actions) {
+        console.log('PayPal subscription approved:', data.subscriptionID);
+        // Activate premium
+        _isPremium = true;
+        updatePremiumUI();
+        // Save to Supabase
+        if (_db) {
+          _db.auth.getUser().then(function(res) {
+            if (res.data && res.data.user) {
+              _db.from('profiles').upsert({
+                id: res.data.user.id,
+                is_premium: true,
+                premium_plan: _selectedPlan,
+                premium_provider: 'paypal',
+                premium_subscription_id: data.subscriptionID
+              }, { onConflict: 'id' });
+            }
+          });
+        }
+        showPaymentSuccess();
+      },
+      onError: function(err) {
+        console.error('PayPal error:', err);
+        toast('❌ Erro no pagamento PayPal. Tenta novamente.');
+        var submitBtn = document.getElementById('pay-submit-btn');
+        if (submitBtn) submitBtn.style.display = 'block';
+      },
+      onCancel: function() {
+        toast('⚠️ Pagamento cancelado.');
+        var submitBtn = document.getElementById('pay-submit-btn');
+        if (submitBtn) submitBtn.style.display = 'block';
+      }
+    }).render('#paypal-button-container');
+  } catch(e) {
+    console.error('PayPal render error:', e);
+    container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,.4);font-size:12px;padding:16px">Erro ao carregar PayPal. Refresca e tenta novamente.</div>';
+  }
 }
 
 function showPaymentSuccess() {
