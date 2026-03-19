@@ -3716,29 +3716,219 @@ function renderPayPalButtons() {
 
 function showPaymentSuccess() {
   _isPremium = true;
+  updatePremiumUI();
 
-  var successMsg = {
-    card:        { icon:'🎉', title:'Subscrição ativada!',     msg:'O teu Trendout Premium está ativo. Bem-vindo ao próximo nível!' },
-    mbway:       { icon:'📱', title:'Pedido enviado!',          msg:'Abre o MB WAY e confirma o pagamento. O Premium ativa automaticamente.' },
-    multibanco:  { icon:'🏧', title:'Referência gerada!',       msg:'Paga na caixa Multibanco ou homebanking. O Premium ativa após confirmação.' },
-    paypal:      { icon:'🅿️', title:'A redirecionar...',        msg:'Serás redirecionado para o PayPal. O Premium ativa após o pagamento.' }
-  };
-  var s = successMsg[_selectedPayment] || successMsg.card;
+  // Remove upgrade screen
+  var upgradeScreen = document.getElementById('s-upgrade');
+  if (upgradeScreen) upgradeScreen.style.display = 'none';
+  var shell = document.getElementById('app-shell');
 
+  // Build full premium success overlay with confetti
   var overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:9999;display:flex;align-items:center;justify-content:center;animation:fadeIn .3s ease;backdrop-filter:blur(10px)';
-  overlay.innerHTML = '<div style="text-align:center;padding:32px;max-width:320px">'
-    + '<div style="font-size:64px;margin-bottom:16px;animation:bounceIn .5s .1s both">'+s.icon+'</div>'
-    + '<div style="font-size:24px;font-weight:900;color:#fff;margin-bottom:10px">'+s.title+'</div>'
-    + '<div style="font-size:14px;color:rgba(255,255,255,.6);line-height:1.6;margin-bottom:28px">'+s.msg+'</div>'
-    + '<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:28px">'
-    + ['✨ Insights IA','🌱 Coach Emocional','🥗 Coach Nutrição','📊 Performance'].map(function(f){
-        return '<span style="background:rgba(250,204,21,.1);border:1px solid rgba(250,204,21,.3);border-radius:8px;padding:5px 11px;font-size:11px;font-weight:700;color:#FACC15">'+f+'</span>';
-      }).join('')
-    + '</div>'
-    + '<button onclick="this.parentElement.parentElement.remove();closeUpgrade();updatePremiumUI();navTo(\'home\');" style="width:100%;padding:15px;border-radius:14px;background:#FACC15;border:none;color:#000;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit">Começar a usar o Premium ✨</button>'
-    + '</div>';
+  overlay.id = 'premium-success-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:#000;z-index:99999;overflow-y:auto;font-family:\'DM Sans\',sans-serif';
+
+  overlay.innerHTML = `
+    <canvas id="prem-confetti" style="position:fixed;inset:0;pointer-events:none;z-index:1"></canvas>
+    <div style="position:relative;z-index:2;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center">
+
+      <!-- Checkmark animado -->
+      <div style="width:90px;height:90px;margin-bottom:24px;position:relative">
+        <svg viewBox="0 0 90 90" style="width:90px;height:90px">
+          <circle cx="45" cy="45" r="42" fill="none" stroke="rgba(34,197,94,.2)" stroke-width="3"/>
+          <circle cx="45" cy="45" r="42" fill="none" stroke="#22C55E" stroke-width="3"
+            stroke-dasharray="264" stroke-dashoffset="264"
+            style="transform:rotate(-90deg);transform-origin:45px 45px;transition:stroke-dashoffset 1s ease;animation:drawCircle 1s .2s ease forwards"/>
+          <polyline points="25,47 38,60 65,33" fill="none" stroke="#22C55E" stroke-width="4"
+            stroke-linecap="round" stroke-linejoin="round"
+            stroke-dasharray="60" stroke-dashoffset="60"
+            style="animation:drawCheck .4s .9s ease forwards"/>
+        </svg>
+      </div>
+
+      <div style="font-size:13px;font-weight:700;color:rgba(250,204,21,.8);text-transform:uppercase;letter-spacing:2px;margin-bottom:12px">✦ Premium Activado</div>
+      <div style="font-size:28px;font-weight:900;color:#fff;line-height:1.2;margin-bottom:10px">Bem-vindo ao<br><span style="color:#FACC15">Trendout Premium!</span></div>
+      <div style="font-size:14px;color:rgba(255,255,255,.5);line-height:1.7;max-width:300px;margin-bottom:32px">
+        A tua subscrição está activa. Tens agora acesso a todos os coaches de IA e funcionalidades avançadas.
+      </div>
+
+      <!-- Features unlocked -->
+      <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:320px;margin-bottom:32px">
+        ${[
+          ['✨','Insights IA','Correlação humor × treino','#7C3AED'],
+          ['🌱','Coach de Recuperação','Plano semanal personalizado','#22C55E'],
+          ['🥗','Coach de Alimentação','Nutrição adaptada ao teu treino','#22C55E'],
+          ['📊','Performance Avançada','VO₂, heatmap e recordes','#3B82F6']
+        ].map(function(f){
+          return '<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:13px 16px;display:flex;align-items:center;gap:12px;text-align:left">'
+            +'<div style="width:38px;height:38px;background:'+f[3]+'22;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">'+f[0]+'</div>'
+            +'<div><div style="font-size:13px;font-weight:700;color:#fff">'+f[1]+'</div>'
+            +'<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">'+f[2]+'</div></div>'
+            +'<div style="margin-left:auto;color:#22C55E;font-size:16px">✓</div></div>';
+        }).join('')}
+      </div>
+
+      <button onclick="document.getElementById('premium-success-overlay').remove();closeUpgrade();navTo('home');"
+        style="width:100%;max-width:320px;padding:16px;border-radius:16px;background:#FACC15;border:none;color:#000;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;margin-bottom:16px">
+        Começar a usar o Premium ✨
+      </button>
+      <div style="font-size:11px;color:rgba(255,255,255,.25)">Podes gerir a tua subscrição a qualquer momento</div>
+    </div>
+
+    <style>
+      @keyframes drawCircle { to { stroke-dashoffset: 0; } }
+      @keyframes drawCheck  { to { stroke-dashoffset: 0; } }
+    </style>
+  `;
+
   document.body.appendChild(overlay);
+
+  // Launch confetti
+  setTimeout(function() { launchPremiumConfetti(); }, 300);
+}
+
+function launchPremiumConfetti() {
+  var canvas = document.getElementById('prem-confetti');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  var colors = ['#FACC15','#A78BFA','#22C55E','#60A5FA','#F97316','#fff','#F472B6','#2DD4BF'];
+
+  // Draw star shape
+  function drawStar(ctx, cx, cy, r, points, rot) {
+    var inner = r * 0.4;
+    ctx.beginPath();
+    for (var i = 0; i < points * 2; i++) {
+      var angle = (i * Math.PI / points) + rot;
+      var radius = i % 2 === 0 ? r : inner;
+      i === 0 ? ctx.moveTo(cx + radius*Math.cos(angle), cy + radius*Math.sin(angle))
+              : ctx.lineTo(cx + radius*Math.cos(angle), cy + radius*Math.sin(angle));
+    }
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // Draw lightning bolt
+  function drawLightning(ctx, x, y, size) {
+    ctx.beginPath();
+    ctx.moveTo(x + size*0.4,  y);
+    ctx.lineTo(x,             y + size*0.45);
+    ctx.lineTo(x + size*0.35, y + size*0.45);
+    ctx.lineTo(x - size*0.1,  y + size);
+    ctx.lineTo(x + size*0.55, y + size*0.4);
+    ctx.lineTo(x + size*0.2,  y + size*0.4);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // Draw diamond
+  function drawDiamond(ctx, x, y, w, h) {
+    ctx.beginPath();
+    ctx.moveTo(x, y - h/2);
+    ctx.lineTo(x + w/2, y);
+    ctx.lineTo(x, y + h/2);
+    ctx.lineTo(x - w/2, y);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  var pieces = [];
+  var shapes = ['star','lightning','diamond','circle','ribbon'];
+  for (var i = 0; i < 80; i++) {
+    pieces.push({
+      x:     Math.random() * canvas.width,
+      y:     -Math.random() * canvas.height,
+      size:  Math.random() * 12 + 6,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      rot:   Math.random() * Math.PI * 2,
+      vx:    (Math.random() - 0.5) * 2.5,
+      vy:    Math.random() * 3 + 1.5,
+      vr:    (Math.random() - 0.5) * 0.12,
+      shape: shapes[Math.floor(Math.random() * shapes.length)],
+      alpha: 0.7 + Math.random() * 0.3,
+      wobble: Math.random() * Math.PI * 2,
+      wobbleSpeed: 0.03 + Math.random() * 0.04
+    });
+  }
+
+  // Ambient particles (mystical floating orbs)
+  var orbs = [];
+  for (var j = 0; j < 20; j++) {
+    orbs.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 3 + 1,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      vy: -(Math.random() * 0.8 + 0.3),
+      alpha: Math.random() * 0.5 + 0.2,
+      life: Math.random() * 100
+    });
+  }
+
+  var frame = 0;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    var fadeAlpha = Math.max(0, 1 - frame / 220);
+
+    // Draw orbs
+    orbs.forEach(function(o) {
+      o.y  += o.vy;
+      o.life++;
+      o.alpha = Math.sin(o.life * 0.05) * 0.4 + 0.2;
+      if (o.y < -10) { o.y = canvas.height + 10; o.x = Math.random() * canvas.width; }
+      var grad = ctx.createRadialGradient(o.x, o.y, 0, o.x, o.y, o.r * 3);
+      grad.addColorStop(0, o.color);
+      grad.addColorStop(1, 'transparent');
+      ctx.globalAlpha = o.alpha * fadeAlpha;
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(o.x, o.y, o.r * 3, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // Draw confetti pieces
+    pieces.forEach(function(p) {
+      p.wobble += p.wobbleSpeed;
+      p.x += p.vx + Math.sin(p.wobble) * 0.8;
+      p.y += p.vy;
+      p.rot += p.vr;
+      if (p.y > canvas.height + 20) {
+        p.y = -20; p.x = Math.random() * canvas.width;
+      }
+
+      ctx.save();
+      ctx.globalAlpha = p.alpha * fadeAlpha;
+      ctx.fillStyle = p.color;
+      // Glow effect
+      ctx.shadowColor = p.color;
+      ctx.shadowBlur = 6;
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+
+      if (p.shape === 'star') {
+        drawStar(ctx, 0, 0, p.size/2, 4, p.rot);
+      } else if (p.shape === 'lightning') {
+        drawLightning(ctx, -p.size/2, -p.size/2, p.size);
+      } else if (p.shape === 'diamond') {
+        drawDiamond(ctx, 0, 0, p.size * 0.8, p.size);
+      } else if (p.shape === 'circle') {
+        ctx.beginPath();
+        ctx.arc(0, 0, p.size/2.5, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        // ribbon
+        ctx.fillRect(-p.size/2, -p.size/6, p.size, p.size/3);
+      }
+      ctx.restore();
+    });
+
+    frame++;
+    if (frame < 260) requestAnimationFrame(draw);
+    else ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  draw();
 }
 
 function updatePremiumUI() {
