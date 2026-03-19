@@ -2550,6 +2550,11 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Helvetica Neue',He
       // Listen for auth changes
       _db.auth.onAuthStateChange(function(event, session) {
         if (event === 'PASSWORD_RECOVERY') {
+          // Store tokens for use in doUpdatePassword
+          if (session) {
+            _recoveryAccessToken  = session.access_token;
+            _recoveryRefreshToken = session.refresh_token;
+          }
           document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
           var shell = document.getElementById('app-shell');
           if (shell) shell.classList.remove('active');
@@ -4022,12 +4027,35 @@ function exportInsightPDF(btn) {
 (function() {
   var hash = window.location.hash || '';
   if (hash.indexOf('type=recovery') > -1 || hash.indexOf('type%3Drecovery') > -1) {
+    // Parse ALL tokens from hash immediately
+    var params = {};
+    hash.replace(/^#/, '').split('&').forEach(function(pair) {
+      var kv = pair.split('=');
+      if (kv[0]) params[decodeURIComponent(kv[0])] = decodeURIComponent(kv[1] || '');
+    });
+    // Store in sessionStorage so they survive Supabase init
+    if (params['access_token'])  sessionStorage.setItem('tr_access',  params['access_token']);
+    if (params['refresh_token']) sessionStorage.setItem('tr_refresh', params['refresh_token']);
+    sessionStorage.setItem('tr_recovery', '1');
+    _recoveryAccessToken  = params['access_token']  || null;
+    _recoveryRefreshToken = params['refresh_token'] || null;
+    // Clear hash immediately
+    history.replaceState(null, '', window.location.pathname);
     document.addEventListener('DOMContentLoaded', function() {
       setTimeout(function() {
         document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
         go('s-new-pass');
-        history.replaceState(null, '', window.location.pathname);
-      }, 400);
+      }, 500);
+    });
+  } else if (sessionStorage.getItem('tr_recovery') === '1') {
+    // Came back after a page refresh — restore tokens
+    _recoveryAccessToken  = sessionStorage.getItem('tr_access');
+    _recoveryRefreshToken = sessionStorage.getItem('tr_refresh');
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(function() {
+        document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+        go('s-new-pass');
+      }, 500);
     });
   }
 })();
@@ -4074,15 +4102,58 @@ async function doUpdatePassword() {
   var pass2 = (document.getElementById('new-pass-confirm').value || '').trim();
   if (!pass1 || pass1.length < 6) { toast('⚠️ Password deve ter mínimo 6 caracteres'); return; }
   if (pass1 !== pass2) { toast('⚠️ As passwords não coincidem'); return; }
-  if (!_db) return;
-  var res = await _db.auth.updateUser({ password: pass1 });
-  if (res.error) { toast('❌ ' + res.error.message); return; }
-  toast('✅ Password actualizada! Faz login com a nova password.');
-  history.replaceState(null, '', window.location.pathname);
-  setTimeout(function() { go('s-login'); }, 1500);
+  if (!_db) { toast('⚠️ A carregar... tenta novamente'); return; }
+
+  try {
+    // Get tokens — try memory first, then sessionStorage
+    var accToken  = _recoveryAccessToken  || sessionStorage.getItem('tr_access');
+    var refToken  = _recoveryRefreshToken || sessionStorage.getItem('tr_refresh');
+
+    if (!accToken || !refToken) {
+      toast('❌ Link expirado. Pede um novo link de recuperação.');
+      setTimeout(function() { go('s-reset-pass'); }, 1500);
+      return;
+    }
+
+    // Set the session explicitly with the recovery tokens
+    var setRes = await _db.auth.setSession({
+      access_token:  accToken,
+      refresh_token: refToken
+    });
+
+    if (setRes.error) {
+      toast('❌ Link expirado. Pede um novo link.');
+      setTimeout(function() { go('s-reset-pass'); }, 1500);
+      return;
+    }
+
+    // Now update the password
+    var res = await _db.auth.updateUser({ password: pass1 });
+    if (res.error) {
+      toast('❌ ' + res.error.message);
+      return;
+    }
+
+    // Clean up
+    sessionStorage.removeItem('tr_access');
+    sessionStorage.removeItem('tr_refresh');
+    sessionStorage.removeItem('tr_recovery');
+    _recoveryAccessToken = null;
+    _recoveryRefreshToken = null;
+
+    toast('✅ Password actualizada! Faz login com a nova password.');
+    await _db.auth.signOut();
+    setTimeout(function() { go('s-login'); }, 1500);
+
+  } catch(e) {
+    console.error('doUpdatePassword error:', e);
+    toast('❌ Erro ao actualizar password. Tenta novamente.');
+  }
 }
 
 // ── PUSH NOTIFICATIONS ──
+var _recoveryAccessToken = null;
+var _recoveryRefreshToken = null;
 var _notifPermission = 'default';
 
 function requestNotifPermission(callback) {
