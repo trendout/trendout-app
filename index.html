@@ -2602,9 +2602,19 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Helvetica Neue',He
   // ── AUTH ──
   async function supaLogin(email, pass) {
     if (!_db) return false;
-    var res = await _db.auth.signInWithPassword({ email: email, password: pass });
-    if (res.error) { toast('❌ ' + res.error.message); return false; }
-    return true;
+    try {
+      var res = await _db.auth.signInWithPassword({ email: email, password: pass });
+      if (res.error) {
+        toast('❌ ' + (res.error.message === 'Invalid login credentials'
+          ? 'Email ou password incorrectos'
+          : res.error.message));
+        return false;
+      }
+      return true;
+    } catch(e) {
+      toast('❌ Erro ao entrar. Tenta novamente.');
+      return false;
+    }
   }
 
   async function supaRegister(email, pass, name) {
@@ -6449,21 +6459,16 @@ function verifySMS() {
 
 // ── EMAIL LOGIN ──
 function doLogin() {
-  var email = (document.getElementById('login-email') || document.getElementById('reg-email') || {}).value || '';
-  var pass  = (document.getElementById('login-pass')  || document.getElementById('reg-pass')  || {}).value || '';
-  if (email && pass && _db) {
-    supaLogin(email, pass);
-    return;
-  }
-  var email = document.getElementById('login-email').value.trim();
-  var pass = document.getElementById('login-pass').value;
+  var email = (document.getElementById('login-email') || {}).value || '';
+  var pass  = (document.getElementById('login-pass')  || {}).value || '';
+  email = email.trim();
   if (!email || !pass) { toast('✉️ Preenche email e password'); return; }
   if (!email.includes('@')) { toast('✉️ Email inválido'); return; }
+  if (!_db) { toast('⚠️ A carregar... tenta novamente'); return; }
   setLoading('login-btn', true);
-  setTimeout(function() {
-    setLoading('login-btn', false, 'Entrar');
-    launchApp({ name: email.split('@')[0], email: email, method: 'email' });
-  }, 1500);
+  supaLogin(email, pass).then(function(ok) {
+    if (!ok) setLoading('login-btn', false, 'Entrar');
+  });
 }
 
 // ── REGISTER ──
