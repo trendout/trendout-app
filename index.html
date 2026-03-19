@@ -2581,6 +2581,10 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
 
   // ── AUTH ──
   async function supaLogin(email, pass) {
+    // Clear any stale recovery session
+    sessionStorage.removeItem('tr_recovery');
+    sessionStorage.removeItem('tr_access');
+    sessionStorage.removeItem('tr_refresh');
     if (!_db) return false;
     try {
       var res = await _db.auth.signInWithPassword({ email: email, password: pass });
@@ -4369,8 +4373,8 @@ function exportInsightPDF(btn) {
         go('s-new-pass');
       }, 500);
     });
-  } else if (sessionStorage.getItem('tr_recovery') === '1') {
-    // Came back after a page refresh — restore tokens
+  } else if (sessionStorage.getItem('tr_recovery') === '1' && sessionStorage.getItem('tr_access')) {
+    // Came back after a page refresh — restore tokens only if they exist
     _recoveryAccessToken  = sessionStorage.getItem('tr_access');
     _recoveryRefreshToken = sessionStorage.getItem('tr_refresh');
     document.addEventListener('DOMContentLoaded', function() {
@@ -4379,6 +4383,11 @@ function exportInsightPDF(btn) {
         go('s-new-pass');
       }, 500);
     });
+  } else {
+    // Clear any stale recovery flags
+    sessionStorage.removeItem('tr_recovery');
+    sessionStorage.removeItem('tr_access');
+    sessionStorage.removeItem('tr_refresh');
   }
 })();
 
@@ -6525,6 +6534,18 @@ function doLogout() {
   _user = null;
   var shell = document.getElementById('app-shell');
   if (shell) shell.classList.remove('active');
+  // Reset login button to active state
+  var loginBtn = document.getElementById('login-btn');
+  if (loginBtn) {
+    loginBtn.disabled = false;
+    loginBtn.style.opacity = '1';
+    loginBtn.textContent = 'Entrar';
+  }
+  // Clear login fields
+  var emailEl = document.getElementById('login-email');
+  var passEl  = document.getElementById('login-pass');
+  if (emailEl) emailEl.value = '';
+  if (passEl)  passEl.value  = '';
   go('s-welcome');
 }
 
