@@ -791,7 +791,7 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Helvetica Neue',He
       </div>
     </div>
 
-    <button onclick="submitPayment()" style="width:100%;padding:16px;border-radius:16px;background:#FACC15;border:none;color:#000;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;margin-bottom:12px;transition:all .2s" id="pay-submit-btn">
+    <button id="pay-submit-btn" onclick="submitPayment()" style="width:100%;padding:16px;border-radius:16px;background:#FACC15;border:none;color:#000;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;margin-bottom:12px;transition:all .2s" id="pay-submit-btn">
       🔒 Subscrever agora
     </button>
 
@@ -3574,6 +3574,11 @@ function selectPlan(plan) {
 }
 
 function selectPayment(method, btn) {
+  // If switching away from paypal, restore submit button
+  if (_selectedPayment === 'paypal' && method !== 'paypal') {
+    var submitBtn = document.getElementById('pay-submit-btn');
+    if (submitBtn) submitBtn.style.display = 'block';
+  }
   _selectedPayment = method;
   ['card','mbway','multibanco','paypal'].forEach(function(m) {
     var b = document.getElementById('pay-'+m);
@@ -3658,6 +3663,12 @@ function submitPayment() {
 function renderPayPalButtons() {
   var container = document.getElementById('paypal-button-container');
   if (!container) return;
+
+  // Show the PayPal form
+  document.querySelectorAll('[id^="form-"]').forEach(function(f){ f.style.display='none'; });
+  var paypalForm = document.getElementById('form-paypal');
+  if (paypalForm) paypalForm.style.display = 'block';
+
   container.innerHTML = '';
 
   // Hide the submit button while PayPal is shown
@@ -3685,9 +3696,14 @@ function renderPayPalButtons() {
       },
       onApprove: function(data, actions) {
         console.log('PayPal subscription approved:', data.subscriptionID);
-        // Activate premium
+        if (!data.subscriptionID) {
+          toast('❌ Pagamento não confirmado. Tenta novamente.');
+          return;
+        }
+        // Activate premium only after real approval
         _isPremium = true;
         updatePremiumUI();
+        toast('🎉 Premium activado! Bem-vindo!');
         // Save to Supabase
         if (_db) {
           _db.auth.getUser().then(function(res) {
