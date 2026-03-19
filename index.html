@@ -3662,7 +3662,7 @@ function submitPayment() {
 function loadPayPalSDK(callback) {
   if (typeof paypal !== 'undefined') { callback(); return; }
   var script = document.createElement('sc' + 'ript');
-  script.src = 'https://www.paypal.com/sdk/js?client-id=AdXNX58YuTsSq-kTxiNTHMGmkEdcbDWIskdwcS_6fbC3q71WaiGKfhfKWrtOn6k5Ytqm4b6LjLf5_sEf&vault=true&intent=subscription&currency=EUR';
+  script.src = 'https://www.paypal.com/sdk/js?client-id=AeNcSJxwfC1EhVHM6xpVBsEL0vle5-VxHxuk2MOgJb3OTbHnaC8bT7jgNVk1mZoXrRLT0craKWwaXvUY&vault=true&intent=subscription&currency=EUR';
   script.onload = function() { callback(); };
   script.onerror = function() {
     toast('❌ Erro ao carregar PayPal. Verifica a tua ligação.');
@@ -3687,7 +3687,7 @@ function renderPayPalButtons() {
 
   loadPayPalSDK(function() {
     container.innerHTML = '';
-    var planId = _selectedPlan === 'annual' ? 'P-5PS541302W915221KNG57FKI' : 'P-67143904RS374224PNG57DUY';
+    var planId = _selectedPlan === 'annual' ? 'P-2PW97776220834152NG57SYQ' : 'P-6KS56165DL5530622NG57R2Y';
 
   try {
     paypal.Buttons({
