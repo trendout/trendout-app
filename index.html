@@ -7487,51 +7487,7 @@ function initPerfAdv() {
     </div>
   </div>
 
-  <!-- ═══ SHARE SHEET ═══ -->
-  <div id="share-sheet" onclick="if(event.target===this)closeShareSheet()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:700;align-items:flex-end;justify-content:center;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">
-    <div style="background:#111;border-radius:28px 28px 0 0;width:100%;max-width:430px;padding:0 0 max(env(safe-area-inset-bottom,0px),28px);animation:slideUp .3s cubic-bezier(.34,1.1,.64,1)">
-      <div style="display:flex;justify-content:center;padding:14px 0 0"><div style="width:36px;height:4px;background:rgba(255,255,255,.2);border-radius:2px"></div></div>
-      <div style="padding:16px 22px 6px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.07)">
-        <div style="font-size:18px;font-weight:800">Partilhar atividade</div>
-        <button onclick="closeShareSheet()" style="background:rgba(255,255,255,.1);border:none;border-radius:50%;width:30px;height:30px;color:#fff;font-size:15px;cursor:pointer;font-family:inherit">✕</button>
-      </div>
-      <div id="share-preview" style="margin:16px 20px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:14px"></div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:0 20px 16px">
-        <button onclick="openInstaMenu()" style="display:flex;flex-direction:column;align-items:center;gap:7px;background:none;border:none;cursor:pointer;padding:8px 0">
-          <div style="width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);display:flex;align-items:center;justify-content:center;font-size:26px">📸</div>
-          <span style="font-size:11px;color:rgba(255,255,255,.6);font-weight:600">Instagram</span>
-        </button>
-        <button onclick="shareTo('whatsapp')" style="display:flex;flex-direction:column;align-items:center;gap:7px;background:none;border:none;cursor:pointer;padding:8px 0">
-          <div style="width:52px;height:52px;border-radius:16px;background:#25D366;display:flex;align-items:center;justify-content:center;font-size:26px">💬</div>
-          <span style="font-size:11px;color:rgba(255,255,255,.6);font-weight:600">WhatsApp</span>
-        </button>
-        <button onclick="openFbMenu()" style="display:flex;flex-direction:column;align-items:center;gap:7px;background:none;border:none;cursor:pointer;padding:8px 0">
-          <div style="width:52px;height:52px;border-radius:16px;background:#1877F2;display:flex;align-items:center;justify-content:center;font-size:26px">👥</div>
-          <span style="font-size:11px;color:rgba(255,255,255,.6);font-weight:600">Facebook</span>
-        </button>
-        <button onclick="shareTo('copy')" style="display:flex;flex-direction:column;align-items:center;gap:7px;background:none;border:none;cursor:pointer;padding:8px 0">
-          <div style="width:52px;height:52px;border-radius:16px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:26px">📋</div>
-          <span style="font-size:11px;color:rgba(255,255,255,.6);font-weight:600">Copiar</span>
-        </button>
-      </div>
-      <div style="padding:0 20px;display:flex;flex-direction:column;gap:10px">
-        <!-- Native share -->
-        <button onclick="shareTo('native')" style="width:100%;padding:14px;border-radius:14px;background:#fff;color:#000;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:10px">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-          Mais opções do sistema
-        </button>
-        <!-- Email + SMS row -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <button onclick="shareTo('email')" style="padding:14px;border-radius:14px;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.1);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px">
-            ✉️ Email
-          </button>
-          <button onclick="shareTo('sms')" style="padding:14px;border-radius:14px;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.1);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px">
-            💬 SMS
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
+
 
   <!-- ═══ INSTAGRAM SUB-MENU ═══ -->
   <div id="insta-menu" onclick="if(event.target===this)closeInstaMenu()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:800;align-items:flex-end;justify-content:center;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">
@@ -7748,5 +7704,51 @@ function initPerfAdv() {
 </div>
 
 
+
+  <!-- ═══ SHARE SHEET ═══ -->
+  <div id="share-sheet" onclick="if(event.target===this)closeShareSheet()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:700;align-items:flex-end;justify-content:center;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">
+    <div style="background:#111;border-radius:28px 28px 0 0;width:100%;max-width:430px;padding:0 0 max(env(safe-area-inset-bottom,0px),28px);animation:slideUp .3s cubic-bezier(.34,1.1,.64,1)">
+      <div style="display:flex;justify-content:center;padding:14px 0 0"><div style="width:36px;height:4px;background:rgba(255,255,255,.2);border-radius:2px"></div></div>
+      <div style="padding:16px 22px 6px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.07)">
+        <div style="font-size:18px;font-weight:800">Partilhar atividade</div>
+        <button onclick="closeShareSheet()" style="background:rgba(255,255,255,.1);border:none;border-radius:50%;width:30px;height:30px;color:#fff;font-size:15px;cursor:pointer;font-family:inherit">✕</button>
+      </div>
+      <div id="share-preview" style="margin:16px 20px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:14px"></div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:0 20px 16px">
+        <button onclick="openInstaMenu()" style="display:flex;flex-direction:column;align-items:center;gap:7px;background:none;border:none;cursor:pointer;padding:8px 0">
+          <div style="width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);display:flex;align-items:center;justify-content:center;font-size:26px">📸</div>
+          <span style="font-size:11px;color:rgba(255,255,255,.6);font-weight:600">Instagram</span>
+        </button>
+        <button onclick="shareTo('whatsapp')" style="display:flex;flex-direction:column;align-items:center;gap:7px;background:none;border:none;cursor:pointer;padding:8px 0">
+          <div style="width:52px;height:52px;border-radius:16px;background:#25D366;display:flex;align-items:center;justify-content:center;font-size:26px">💬</div>
+          <span style="font-size:11px;color:rgba(255,255,255,.6);font-weight:600">WhatsApp</span>
+        </button>
+        <button onclick="openFbMenu()" style="display:flex;flex-direction:column;align-items:center;gap:7px;background:none;border:none;cursor:pointer;padding:8px 0">
+          <div style="width:52px;height:52px;border-radius:16px;background:#1877F2;display:flex;align-items:center;justify-content:center;font-size:26px">👥</div>
+          <span style="font-size:11px;color:rgba(255,255,255,.6);font-weight:600">Facebook</span>
+        </button>
+        <button onclick="shareTo('copy')" style="display:flex;flex-direction:column;align-items:center;gap:7px;background:none;border:none;cursor:pointer;padding:8px 0">
+          <div style="width:52px;height:52px;border-radius:16px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:26px">📋</div>
+          <span style="font-size:11px;color:rgba(255,255,255,.6);font-weight:600">Copiar</span>
+        </button>
+      </div>
+      <div style="padding:0 20px;display:flex;flex-direction:column;gap:10px">
+        <!-- Native share -->
+        <button onclick="shareTo('native')" style="width:100%;padding:14px;border-radius:14px;background:#fff;color:#000;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:10px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          Mais opções do sistema
+        </button>
+        <!-- Email + SMS row -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <button onclick="shareTo('email')" style="padding:14px;border-radius:14px;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.1);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px">
+            ✉️ Email
+          </button>
+          <button onclick="shareTo('sms')" style="padding:14px;border-radius:14px;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.1);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px">
+            💬 SMS
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
