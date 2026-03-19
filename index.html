@@ -2535,15 +2535,46 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Helvetica Neue',He
   // Init Supabase after DOM ready
   document.addEventListener('DOMContentLoaded', function() {
     try {
-      _db = supabase.createClient(SUPA_URL, SUPA_KEY);
-      console.log('✅ Supabase connected');
-      // Check if user already logged in
-      _db.auth.getSession().then(function(res) {
-        if (res.data && res.data.session) {
-          var user = res.data.session.user;
-          supaLoadData(user);
+      _db = supabase.createClient(SUPA_URL, SUPA_KEY, {
+        auth: {
+          detectSessionInUrl: true,
+          persistSession: true,
+          autoRefreshToken: true
         }
       });
+      console.log('✅ Supabase connected');
+
+      // Handle OAuth callback — check URL for code or tokens
+      var urlParams = new URLSearchParams(window.location.search);
+      var urlHash   = window.location.hash;
+      var hasCode   = urlParams.has('code');
+      var hasTokens = urlHash.includes('access_token');
+
+      if (hasCode || hasTokens) {
+        // Process OAuth callback
+        _db.auth.exchangeCodeForSession(window.location.href).then(function(res) {
+          if (res.data && res.data.session) {
+            history.replaceState(null, '', window.location.pathname);
+            supaLoadData(res.data.session.user);
+          }
+        }).catch(function() {
+          // Fallback to getSession
+          _db.auth.getSession().then(function(res) {
+            if (res.data && res.data.session) {
+              history.replaceState(null, '', window.location.pathname);
+              supaLoadData(res.data.session.user);
+            }
+          });
+        });
+      } else {
+        // Normal load — check existing session
+        _db.auth.getSession().then(function(res) {
+          if (res.data && res.data.session) {
+            var user = res.data.session.user;
+            supaLoadData(user);
+          }
+        });
+      }
       // Listen for auth changes
       _db.auth.onAuthStateChange(function(event, session) {
         console.log('Auth event:', event, session ? session.user.email : 'no session');
@@ -4029,6 +4060,17 @@ function exportInsightPDF(btn) {
   toast('📄 A abrir PDF — usa Guardar como PDF no diálogo de impressão');
 }
 
+
+// ── OAUTH CALLBACK DETECTION ──
+(function() {
+  // Detect OAuth callback — Supabase may return code in query params
+  var search = window.location.search || '';
+  var hash   = window.location.hash   || '';
+  if (search.indexOf('code=') > -1 || hash.indexOf('access_token') > -1) {
+    // Let Supabase handle it via getSession / onAuthStateChange
+    console.log('OAuth callback detected');
+  }
+})();
 
 // ── RECOVERY LINK DETECTION ──
 (function() {
@@ -6374,7 +6416,11 @@ async function loginGoogle(btn) {
     var res = await _db.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: 'https://app.trendout.es'
+        redirectTo: 'https://app.trendout.es',
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent'
+        }
       }
     });
     if (res.error) {
