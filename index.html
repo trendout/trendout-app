@@ -4628,26 +4628,20 @@ function openActDetail(btn) {
 function openShareSheetDet() {
   if (!_currentAct) return;
   _shareAct = _currentAct;
-  // Populate share sheet exactly like the home page share button
-  var ic      = _actIcons[_shareAct.type] || '🏅';
+  var ic = _actIcons[_shareAct.type] || '🏅';
   var preview = document.getElementById('share-preview');
   if (preview) {
-    var icEl   = document.getElementById('share-act-ic');
-    var titEl  = document.getElementById('share-act-title');
-    var distEl = document.getElementById('share-act-dist');
-    var durEl  = document.getElementById('share-act-dur');
-    var paceEl = document.getElementById('share-act-pace');
-    if (icEl)   icEl.textContent   = ic;
-    if (titEl)  titEl.textContent  = _shareAct.type || 'Actividade';
-    if (distEl) distEl.textContent = _shareAct.dist || '—';
-    if (durEl)  durEl.textContent  = _shareAct.dur  || '—';
-    if (paceEl) paceEl.textContent = _shareAct.pace || '—';
+    preview.innerHTML = '<div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:8px">' + ic + ' ' + (_shareAct.title||_shareAct.type) + '</div>'
+      + '<div style="display:flex;gap:20px">'
+      + '<div><div style="font-size:16px;font-weight:800;color:#fff">' + (_shareAct.dist||'—') + '</div><div style="font-size:10px;color:rgba(255,255,255,.4)">Distância</div></div>'
+      + '<div><div style="font-size:16px;font-weight:800;color:#fff">' + (_shareAct.dur||'—') + '</div><div style="font-size:10px;color:rgba(255,255,255,.4)">Tempo</div></div>'
+      + '<div><div style="font-size:16px;font-weight:800;color:#fff">' + (_shareAct.pace||'—') + '</div><div style="font-size:10px;color:rgba(255,255,255,.4)">Pace</div></div>'
+      + '</div>';
   }
-  // Update share text
   var textEl = document.getElementById('share-text');
   if (textEl) textEl.value = buildShareText();
-  // Open the share sheet screen
-  go('s-share');
+  var sheet = document.getElementById('share-sheet');
+  if (sheet) { sheet.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
 }
 
 function renderActDetail(a) {
