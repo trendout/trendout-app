@@ -683,10 +683,7 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Helvetica Neue',He
 
     <!-- Payment method -->
     <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Método de pagamento</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px">
-      <button onclick="selectPayment('card',this)" id="pay-card" style="padding:12px;border-radius:14px;background:rgba(255,255,255,.08);border:2px solid #fff;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .2s">
-        <span style="font-size:22px">💳</span><span>Cartão</span>
-      </button>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:20px">
       <button onclick="selectPayment('mbway',this)" id="pay-mbway" style="padding:12px;border-radius:14px;background:rgba(255,255,255,.04);border:2px solid rgba(255,255,255,.12);color:rgba(255,255,255,.6);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .2s">
         <span style="font-size:22px">📱</span><span>MB WAY</span>
       </button>
@@ -694,42 +691,11 @@ html,body{height:100%;background:#000;color:#fff;font-family:'Helvetica Neue',He
         <span style="font-size:22px">🏧</span><span>Multibanco</span>
       </button>
       <button onclick="selectPayment('paypal',this)" id="pay-paypal" style="padding:12px;border-radius:14px;background:rgba(255,255,255,.04);border:2px solid rgba(255,255,255,.12);color:rgba(255,255,255,.6);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .2s">
-        <span style="font-size:22px">🅿️</span><span>PayPal</span>
+        <span style="font-size:22px">🅿️</span><span>PayPal / Cartão</span>
       </button>
     </div>
 
     <!-- Payment forms -->
-    <!-- Card form -->
-    <div id="form-card" style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px">
-      <div>
-        <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Nome no cartão</div>
-        <div style="background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);border-radius:13px;overflow:hidden" onfocusin="this.style.borderColor='rgba(255,255,255,.5)'" onfocusout="this.style.borderColor='rgba(255,255,255,.12)'">
-          <input id="pay-name" type="text" placeholder="João Silva" style="width:100%;background:none;border:none;outline:none;color:#fff;font-size:15px;padding:13px 14px;font-family:inherit;box-sizing:border-box"/>
-        </div>
-      </div>
-      <div>
-        <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Número do cartão</div>
-        <div style="background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);border-radius:13px;overflow:hidden;display:flex;align-items:center" onfocusin="this.style.borderColor='rgba(255,255,255,.5)'" onfocusout="this.style.borderColor='rgba(255,255,255,.12)'">
-          <input id="pay-card-num" type="tel" placeholder="0000 0000 0000 0000" maxlength="19" oninput="formatCardNumber(this)" style="flex:1;background:none;border:none;outline:none;color:#fff;font-size:15px;padding:13px 14px;font-family:inherit;letter-spacing:1px"/>
-          <div id="card-brand" style="padding-right:14px;font-size:20px"></div>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div>
-          <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Validade</div>
-          <div style="background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);border-radius:13px;overflow:hidden" onfocusin="this.style.borderColor='rgba(255,255,255,.5)'" onfocusout="this.style.borderColor='rgba(255,255,255,.12)'">
-            <input id="pay-expiry" type="tel" placeholder="MM/AA" maxlength="5" oninput="formatExpiry(this)" style="width:100%;background:none;border:none;outline:none;color:#fff;font-size:15px;padding:13px 14px;font-family:inherit;box-sizing:border-box"/>
-          </div>
-        </div>
-        <div>
-          <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">CVV</div>
-          <div style="background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);border-radius:13px;overflow:hidden" onfocusin="this.style.borderColor='rgba(255,255,255,.5)'" onfocusout="this.style.borderColor='rgba(255,255,255,.12)'">
-            <input id="pay-cvv" type="tel" placeholder="123" maxlength="4" style="width:100%;background:none;border:none;outline:none;color:#fff;font-size:15px;padding:13px 14px;font-family:inherit;box-sizing:border-box"/>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- MB WAY form -->
     <div id="form-mbway" style="display:none;flex-direction:column;gap:12px;margin-bottom:20px">
       <div style="background:rgba(255,68,0,.08);border:1px solid rgba(255,68,0,.2);border-radius:14px;padding:14px;display:flex;gap:12px;align-items:center">
@@ -3519,7 +3485,7 @@ function showInsightsError() {
 var _isPremium = false;
 var _upgradeFromApp = false;
 var _selectedPlan = 'annual';
-var _selectedPayment = 'card';
+var _selectedPayment = 'mbway';
 
 function openUpgrade() {
   var shell = document.getElementById('app-shell');
@@ -3584,7 +3550,7 @@ function selectPayment(method, btn) {
   var submitBtn = document.getElementById('pay-submit-btn');
   if (submitBtn) submitBtn.style.display = (method === 'paypal') ? 'none' : 'block';
   _selectedPayment = method;
-  ['card','mbway','multibanco','paypal'].forEach(function(m) {
+  ['mbway','multibanco','paypal'].forEach(function(m) {
     var b = document.getElementById('pay-'+m);
     var f = document.getElementById('form-'+m);
     if(b) { b.style.background='rgba(255,255,255,.04)'; b.style.borderColor='rgba(255,255,255,.12)'; b.style.color='rgba(255,255,255,.6)'; }
@@ -3646,16 +3612,7 @@ function formatPhone(input) {
 
 function submitPayment() {
   // Validate
-  if (_selectedPayment==='card') {
-    var name = (document.getElementById('pay-name').value||'').trim();
-    var num  = (document.getElementById('pay-card-num').value||'').replace(/\s/g,'');
-    var exp  = (document.getElementById('pay-expiry').value||'').trim();
-    var cvv  = (document.getElementById('pay-cvv').value||'').trim();
-    if(!name||num.length<16||exp.length<5||cvv.length<3) {
-      toast('⚠️ Preenche todos os campos do cartão');
-      return;
-    }
-  } else if (_selectedPayment==='mbway') {
+  if (_selectedPayment==='mbway') {
     var phone = (document.getElementById('pay-mbway-num').value||'').replace(/\s/g,'');
     if(phone.length<9) { toast('⚠️ Introduz um número de telemóvel válido'); return; }
     showPaymentSuccess();
