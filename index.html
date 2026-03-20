@@ -3178,7 +3178,7 @@ function stopGps() {
     distKm: _gps.distKm,
     centerLat: _gps.centerLat,
     centerLng: _gps.centerLng,
-    hasGps: _gps.route.length > 2,
+    hasGps: _gps.route.length > 2 && _gps.distKm > 0.05,
   };
   document.getElementById('gps-overlay').style.display='none';
   document.body.style.overflow='';
@@ -4706,7 +4706,9 @@ function renderActDetailMap(a) {
   ctx.fillRect(0, 0, W, H);
 
   var route = a.route || [];
-  var hasRoute = route.length > 2;
+  // Only show route if there was real movement (at least 50m)
+  var distKm = a.distKm || parseFloat((a.dist || '0').replace(' km','').replace(',','.')) || 0;
+  var hasRoute = route.length > 2 && distKm > 0.05 && a.hasGps;
 
   if (noGps) noGps.style.display = hasRoute ? 'none' : 'flex';
 
