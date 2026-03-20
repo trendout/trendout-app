@@ -4709,20 +4709,15 @@ function renderActDetailMap(a) {
   var ctx = canvas.getContext('2d');
   ctx.scale(dpr, dpr);
 
-  // Fundo preto
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, W, H);
 
   if (!hasRoute) {
-    // Placeholder sem GPS
     ctx.strokeStyle = 'rgba(255,255,255,.08)';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([4, 4]);
-    ctx.strokeRect(12, 12, W-24, H-24);
-    ctx.setLineDash([]);
+    ctx.lineWidth = 1; ctx.setLineDash([4,4]);
+    ctx.strokeRect(12, 12, W-24, H-24); ctx.setLineDash([]);
     ctx.fillStyle = 'rgba(255,255,255,.2)';
-    ctx.font = 'bold 11px Helvetica';
-    ctx.textAlign = 'center';
+    ctx.font = 'bold 11px Helvetica'; ctx.textAlign = 'center';
     ctx.fillText('Sem dados GPS', W/2, H/2 - 8);
     ctx.fillStyle = 'rgba(255,255,255,.12)';
     ctx.font = '10px Helvetica';
@@ -4730,63 +4725,144 @@ function renderActDetailMap(a) {
     return;
   }
 
-  // Project route
-  var lats = route.map(function(p){return p.lat;});
-  var lngs = route.map(function(p){return p.lng;});
-  var minLat = Math.min.apply(null,lats), maxLat = Math.max.apply(null,lats);
-  var minLng = Math.min.apply(null,lngs), maxLng = Math.max.apply(null,lngs);
+  // Draw vector map then fetch geocoding
+  drawVectorRoute(ctx, W, H, route, null, null, null);
 
-  // Padding proporcional
-  var pad = Math.min(W, H) * 0.15;
-  function toX(lng){ return pad + (lng-minLng)/(maxLng-minLng||0.001)*(W-pad*2); }
-  function toY(lat){ return H-pad - (lat-minLat)/(maxLat-minLat||0.001)*(H-pad*2); }
+  // Fetch reverse geocoding for start, end and city
+  var startPt = route[0];
+  var endPt   = route[route.length - 1];
+  var midPt   = route[Math.floor(route.length / 2)];
+
+  var results = { startStreet: null, endStreet: null, city: null, done: 0 };
+
+  function tryRedraw() {
+    results.done++;
+    if (results.done >= 2) {
+      drawVectorRoute(ctx, W, H, route, results.startStreet, results.endStreet, results.city);
+    }
+  }
+
+  // Start point
+  fetch('https://nominatim.openstreetmap.org/reverse?lat=' + startPt.lat + '&lon=' + startPt.lng + '&format=json&zoom=18&accept-language=pt', {
+    headers: { 'Accept-Language': 'pt', 'User-Agent': 'TrendoutApp/1.0' }
+  }).then(function(r){ return r.json(); }).then(function(d) {
+    var addr = d.address || {};
+    results.startStreet = addr.road || addr.pedestrian || addr.path || addr.footway || null;
+    results.city = addr.city || addr.town || addr.village || addr.municipality || null;
+    var country = addr.country_code ? addr.country_code.toUpperCase() : (addr.country || null);
+    if (results.city && country) results.city = results.city + ', ' + country;
+    tryRedraw();
+  }).catch(function(){ tryRedraw(); });
+
+  // End point (small delay to respect Nominatim 1req/s)
+  setTimeout(function() {
+    fetch('https://nominatim.openstreetmap.org/reverse?lat=' + endPt.lat + '&lon=' + endPt.lng + '&format=json&zoom=18&accept-language=pt', {
+      headers: { 'Accept-Language': 'pt', 'User-Agent': 'TrendoutApp/1.0' }
+    }).then(function(r){ return r.json(); }).then(function(d) {
+      var addr = d.address || {};
+      results.endStreet = addr.road || addr.pedestrian || addr.path || addr.footway || null;
+      tryRedraw();
+    }).catch(function(){ tryRedraw(); });
+  }, 1100);
+}
+
+function drawVectorRoute(ctx, W, H, route, startStreet, endStreet, city) {
+  // Clear and redraw background
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, W, H);
 
   // Grid subtil
   ctx.strokeStyle = 'rgba(255,255,255,.04)';
   ctx.lineWidth = 0.5;
   for (var gx = 0; gx < W; gx += 30) {
-    ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(gx,0); ctx.lineTo(gx,H); ctx.stroke();
   }
   for (var gy = 0; gy < H; gy += 30) {
-    ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0,gy); ctx.lineTo(W,gy); ctx.stroke();
   }
 
-  // Sombra/glow da rota
+  var lats = route.map(function(p){return p.lat;});
+  var lngs = route.map(function(p){return p.lng;});
+  var minLat = Math.min.apply(null,lats), maxLat = Math.max.apply(null,lats);
+  var minLng = Math.min.apply(null,lngs), maxLng = Math.max.apply(null,lngs);
+  var pad = Math.min(W,H) * 0.18;
+  function toX(lng){ return pad + (lng-minLng)/(maxLng-minLng||0.001)*(W-pad*2); }
+  function toY(lat){ return H-pad - (lat-minLat)/(maxLat-minLat||0.001)*(H-pad*2); }
+
+  // Glow
   ctx.beginPath();
-  ctx.strokeStyle = 'rgba(34,197,94,.15)';
-  ctx.lineWidth = 8;
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  route.forEach(function(p,i){
-    i===0 ? ctx.moveTo(toX(p.lng),toY(p.lat)) : ctx.lineTo(toX(p.lng),toY(p.lat));
-  });
+  ctx.strokeStyle = 'rgba(34,197,94,.12)';
+  ctx.lineWidth = 8; ctx.lineCap='round'; ctx.lineJoin='round';
+  route.forEach(function(p,i){ i===0?ctx.moveTo(toX(p.lng),toY(p.lat)):ctx.lineTo(toX(p.lng),toY(p.lat)); });
   ctx.stroke();
 
-  // Rota principal
+  // Rota
   ctx.beginPath();
   ctx.strokeStyle = '#22C55E';
-  ctx.lineWidth = 1.5;
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  route.forEach(function(p,i){
-    i===0 ? ctx.moveTo(toX(p.lng),toY(p.lat)) : ctx.lineTo(toX(p.lng),toY(p.lat));
-  });
+  ctx.lineWidth = 1.5; ctx.lineCap='round'; ctx.lineJoin='round';
+  route.forEach(function(p,i){ i===0?ctx.moveTo(toX(p.lng),toY(p.lat)):ctx.lineTo(toX(p.lng),toY(p.lat)); });
   ctx.stroke();
 
-  // Ponto início — vermelho
-  ctx.shadowColor = '#EF4444'; ctx.shadowBlur = 6;
-  ctx.fillStyle = '#EF4444';
-  ctx.beginPath(); ctx.arc(toX(route[0].lng), toY(route[0].lat), 5, 0, Math.PI*2); ctx.fill();
-  ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
-  ctx.beginPath(); ctx.arc(toX(route[0].lng), toY(route[0].lat), 2, 0, Math.PI*2); ctx.fill();
+  // Ponto início
+  var sx = toX(route[0].lng), sy = toY(route[0].lat);
+  ctx.shadowColor='#EF4444'; ctx.shadowBlur=6;
+  ctx.fillStyle='#EF4444';
+  ctx.beginPath(); ctx.arc(sx, sy, 5, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle='#fff'; ctx.shadowBlur=0;
+  ctx.beginPath(); ctx.arc(sx, sy, 2, 0, Math.PI*2); ctx.fill();
 
-  // Ponto fim — vermelho mais escuro
+  // Nome da rua — início
+  if (startStreet) {
+    var label = startStreet.length > 22 ? startStreet.substring(0,20)+'…' : startStreet;
+    var lx = Math.min(Math.max(sx, 4), W - 4);
+    var ly = sy + 14;
+    if (ly > H - 6) ly = sy - 8;
+    ctx.font = 'bold 8px Helvetica';
+    ctx.textAlign = lx < W/2 ? 'left' : 'right';
+    // Background pill
+    var tw = ctx.measureText(label).width;
+    var tx = ctx.textAlign === 'left' ? lx : lx - tw;
+    ctx.fillStyle = 'rgba(0,0,0,.65)';
+    ctx.fillRect(tx - 3, ly - 9, tw + 6, 12);
+    ctx.fillStyle = '#EF4444';
+    ctx.fillText(label, lx, ly);
+  }
+
+  // Ponto fim
   var last = route[route.length-1];
-  ctx.shadowColor = '#B91C1C'; ctx.shadowBlur = 6;
-  ctx.fillStyle = '#B91C1C';
-  ctx.beginPath(); ctx.arc(toX(last.lng), toY(last.lat), 5, 0, Math.PI*2); ctx.fill();
-  ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
-  ctx.beginPath(); ctx.arc(toX(last.lng), toY(last.lat), 2, 0, Math.PI*2); ctx.fill();
+  var ex = toX(last.lng), ey = toY(last.lat);
+  ctx.shadowColor='#B91C1C'; ctx.shadowBlur=6;
+  ctx.fillStyle='#B91C1C';
+  ctx.beginPath(); ctx.arc(ex, ey, 5, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle='#fff'; ctx.shadowBlur=0;
+  ctx.beginPath(); ctx.arc(ex, ey, 2, 0, Math.PI*2); ctx.fill();
+
+  // Nome da rua — fim
+  if (endStreet) {
+    var elabel = endStreet.length > 22 ? endStreet.substring(0,20)+'…' : endStreet;
+    var elx = Math.min(Math.max(ex, 4), W - 4);
+    var ely = ey + 14;
+    if (ely > H - 6) ely = ey - 8;
+    ctx.font = 'bold 8px Helvetica';
+    ctx.textAlign = elx < W/2 ? 'left' : 'right';
+    var etw = ctx.measureText(elabel).width;
+    var etx = ctx.textAlign === 'left' ? elx : elx - etw;
+    ctx.fillStyle = 'rgba(0,0,0,.65)';
+    ctx.fillRect(etx - 3, ely - 9, etw + 6, 12);
+    ctx.fillStyle = '#B91C1C';
+    ctx.fillText(elabel, elx, ely);
+  }
+
+  // Cidade — canto superior direito
+  if (city) {
+    ctx.font = 'bold 9px Helvetica';
+    ctx.textAlign = 'right';
+    var ctw = ctx.measureText(city).width;
+    ctx.fillStyle = 'rgba(0,0,0,.6)';
+    ctx.fillRect(W - ctw - 14, 8, ctw + 10, 14);
+    ctx.fillStyle = 'rgba(255,255,255,.7)';
+    ctx.fillText(city, W - 8, 19);
+  }
 }
 
 
