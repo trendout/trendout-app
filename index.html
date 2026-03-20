@@ -2714,6 +2714,8 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
       </div>
     </div>
 
+  </div>
+  </div>
     <nav class="app-nav" id="app-nav">
     <button class="nav-btn on" data-page="home" onclick="navTo('home')"><span class="ni">🏠</span>Início</button>
     <button class="nav-btn" data-page="record" onclick="openActModal()"><span class="ni"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M6 4.5C6 3.4 7.2 2.7 8.1 3.3l13 7.5c.9.5.9 1.9 0 2.4l-13 7.5C7.2 21.3 6 20.6 6 19.5z" fill="currentColor"/></svg></span>Gravar</button>
@@ -7328,14 +7330,19 @@ function navTo(page) {
   var pg = document.getElementById('page-'+page);
   if (pg) pg.classList.add('active');
   if (page === 'perf-adv') { setTimeout(initPerfAdv, 50); }
+  if (page === 'perf') { setTimeout(function(){ if(typeof renderPerfPage==='function') renderPerfPage(); }, 100); }
   // Only highlight nav for known tabs
   var navPages = ['home','record','enjoy','profile'];
   document.querySelectorAll('.nav-btn').forEach(function(b) {
     b.classList.toggle('on', b.dataset.page === page);
   });
-  if (page === 'history')   { renderHistory(); document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('on');}); }
-  if (page === 'act-detail') { document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('on');}); }
-
+  if (page === 'history') {
+    renderHistory();
+    document.querySelectorAll('.nav-btn').forEach(function(b){ b.classList.remove('on'); });
+  }
+  if (page === 'act-detail') {
+    document.querySelectorAll('.nav-btn').forEach(function(b){ b.classList.remove('on'); });
+  }
 }
 
 // ── TOAST ──
