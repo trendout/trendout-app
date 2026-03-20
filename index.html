@@ -1305,13 +1305,6 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
           </div>
         </div>
 
-        <!-- Ver detalhe link -->
-        <div style="text-align:center;margin-top:14px">
-          <button onclick="navTo('hap-detail')" style="background:none;border:none;color:rgba(250,204,21,.6);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px">
-            📊 Ver análise completa →
-          </button>
-        </div>
-
       </div>
 
       <button onclick="doLogout()" style="width:100%;padding:14px;border-radius:14px;background:rgba(239,68,68,.1);border:1.5px solid rgba(239,68,68,.3);color:#EF4444;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">Terminar sessão</button>
@@ -1777,13 +1770,6 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
             <div id="hap-streak" style="font-size:16px;font-weight:800;color:#F97316">0🔥</div>
             <div style="font-size:9px;color:rgba(255,255,255,.35);margin-top:2px">Streak</div>
           </div>
-        </div>
-
-        <!-- Ver detalhe link -->
-        <div style="text-align:center;margin-top:14px">
-          <button onclick="navTo('hap-detail')" style="background:none;border:none;color:rgba(250,204,21,.6);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px">
-            📊 Ver análise completa →
-          </button>
         </div>
 
       </div>
@@ -7558,10 +7544,10 @@ function navTo(page) {
   document.querySelectorAll('.nav-btn').forEach(function(b) {
     b.classList.toggle('on', b.dataset.page === page);
   });
-  if (page === 'history') {
-    renderHistory();
-    document.querySelectorAll('.nav-btn').forEach(function(b) { b.classList.remove('on'); });
-  }
+  if (page === 'history')   { renderHistory(); document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('on');}); }
+  if (page === 'hap-detail') { renderHapDetail(); document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('on');}); }
+  if (page === 'act-detail') { document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('on');}); }
+  if (page === 'perf') { setTimeout(function(){ if(typeof drawPerfCharts==='function') drawPerfCharts(); }, 50); }
 }
 
 // ── TOAST ──
