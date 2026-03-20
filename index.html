@@ -2917,9 +2917,9 @@ function drawTileMap(canvasId, lat, lng, zoom, route, callback, hideDot) {
   function drawRoute(){
     if (!route || route.length < 2) return;
     ctx.save();
-    ctx.strokeStyle='#22C55E'; ctx.lineWidth=3;
+    ctx.strokeStyle='#22C55E'; ctx.lineWidth=1;
     ctx.lineCap='round'; ctx.lineJoin='round';
-    ctx.shadowColor='#22C55E'; ctx.shadowBlur=6;
+    ctx.shadowColor='#22C55E'; ctx.shadowBlur=2;
     ctx.beginPath();
     for(var i=0;i<route.length;i++){
       var p=latLng2px(route[i].lat,route[i].lng,lat,lng,zoom,W,H);
@@ -2936,17 +2936,17 @@ function drawTileMap(canvasId, lat, lng, zoom, route, callback, hideDot) {
   }
 
   function drawDot(){
-    // Blue pulsing dot at center
+    // Current position dot — small, subtle
     ctx.beginPath();
-    ctx.fillStyle='rgba(59,130,246,0.2)';
-    ctx.arc(W/2,H/2,20,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='rgba(34,197,94,0.2)';
+    ctx.arc(W/2,H/2,7,0,Math.PI*2); ctx.fill();
     ctx.beginPath();
-    ctx.fillStyle='#3B82F6';
-    ctx.shadowColor='#3B82F6'; ctx.shadowBlur=10;
-    ctx.arc(W/2,H/2,8,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#22C55E';
+    ctx.shadowColor='#22C55E'; ctx.shadowBlur=6;
+    ctx.arc(W/2,H/2,5,0,Math.PI*2); ctx.fill();
     ctx.beginPath();
     ctx.fillStyle='#fff'; ctx.shadowBlur=0;
-    ctx.arc(W/2,H/2,3,0,Math.PI*2); ctx.fill();
+    ctx.arc(W/2,H/2,2,0,Math.PI*2); ctx.fill();
   }
 
   function tryDone(){
