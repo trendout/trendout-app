@@ -1240,6 +1240,8 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
             <div style="font-size:14px;font-weight:800;color:#fff">Medidor de Felicidade</div>
             <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Desde que começaste a usar a Trendout</div>
           </div>
+          <div style="display:flex;gap:8px">
+          <button onclick="navTo('hap-detail')" style="background:rgba(250,204,21,.1);border:1.5px solid rgba(250,204,21,.25);border-radius:12px;padding:7px 12px;color:#FACC15;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">📊 Detalhe</button>
           <button onclick="openHappinessLog()" style="background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.1);border-radius:12px;padding:7px 12px;color:rgba(255,255,255,.7);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">+ Registar</button>
         </div>
 
@@ -1707,6 +1709,8 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
             <div style="font-size:14px;font-weight:800;color:#fff">Medidor de Felicidade</div>
             <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Desde que começaste a usar a Trendout</div>
           </div>
+          <div style="display:flex;gap:8px">
+          <button onclick="navTo('hap-detail')" style="background:rgba(250,204,21,.1);border:1.5px solid rgba(250,204,21,.25);border-radius:12px;padding:7px 12px;color:#FACC15;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">📊 Detalhe</button>
           <button onclick="openHappinessLog()" style="background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.1);border-radius:12px;padding:7px 12px;color:rgba(255,255,255,.7);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">+ Registar</button>
         </div>
 
@@ -1906,6 +1910,8 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
             <div style="font-size:14px;font-weight:800;color:#fff">Medidor de Felicidade</div>
             <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Desde que começaste a usar a Trendout</div>
           </div>
+          <div style="display:flex;gap:8px">
+          <button onclick="navTo('hap-detail')" style="background:rgba(250,204,21,.1);border:1.5px solid rgba(250,204,21,.25);border-radius:12px;padding:7px 12px;color:#FACC15;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">📊 Detalhe</button>
           <button onclick="openHappinessLog()" style="background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.1);border-radius:12px;padding:7px 12px;color:rgba(255,255,255,.7);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">+ Registar</button>
         </div>
 
@@ -2608,6 +2614,99 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
             Eliminar actividade
           </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ HAPPINESS DETAIL PAGE ═══ -->
+    <div class="app-page" id="page-hap-detail" style="overflow-y:auto;height:100%;background:#000">
+      <div style="padding-bottom:120px">
+
+        <!-- Header -->
+        <div style="display:flex;align-items:center;gap:12px;padding:max(env(safe-area-inset-top,0px),20px) 18px 16px;position:sticky;top:0;background:#000;z-index:10;border-bottom:1px solid rgba(255,255,255,.06)">
+          <button onclick="navTo('profile')" style="width:36px;height:36px;border-radius:12px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.1);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:inherit">←</button>
+          <div style="flex:1">
+            <div style="font-size:17px;font-weight:800;color:#fff">O teu Bem-Estar</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:1px">Medidor de Felicidade · Trendout</div>
+          </div>
+          <div id="hd-emoji" style="font-size:28px">😐</div>
+        </div>
+
+        <!-- Score hero -->
+        <div style="padding:24px 18px 0;text-align:center">
+          <div style="display:inline-flex;flex-direction:column;align-items:center;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:20px 32px">
+            <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">Score Actual</div>
+            <div style="display:flex;align-items:baseline;gap:4px">
+              <span id="hd-score" style="font-size:56px;font-weight:900;color:#FACC15;line-height:1">—</span>
+              <span style="font-size:18px;color:rgba(255,255,255,.3)">/10</span>
+            </div>
+            <div id="hd-label" style="font-size:13px;color:rgba(255,255,255,.5);margin-top:6px">Sem registos</div>
+            <div id="hd-trend" style="font-size:12px;font-weight:700;margin-top:4px"></div>
+          </div>
+        </div>
+
+        <!-- Stats row -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;padding:16px 18px 0">
+          <div style="background:#111;border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:12px 8px;text-align:center">
+            <div id="hd-avg" style="font-size:18px;font-weight:900;color:#22C55E">—</div>
+            <div style="font-size:9px;color:rgba(255,255,255,.35);margin-top:3px;text-transform:uppercase;letter-spacing:.5px">Média</div>
+          </div>
+          <div style="background:#111;border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:12px 8px;text-align:center">
+            <div id="hd-best" style="font-size:18px;font-weight:900;color:#FACC15">—</div>
+            <div style="font-size:9px;color:rgba(255,255,255,.35);margin-top:3px;text-transform:uppercase;letter-spacing:.5px">Melhor</div>
+          </div>
+          <div style="background:#111;border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:12px 8px;text-align:center">
+            <div id="hd-days" style="font-size:18px;font-weight:900;color:#60A5FA">—</div>
+            <div style="font-size:9px;color:rgba(255,255,255,.35);margin-top:3px;text-transform:uppercase;letter-spacing:.5px">Dias</div>
+          </div>
+          <div style="background:#111;border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:12px 8px;text-align:center">
+            <div id="hd-streak" style="font-size:18px;font-weight:900;color:#F97316">—</div>
+            <div style="font-size:9px;color:rgba(255,255,255,.35);margin-top:3px;text-transform:uppercase;letter-spacing:.5px">Streak</div>
+          </div>
+        </div>
+
+        <!-- Period tabs -->
+        <div style="display:flex;gap:6px;padding:16px 18px 0;overflow-x:auto;scrollbar-width:none">
+          <button onclick="setHdPeriod('day',this)"    id="hd-tab-day"    class="hf-btn hf-active">Hoje</button>
+          <button onclick="setHdPeriod('month',this)"  id="hd-tab-month"  class="hf-btn">Mês</button>
+          <button onclick="setHdPeriod('3month',this)" id="hd-tab-3month" class="hf-btn">3 Meses</button>
+          <button onclick="setHdPeriod('6month',this)" id="hd-tab-6month" class="hf-btn">6 Meses</button>
+          <button onclick="setHdPeriod('year',this)"   id="hd-tab-year"   class="hf-btn">Ano</button>
+          <button onclick="setHdPeriod('prevyear',this)" id="hd-tab-prevyear" class="hf-btn">Ano anterior</button>
+        </div>
+
+        <!-- Chart -->
+        <div style="padding:12px 18px 0;position:relative">
+          <canvas id="hd-chart" style="width:100%;display:block;border-radius:14px"></canvas>
+        </div>
+
+        <!-- Insight quote -->
+        <div style="margin:20px 18px 0;background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(34,197,94,.08));border:1px solid rgba(124,58,237,.2);border-radius:18px;padding:20px">
+          <div style="font-size:10px;font-weight:700;color:rgba(250,204,21,.7);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px">✦ Filosofia Trendout</div>
+          <div style="font-size:14px;font-weight:700;color:#fff;line-height:1.6;margin-bottom:10px">"Sabias que a tua condição mental é uma consequência do teu treino e da tua consistência?"</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.5);line-height:1.7">"A tua performance nas relações pessoais, profissionais, e na tua imagem, é uma consequência da prática da tua filosofia de vida."</div>
+        </div>
+
+        <!-- Premium upsell -->
+        <div style="margin:16px 18px 0;background:rgba(250,204,21,.05);border:1.5px solid rgba(250,204,21,.2);border-radius:18px;padding:20px" id="hd-premium-block">
+          <div style="font-size:12px;font-weight:700;color:#FACC15;margin-bottom:6px">✨ Trendout Premium</div>
+          <div style="font-size:13px;color:rgba(255,255,255,.7);line-height:1.6;margin-bottom:14px">Acede a correlações avançadas entre o teu humor, treino e performance — e percebe exactamente o que te faz sentir melhor.</div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.6)"><span style="color:#22C55E;font-size:14px">✓</span> Correlação humor × treino × sono</div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.6)"><span style="color:#22C55E;font-size:14px">✓</span> Comparação com ano anterior</div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.6)"><span style="color:#22C55E;font-size:14px">✓</span> Coach emocional IA personalizado</div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.6)"><span style="color:#22C55E;font-size:14px">✓</span> Relatório semanal de bem-estar</div>
+          </div>
+          <button onclick="openUpgrade()" style="width:100%;padding:13px;border-radius:14px;background:linear-gradient(135deg,#FACC15,#F59E0B);border:none;color:#000;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit">
+            Activar Premium — a partir de 4,99€/mês
+          </button>
+        </div>
+
+        <!-- Recent entries -->
+        <div style="padding:20px 18px 0">
+          <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px">Últimos Registos</div>
+          <div id="hd-entries-list" style="display:flex;flex-direction:column;gap:8px"></div>
         </div>
 
       </div>
@@ -4992,6 +5091,215 @@ function renderActSplits(a) {
       + '</div>'
       + '<div style="font-size:13px;font-weight:700;color:' + (isBest ? '#22C55E' : '#fff') + ';width:46px;text-align:right;flex-shrink:0">' + paceStr + (isBest ? ' ⚡' : '') + '</div>'
       + '</div>';
+  }).join('');
+}
+
+
+// ── HAPPINESS DETAIL PAGE ──
+var _hdPeriod = 'month';
+
+function setHdPeriod(p, btn) {
+  _hdPeriod = p;
+  document.querySelectorAll('[id^="hd-tab-"]').forEach(function(b){ b.classList.remove('hf-active'); });
+  if (btn) btn.classList.add('hf-active');
+  renderHapDetail();
+}
+
+function getHapEntriesExtended(period) {
+  var now = new Date(); now.setHours(0,0,0,0);
+  var cutoff = new Date(now);
+  if      (period === 'day')     { cutoff.setDate(now.getDate()-1); }
+  else if (period === 'month')   { cutoff.setMonth(now.getMonth()-1); }
+  else if (period === '3month')  { cutoff.setMonth(now.getMonth()-3); }
+  else if (period === '6month')  { cutoff.setMonth(now.getMonth()-6); }
+  else if (period === 'year')    { cutoff.setFullYear(now.getFullYear()-1); }
+  else if (period === 'prevyear') {
+    var start = new Date(now.getFullYear()-1, 0, 1);
+    var end   = new Date(now.getFullYear()-1, 11, 31);
+    return _happinessLog.filter(function(e) {
+      var d = parseHapDate(e.date);
+      return d >= start && d <= end;
+    });
+  }
+  return _happinessLog.filter(function(e) {
+    var d = parseHapDate(e.date);
+    return d >= cutoff;
+  });
+}
+
+function parseHapDate(str) {
+  if (!str) return new Date(0);
+  var p = str.split('/');
+  return p.length === 3 ? new Date(p[2], p[1]-1, p[0]) : new Date(str);
+}
+
+function renderHapDetail() {
+  if (typeof _happinessLog === 'undefined') return;
+
+  // Update hero
+  var emojiEl = document.getElementById('hd-emoji');
+  var scoreEl = document.getElementById('hd-score');
+  var labelEl = document.getElementById('hd-label');
+  var trendEl = document.getElementById('hd-trend');
+
+  if (_happinessLog.length > 0) {
+    var last = _happinessLog[_happinessLog.length-1];
+    if (emojiEl) emojiEl.textContent = _hapEmojis[last.score] || '😐';
+    if (scoreEl) { scoreEl.textContent = last.score; scoreEl.style.color = _hapColors[last.score] || '#FACC15'; }
+    if (labelEl) labelEl.textContent = _hapLabels[last.score] || '';
+    if (trendEl && _happinessLog.length > 1) {
+      var prev = _happinessLog[_happinessLog.length-2].score;
+      var diff = last.score - prev;
+      trendEl.textContent = diff > 0 ? '↑ +'+diff+' vs anterior' : diff < 0 ? '↓ '+diff+' vs anterior' : '→ Estável';
+      trendEl.style.color = diff > 0 ? '#22C55E' : diff < 0 ? '#EF4444' : 'rgba(255,255,255,.4)';
+    }
+  }
+
+  // Stats
+  var entries = getHapEntriesExtended(_hdPeriod);
+  var avgEl    = document.getElementById('hd-avg');
+  var bestEl   = document.getElementById('hd-best');
+  var daysEl   = document.getElementById('hd-days');
+  var streakEl = document.getElementById('hd-streak');
+
+  if (entries.length > 0) {
+    var scores = entries.map(function(e){return e.score;});
+    var avg  = (scores.reduce(function(a,b){return a+b;},0)/scores.length).toFixed(1);
+    var best = Math.max.apply(null, scores);
+    if (avgEl)  avgEl.textContent  = avg;
+    if (bestEl) bestEl.textContent = best;
+    if (daysEl) daysEl.textContent = entries.length;
+  } else {
+    if (avgEl)  avgEl.textContent  = '—';
+    if (bestEl) bestEl.textContent = '—';
+    if (daysEl) daysEl.textContent = '0';
+  }
+
+  // Streak
+  if (streakEl) {
+    var streak = 0;
+    var sorted = _happinessLog.slice().sort(function(a,b){ return parseHapDate(b.date)-parseHapDate(a.date); });
+    var today = new Date(); today.setHours(0,0,0,0);
+    for (var i = 0; i < sorted.length; i++) {
+      var expected = new Date(today); expected.setDate(today.getDate()-i);
+      var d = parseHapDate(sorted[i].date);
+      if (d.toDateString() === expected.toDateString()) streak++;
+      else break;
+    }
+    streakEl.textContent = streak + '🔥';
+  }
+
+  // Draw chart
+  drawHapDetailChart(entries);
+
+  // Premium block
+  var premBlock = document.getElementById('hd-premium-block');
+  if (premBlock) premBlock.style.display = _isPremium ? 'none' : 'block';
+
+  // Recent entries list
+  renderHapEntries();
+}
+
+function drawHapDetailChart(entries) {
+  var canvas = document.getElementById('hd-chart');
+  if (!canvas) return;
+  var W = canvas.parentElement.offsetWidth || 375;
+  var H = 160;
+  var dpr = window.devicePixelRatio || 1;
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+  var ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  ctx.fillStyle = '#0a0a0a';
+  ctx.fillRect(0, 0, W, H);
+
+  if (!entries.length) {
+    ctx.fillStyle = 'rgba(255,255,255,.2)';
+    ctx.font = '12px Helvetica'; ctx.textAlign = 'center';
+    ctx.fillText('Sem registos neste período', W/2, H/2);
+    return;
+  }
+
+  var sorted = entries.slice().sort(function(a,b){ return parseHapDate(a.date)-parseHapDate(b.date); });
+  var pad = {t:16, r:16, b:28, l:28};
+  var cW = W - pad.l - pad.r;
+  var cH = H - pad.t - pad.b;
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(255,255,255,.06)'; ctx.lineWidth = 0.5;
+  [2,4,6,8,10].forEach(function(v) {
+    var y = pad.t + cH - (v/10)*cH;
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W-pad.r, y); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.font = '8px Helvetica'; ctx.textAlign = 'right';
+    ctx.fillText(v, pad.l-4, y+3);
+  });
+
+  // Area fill
+  var grad = ctx.createLinearGradient(0, pad.t, 0, H-pad.b);
+  grad.addColorStop(0, 'rgba(250,204,21,.25)');
+  grad.addColorStop(1, 'rgba(250,204,21,.02)');
+  ctx.beginPath();
+  sorted.forEach(function(e,i) {
+    var x = pad.l + (i/(sorted.length-1||1))*cW;
+    var y = pad.t + cH - ((e.score-1)/9)*cH;
+    i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+  });
+  var lastX = pad.l + cW, lastY = H-pad.b;
+  ctx.lineTo(lastX, lastY); ctx.lineTo(pad.l, lastY);
+  ctx.closePath(); ctx.fillStyle = grad; ctx.fill();
+
+  // Line
+  ctx.beginPath(); ctx.strokeStyle = '#FACC15'; ctx.lineWidth = 2;
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  sorted.forEach(function(e,i) {
+    var x = pad.l + (i/(sorted.length-1||1))*cW;
+    var y = pad.t + cH - ((e.score-1)/9)*cH;
+    i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+
+  // Dots
+  sorted.forEach(function(e,i) {
+    var x = pad.l + (i/(sorted.length-1||1))*cW;
+    var y = pad.t + cH - ((e.score-1)/9)*cH;
+    var col = _hapColors[e.score] || '#FACC15';
+    ctx.fillStyle = col; ctx.shadowColor = col; ctx.shadowBlur = 4;
+    ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+  });
+
+  // X labels (show up to 6)
+  ctx.fillStyle = 'rgba(255,255,255,.3)'; ctx.font = '8px Helvetica'; ctx.textAlign = 'center';
+  var step = Math.max(1, Math.floor(sorted.length/6));
+  sorted.forEach(function(e,i) {
+    if (i % step !== 0 && i !== sorted.length-1) return;
+    var x = pad.l + (i/(sorted.length-1||1))*cW;
+    var d = parseHapDate(e.date);
+    var lbl = (d.getDate()+'/'+(d.getMonth()+1));
+    ctx.fillText(lbl, x, H-pad.b+12);
+  });
+}
+
+function renderHapEntries() {
+  var el = document.getElementById('hd-entries-list');
+  if (!el) return;
+  var recent = _happinessLog.slice(-10).reverse();
+  if (!recent.length) {
+    el.innerHTML = '<div style="text-align:center;padding:20px;font-size:12px;color:rgba(255,255,255,.25)">Ainda sem registos</div>';
+    return;
+  }
+  el.innerHTML = recent.map(function(e) {
+    var emoji = _hapEmojis[e.score] || '😐';
+    var col   = _hapColors[e.score] || '#fff';
+    return '<div style="background:#111;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px">'
+      + '<div style="font-size:24px">'+emoji+'</div>'
+      + '<div style="flex:1">'
+      + '<div style="font-size:13px;font-weight:700;color:'+col+'">'+e.score+'/10 · '+(_hapLabels[e.score]||'')+'</div>'
+      + '<div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px">'+(e.date||'')+(e.note?' · '+e.note:'')+'</div>'
+      + '</div></div>';
   }).join('');
 }
 
