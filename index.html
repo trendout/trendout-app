@@ -4725,46 +4725,60 @@ function renderActDetailMap(a) {
     return;
   }
 
-  // Draw vector map then fetch geocoding
-  drawVectorRoute(ctx, W, H, route, null, null, null);
-
-  // Fetch reverse geocoding for start, end and city
-  var startPt = route[0];
-  var endPt   = route[route.length - 1];
-  var midPt   = route[Math.floor(route.length / 2)];
-
-  var results = { startStreet: null, endStreet: null, city: null, done: 0 };
-
-  function tryRedraw() {
-    results.done++;
-    if (results.done >= 2) {
-      drawVectorRoute(ctx, W, H, route, results.startStreet, results.endStreet, results.city);
-    }
+  // If geocoding already saved — draw immediately
+  if ('city' in a || 'startStreet' in a) {
+    drawVectorRoute(ctx, W, H, route, a.startStreet||null, a.endStreet||null, a.city||null);
+    return;
   }
 
-  // Start point
-  fetch('https://nominatim.openstreetmap.org/reverse?lat=' + startPt.lat + '&lon=' + startPt.lng + '&format=json&zoom=18&accept-language=pt', {
-    headers: { 'Accept-Language': 'pt', 'User-Agent': 'TrendoutApp/1.0' }
-  }).then(function(r){ return r.json(); }).then(function(d) {
-    var addr = d.address || {};
-    results.startStreet = addr.road || addr.pedestrian || addr.path || addr.footway || null;
-    results.city = addr.city || addr.town || addr.village || addr.municipality || null;
-    var country = addr.country_code ? addr.country_code.toUpperCase() : (addr.country || null);
-    if (results.city && country) results.city = results.city + ', ' + country;
-    tryRedraw();
-  }).catch(function(){ tryRedraw(); });
+  // Draw immediately without labels while fetching
+  drawVectorRoute(ctx, W, H, route, null, null, null);
 
-  // End point (small delay to respect Nominatim 1req/s)
-  setTimeout(function() {
-    fetch('https://nominatim.openstreetmap.org/reverse?lat=' + endPt.lat + '&lon=' + endPt.lng + '&format=json&zoom=18&accept-language=pt', {
-      headers: { 'Accept-Language': 'pt', 'User-Agent': 'TrendoutApp/1.0' }
-    }).then(function(r){ return r.json(); }).then(function(d) {
-      var addr = d.address || {};
-      results.endStreet = addr.road || addr.pedestrian || addr.path || addr.footway || null;
-      tryRedraw();
-    }).catch(function(){ tryRedraw(); });
+  // Fetch geocoding and save to activity
+  var startPt = route[0];
+  var endPt   = route[route.length-1];
+  var geo = { start: null, end: null, city: null, done: 0 };
+
+  function saveAndRedraw() {
+    geo.done++;
+    if (geo.done < 2) return;
+    // Save to activity object permanently
+    a.startStreet = geo.start;
+    a.endStreet   = geo.end;
+    a.city        = geo.city;
+    // Save to Supabase if logged in
+    if (_db && a.id) {
+      _db.from('activities').update({
+        startStreet: geo.start,
+        endStreet:   geo.end,
+        city:        geo.city
+      }).eq('id', a.id).then(function(){});
+    }
+    // Redraw with labels
+    drawVectorRoute(ctx, W, H, route, geo.start, geo.end, geo.city);
+  }
+
+  fetch('https://nominatim.openstreetmap.org/reverse?lat='+startPt.lat+'&lon='+startPt.lng+'&format=json&zoom=18', {
+    headers:{'User-Agent':'TrendoutApp/1.0'}
+  }).then(function(r){return r.json();}).then(function(d){
+    var addr = d.address||{};
+    geo.start = addr.road||addr.pedestrian||addr.path||addr.footway||null;
+    geo.city  = (addr.city||addr.town||addr.village||addr.municipality||null);
+    if (geo.city && addr.country_code) geo.city += ', ' + addr.country_code.toUpperCase();
+    saveAndRedraw();
+  }).catch(function(){ saveAndRedraw(); });
+
+  setTimeout(function(){
+    fetch('https://nominatim.openstreetmap.org/reverse?lat='+endPt.lat+'&lon='+endPt.lng+'&format=json&zoom=18', {
+      headers:{'User-Agent':'TrendoutApp/1.0'}
+    }).then(function(r){return r.json();}).then(function(d){
+      var addr = d.address||{};
+      geo.end = addr.road||addr.pedestrian||addr.path||addr.footway||null;
+      saveAndRedraw();
+    }).catch(function(){ saveAndRedraw(); });
   }, 1100);
 }
+
 
 function drawVectorRoute(ctx, W, H, route, startStreet, endStreet, city) {
   // Clear and redraw background
