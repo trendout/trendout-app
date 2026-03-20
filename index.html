@@ -2927,12 +2927,12 @@ function drawTileMap(canvasId, lat, lng, zoom, route, callback, hideDot) {
     }
     ctx.stroke();
     ctx.restore();
-    // Start dot — dark blue
+    // Start dot — red
     var p0=latLng2px(route[0].lat,route[0].lng,lat,lng,zoom,W,H);
-    ctx.fillStyle='#1E40AF'; ctx.shadowColor='#1D4ED8'; ctx.shadowBlur=6;
-    ctx.beginPath(); ctx.arc(p0.x,p0.y,7,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#EF4444'; ctx.shadowColor='#EF4444'; ctx.shadowBlur=6;
+    ctx.beginPath(); ctx.arc(p0.x,p0.y,5,0,Math.PI*2); ctx.fill();
     ctx.fillStyle='#fff'; ctx.shadowBlur=0;
-    ctx.beginPath(); ctx.arc(p0.x,p0.y,3,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(p0.x,p0.y,2,0,Math.PI*2); ctx.fill();
   }
 
   function drawDot(){
@@ -4699,56 +4699,94 @@ function renderActDetailMap(a) {
 
   if (noGps) noGps.style.display = hasRoute ? 'none' : 'flex';
 
-  // Draw tiles WITHOUT route (pass null) — we draw our own route on top
-  var centerLat = a.centerLat || (hasRoute ? route.reduce(function(s,p){return s+p.lat;},0)/route.length : 38.7169);
-  var centerLng = a.centerLng || (hasRoute ? route.reduce(function(s,p){return s+p.lng;},0)/route.length : -9.1399);
+  var dpr = window.devicePixelRatio || 1;
+  var W   = canvas.offsetWidth || 375;
+  var H   = 200;
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+  var ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
 
-  drawTileMap('det-map', centerLat, centerLng, 15, null, function() {
-    if (!hasRoute) return;
-    var c2 = document.getElementById('det-map');
-    if (!c2) return;
-    var ctx = c2.getContext('2d');
-    var dpr = window.devicePixelRatio || 1;
-    var W = c2.width / dpr;
-    var H = c2.height / dpr;
+  // Fundo preto
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, W, H);
 
-    var lats = route.map(function(p){return p.lat;});
-    var lngs = route.map(function(p){return p.lng;});
-    var minLat = Math.min.apply(null,lats), maxLat = Math.max.apply(null,lats);
-    var minLng = Math.min.apply(null,lngs), maxLng = Math.max.apply(null,lngs);
-    var pad = 24;
-    function toX(lng){ return pad + (lng-minLng)/(maxLng-minLng||0.001)*(W-pad*2); }
-    function toY(lat){ return H-pad - (lat-minLat)/(maxLat-minLat||0.001)*(H-pad*2); }
+  if (!hasRoute) {
+    // Placeholder sem GPS
+    ctx.strokeStyle = 'rgba(255,255,255,.08)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.strokeRect(12, 12, W-24, H-24);
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(255,255,255,.2)';
+    ctx.font = 'bold 11px Helvetica';
+    ctx.textAlign = 'center';
+    ctx.fillText('Sem dados GPS', W/2, H/2 - 8);
+    ctx.fillStyle = 'rgba(255,255,255,.12)';
+    ctx.font = '10px Helvetica';
+    ctx.fillText('Ativa o GPS ao gravar', W/2, H/2 + 10);
+    return;
+  }
 
-    // Route line — single green line
-    ctx.beginPath();
-    ctx.strokeStyle = '#22C55E';
-    ctx.lineWidth   = 3;
-    ctx.lineCap     = 'round';
-    ctx.lineJoin    = 'round';
-    ctx.shadowColor = '#22C55E';
-    ctx.shadowBlur  = 6;
-    route.forEach(function(p, i) {
-      i === 0 ? ctx.moveTo(toX(p.lng), toY(p.lat)) : ctx.lineTo(toX(p.lng), toY(p.lat));
-    });
-    ctx.stroke();
-    ctx.shadowBlur = 0;
+  // Project route
+  var lats = route.map(function(p){return p.lat;});
+  var lngs = route.map(function(p){return p.lng;});
+  var minLat = Math.min.apply(null,lats), maxLat = Math.max.apply(null,lats);
+  var minLng = Math.min.apply(null,lngs), maxLng = Math.max.apply(null,lngs);
 
-    // Start dot — dark blue
-    ctx.fillStyle = '#1E40AF';
-    ctx.shadowColor = '#1D4ED8'; ctx.shadowBlur = 6;
-    ctx.beginPath(); ctx.arc(toX(route[0].lng), toY(route[0].lat), 7, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
-    ctx.beginPath(); ctx.arc(toX(route[0].lng), toY(route[0].lat), 3, 0, Math.PI*2); ctx.fill();
+  // Padding proporcional
+  var pad = Math.min(W, H) * 0.15;
+  function toX(lng){ return pad + (lng-minLng)/(maxLng-minLng||0.001)*(W-pad*2); }
+  function toY(lat){ return H-pad - (lat-minLat)/(maxLat-minLat||0.001)*(H-pad*2); }
 
-    // End dot — red
-    var last = route[route.length-1];
-    ctx.fillStyle = '#EF4444';
-    ctx.shadowColor = '#EF4444'; ctx.shadowBlur = 6;
-    ctx.beginPath(); ctx.arc(toX(last.lng), toY(last.lat), 7, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
-    ctx.beginPath(); ctx.arc(toX(last.lng), toY(last.lat), 3, 0, Math.PI*2); ctx.fill();
-  }, true);
+  // Grid subtil
+  ctx.strokeStyle = 'rgba(255,255,255,.04)';
+  ctx.lineWidth = 0.5;
+  for (var gx = 0; gx < W; gx += 30) {
+    ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke();
+  }
+  for (var gy = 0; gy < H; gy += 30) {
+    ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
+  }
+
+  // Sombra/glow da rota
+  ctx.beginPath();
+  ctx.strokeStyle = 'rgba(34,197,94,.15)';
+  ctx.lineWidth = 8;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  route.forEach(function(p,i){
+    i===0 ? ctx.moveTo(toX(p.lng),toY(p.lat)) : ctx.lineTo(toX(p.lng),toY(p.lat));
+  });
+  ctx.stroke();
+
+  // Rota principal
+  ctx.beginPath();
+  ctx.strokeStyle = '#22C55E';
+  ctx.lineWidth = 1.5;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  route.forEach(function(p,i){
+    i===0 ? ctx.moveTo(toX(p.lng),toY(p.lat)) : ctx.lineTo(toX(p.lng),toY(p.lat));
+  });
+  ctx.stroke();
+
+  // Ponto início — vermelho
+  ctx.shadowColor = '#EF4444'; ctx.shadowBlur = 6;
+  ctx.fillStyle = '#EF4444';
+  ctx.beginPath(); ctx.arc(toX(route[0].lng), toY(route[0].lat), 5, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
+  ctx.beginPath(); ctx.arc(toX(route[0].lng), toY(route[0].lat), 2, 0, Math.PI*2); ctx.fill();
+
+  // Ponto fim — vermelho mais escuro
+  var last = route[route.length-1];
+  ctx.shadowColor = '#B91C1C'; ctx.shadowBlur = 6;
+  ctx.fillStyle = '#B91C1C';
+  ctx.beginPath(); ctx.arc(toX(last.lng), toY(last.lat), 5, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
+  ctx.beginPath(); ctx.arc(toX(last.lng), toY(last.lat), 2, 0, Math.PI*2); ctx.fill();
 }
 
 
