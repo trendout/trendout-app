@@ -184,7 +184,7 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
 }
 .nav-btn.on{color:#fff}
 .nav-btn .ni{font-size:22px;line-height:1}
-.app-content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.app-content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0;height:0}
 .app-content::-webkit-scrollbar{display:none}
 .app-page{display:none;padding:16px 18px 24px;animation:fadeUp .3s ease}
 .app-page.active{display:block}
@@ -2714,8 +2714,6 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
       </div>
     </div>
 
-  </div>
-  </div>
     <nav class="app-nav" id="app-nav">
     <button class="nav-btn on" data-page="home" onclick="navTo('home')"><span class="ni">🏠</span>Início</button>
     <button class="nav-btn" data-page="record" onclick="openActModal()"><span class="ni"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M6 4.5C6 3.4 7.2 2.7 8.1 3.3l13 7.5c.9.5.9 1.9 0 2.4l-13 7.5C7.2 21.3 6 20.6 6 19.5z" fill="currentColor"/></svg></span>Gravar</button>
@@ -2723,6 +2721,10 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
     <button class="nav-btn" data-page="profile" onclick="navTo('profile')"><span class="ni">👤</span>Perfil</button>
   </nav>
 </div>
+</div>
+</div>
+</div>
+
 
 
 <!-- ════════════════════════════════════
