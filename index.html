@@ -3208,6 +3208,7 @@ function stopGps() {
     dur:durStr, pace:paceStr+' /km',
     cal:Math.round(_gps.distKm*65+_gps.seconds*0.05),
     date:new Date().toLocaleDateString('pt-PT'),
+    startTime:new Date().toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'}),
     route: _gps.route.slice(),
     splits: _gps.kmSplits.slice(),
     totalSeconds: _gps.seconds,
@@ -7068,21 +7069,24 @@ async function deleteActivity(idx) {
 function actCard(a, compact) {
   var ic = _actIcons[a.type] || '🏅';
   var idx = _allActivities.indexOf(a);
+  var subtitle = a.date || '';
+  if (a.startTime) subtitle += ' · ' + a.startTime;
+  if (a.city) subtitle += ' · 📍' + a.city.split(',')[0];
+  var km = parseFloat(a.dist) || 0;
+  var durParts = (a.dur||'').split(':');
+  var mins = durParts.length>=2 ? parseInt(durParts[0])*60+parseInt(durParts[1]) : parseInt(durParts[0])||0;
+  var earns = km >= 5 || mins >= 60;
+  var ptsTag = earns
+    ? '<div style="background:rgba(250,204,21,.12);border:1px solid rgba(250,204,21,.25);border-radius:8px;padding:3px 9px;font-size:11px;font-weight:700;color:#FACC15">⭐ +5 pts</div>'
+    : '<div style="background:rgba(255,255,255,.06);border-radius:8px;padding:3px 9px;font-size:11px;color:rgba(255,255,255,.3)">0 pts</div>';
   return '<div style="background:#111;border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:16px;margin-bottom:10px">'
     + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
-    + '<div style="display:flex;align-items:center;gap:10px">'
-    + '<div style="width:36px;height:36px;background:rgba(255,255,255,.08);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px">' + ic + '</div>'
-    + '<div><div style="font-size:14px;font-weight:700;color:#fff">' + (a.title||a.type) + '</div>'
-    + '<div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px">' + ic + ' ' + a.type + ' · ' + a.date + '</div></div>'
+    + '<div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">'
+    + '<div style="width:42px;height:42px;background:rgba(255,255,255,.08);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">' + ic + '</div>'
+    + '<div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (a.title||a.type) + '</div>'
+    + '<div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + subtitle + '</div></div>'
     + '</div>'
-    + (function(){
-      var km = parseFloat(a.dist) || 0;
-      var durParts = (a.dur||'').split(':');
-      var mins = durParts.length>=2 ? parseInt(durParts[0])*60+parseInt(durParts[1]) : parseInt(durParts[0])||0;
-      var earns = km >= 5 || mins >= 60;
-      if (earns) return '<div style="background:rgba(250,204,21,.12);border:1px solid rgba(250,204,21,.25);border-radius:8px;padding:3px 9px;font-size:11px;font-weight:700;color:#FACC15">⭐ +5 pts</div>';
-      return '<div style="background:rgba(255,255,255,.06);border-radius:8px;padding:3px 9px;font-size:11px;color:rgba(255,255,255,.3)" title="Mínimo 5km ou 1h para ganhar pontos">0 pts</div>';
-    })()
+    + ptsTag
     + '</div>'
     + '<div style="display:flex;gap:16px;margin-bottom:14px">'
     + '<div><div style="font-size:14px;font-weight:700;color:#fff">' + (a.dist||'—') + '</div><div style="font-size:10px;color:rgba(255,255,255,.4)">Dist</div></div>'
@@ -7102,7 +7106,7 @@ function actCard(a, compact) {
     + '</div>';
 }
 
-// ── NAVIGATION ──
+
 function go(screenId) {
   document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
   var el = document.getElementById(screenId);
