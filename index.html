@@ -1240,10 +1240,7 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
             <div style="font-size:14px;font-weight:800;color:#fff">Medidor de Felicidade</div>
             <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Desde que começaste a usar a Trendout</div>
           </div>
-          <div style="display:flex;gap:8px">
-          <button onclick="navTo('hap-detail')" style="background:rgba(250,204,21,.1);border:1.5px solid rgba(250,204,21,.25);border-radius:12px;padding:7px 12px;color:#FACC15;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">📊 Detalhe</button>
           <button onclick="openHappinessLog()" style="background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.1);border-radius:12px;padding:7px 12px;color:rgba(255,255,255,.7);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">+ Registar</button>
-        </div>
 
         <!-- Big emoji + score -->
         <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
@@ -1307,6 +1304,14 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
             <div style="font-size:9px;color:rgba(255,255,255,.35);margin-top:2px">Streak</div>
           </div>
         </div>
+
+        <!-- Ver detalhe link -->
+        <div style="text-align:center;margin-top:14px">
+          <button onclick="navTo('hap-detail')" style="background:none;border:none;color:rgba(250,204,21,.6);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px">
+            📊 Ver análise completa →
+          </button>
+        </div>
+
       </div>
 
       <button onclick="doLogout()" style="width:100%;padding:14px;border-radius:14px;background:rgba(239,68,68,.1);border:1.5px solid rgba(239,68,68,.3);color:#EF4444;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">Terminar sessão</button>
@@ -1709,10 +1714,7 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
             <div style="font-size:14px;font-weight:800;color:#fff">Medidor de Felicidade</div>
             <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Desde que começaste a usar a Trendout</div>
           </div>
-          <div style="display:flex;gap:8px">
-          <button onclick="navTo('hap-detail')" style="background:rgba(250,204,21,.1);border:1.5px solid rgba(250,204,21,.25);border-radius:12px;padding:7px 12px;color:#FACC15;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">📊 Detalhe</button>
           <button onclick="openHappinessLog()" style="background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.1);border-radius:12px;padding:7px 12px;color:rgba(255,255,255,.7);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">+ Registar</button>
-        </div>
 
         <!-- Big emoji + score -->
         <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
@@ -1776,6 +1778,14 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
             <div style="font-size:9px;color:rgba(255,255,255,.35);margin-top:2px">Streak</div>
           </div>
         </div>
+
+        <!-- Ver detalhe link -->
+        <div style="text-align:center;margin-top:14px">
+          <button onclick="navTo('hap-detail')" style="background:none;border:none;color:rgba(250,204,21,.6);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px">
+            📊 Ver análise completa →
+          </button>
+        </div>
+
       </div>
 
       <button onclick="doLogout()" class="btn btn-ghost" style="margin-top:20px">Terminar sessão</button>
@@ -1910,10 +1920,7 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
             <div style="font-size:14px;font-weight:800;color:#fff">Medidor de Felicidade</div>
             <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Desde que começaste a usar a Trendout</div>
           </div>
-          <div style="display:flex;gap:8px">
-          <button onclick="navTo('hap-detail')" style="background:rgba(250,204,21,.1);border:1.5px solid rgba(250,204,21,.25);border-radius:12px;padding:7px 12px;color:#FACC15;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">📊 Detalhe</button>
           <button onclick="openHappinessLog()" style="background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.1);border-radius:12px;padding:7px 12px;color:rgba(255,255,255,.7);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">+ Registar</button>
-        </div>
 
         <!-- Big emoji + score -->
         <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
@@ -2692,11 +2699,23 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
         <div style="margin:16px 18px 0;background:rgba(250,204,21,.05);border:1.5px solid rgba(250,204,21,.2);border-radius:18px;padding:20px" id="hd-premium-block">
           <div style="font-size:12px;font-weight:700;color:#FACC15;margin-bottom:6px">✨ Trendout Premium</div>
           <div style="font-size:13px;color:rgba(255,255,255,.7);line-height:1.6;margin-bottom:14px">Acede a correlações avançadas entre o teu humor, treino e performance — e percebe exactamente o que te faz sentir melhor.</div>
-          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
-            <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.6)"><span style="color:#22C55E;font-size:14px">✓</span> Correlação humor × treino × sono</div>
-            <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.6)"><span style="color:#22C55E;font-size:14px">✓</span> Comparação com ano anterior</div>
-            <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.6)"><span style="color:#22C55E;font-size:14px">✓</span> Coach emocional IA personalizado</div>
-            <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.6)"><span style="color:#22C55E;font-size:14px">✓</span> Relatório semanal de bem-estar</div>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
+            <div style="display:flex;align-items:flex-start;gap:10px">
+              <div style="width:32px;height:32px;background:rgba(124,58,237,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">✨</div>
+              <div><div style="font-size:12px;font-weight:700;color:#fff">Insights IA — Correlação Humor × Treino</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Descobre padrões únicos entre o teu estado mental e performance</div></div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:10px">
+              <div style="width:32px;height:32px;background:rgba(34,197,94,.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🌱</div>
+              <div><div style="font-size:12px;font-weight:700;color:#fff">Coach de Recuperação Emocional</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Treino adaptado ao teu estado mental em tempo real</div></div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:10px">
+              <div style="width:32px;height:32px;background:rgba(34,197,94,.12);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🥗</div>
+              <div><div style="font-size:12px;font-weight:700;color:#fff">Coach de Alimentação IA</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Plano nutricional diário e semanal personalizado</div></div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:10px">
+              <div style="width:32px;height:32px;background:rgba(59,130,246,.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">📊</div>
+              <div><div style="font-size:12px;font-weight:700;color:#fff">Gráficos de Performance Avançados</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Análise detalhada de pace, distância e calorias</div></div>
+            </div>
           </div>
           <button onclick="openUpgrade()" style="width:100%;padding:13px;border-radius:14px;background:linear-gradient(135deg,#FACC15,#F59E0B);border:none;color:#000;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit">
             Activar Premium — a partir de 4,99€/mês
