@@ -294,7 +294,9 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
 @keyframes countUp{from{opacity:0}to{opacity:1}}
 .perf-adv-fade-up{animation:fadeUp .4s ease both}
 
-  </style>
+  .hf-btn{padding:6px 14px;border-radius:20px;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;transition:all .2s}
+.hf-btn.hf-active{background:rgba(250,204,21,.1);border-color:rgba(250,204,21,.4);color:#FACC15}
+</style>
 
   <!-- PWA meta -->
   <meta name="application-name" content="Trendout">
@@ -928,17 +930,33 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
     </div>
 
     <!-- HISTORY PAGE -->
-    <div class="app-page" id="page-history" style="padding-top:max(env(safe-area-inset-top,0px),24px)">
-      <div style="display:flex;align-items:center;gap:14px;margin-bottom:22px">
-        <button onclick="navTo('home')" style="background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.1);border-radius:12px;width:36px;height:36px;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;-webkit-tap-highlight-color:transparent">←</button>
-        <div style="font-size:20px;font-weight:800">Histórico de atividades</div>
-      </div>
-      <div id="history-list">
-        <div style="text-align:center;padding:60px 0;color:rgba(255,255,255,.3)">
-          <div style="font-size:40px;margin-bottom:12px">📭</div>
-          <div style="font-size:14px;font-weight:600;color:rgba(255,255,255,.4)">Sem atividades ainda</div>
-          <div style="font-size:12px;color:rgba(255,255,255,.25);margin-top:6px">As tuas atividades aparecem aqui</div>
+    <div class="app-page" id="page-history" style="padding-top:max(env(safe-area-inset-top,0px),24px);overflow-y:auto;height:100%">
+      <div style="padding:0 18px;max-width:430px;margin:0 auto;padding-bottom:100px">
+
+        <!-- Header -->
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+          <button onclick="navTo('home')" style="background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.1);border-radius:12px;width:36px;height:36px;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;-webkit-tap-highlight-color:transparent">←</button>
+          <div style="font-size:20px;font-weight:800;flex:1">Histórico</div>
+          <div id="hist-count" style="font-size:12px;color:rgba(255,255,255,.35)"></div>
         </div>
+
+        <!-- Filtro período -->
+        <div style="display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none">
+          <button onclick="setHistPeriod('all',this)"   id="hfp-all"   class="hf-btn hf-active">Todos</button>
+          <button onclick="setHistPeriod('day',this)"   id="hfp-day"   class="hf-btn">Hoje</button>
+          <button onclick="setHistPeriod('week',this)"  id="hfp-week"  class="hf-btn">Semana</button>
+          <button onclick="setHistPeriod('month',this)" id="hfp-month" class="hf-btn">Mês</button>
+          <button onclick="setHistPeriod('year',this)"  id="hfp-year"  class="hf-btn">Ano</button>
+        </div>
+
+        <!-- Filtro desporto -->
+        <div id="hist-sport-filters" style="display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none"></div>
+
+        <!-- Filtro cidade -->
+        <div id="hist-city-filters" style="display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none"></div>
+
+        <!-- Lista -->
+        <div id="history-list"></div>
       </div>
     </div>
 
@@ -1455,17 +1473,33 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
     </div>
 
     <!-- HISTORY PAGE -->
-    <div class="app-page" id="page-history" style="padding-top:max(env(safe-area-inset-top,0px),24px)">
-      <div style="display:flex;align-items:center;gap:14px;margin-bottom:22px">
-        <button onclick="navTo('home')" style="background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.1);border-radius:12px;width:36px;height:36px;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;-webkit-tap-highlight-color:transparent">←</button>
-        <div style="font-size:20px;font-weight:800">Histórico de atividades</div>
-      </div>
-      <div id="history-list">
-        <div style="text-align:center;padding:60px 0;color:rgba(255,255,255,.3)">
-          <div style="font-size:40px;margin-bottom:12px">📭</div>
-          <div style="font-size:14px;font-weight:600;color:rgba(255,255,255,.4)">Sem atividades ainda</div>
-          <div style="font-size:12px;color:rgba(255,255,255,.25);margin-top:6px">As tuas atividades aparecem aqui</div>
+    <div class="app-page" id="page-history" style="padding-top:max(env(safe-area-inset-top,0px),24px);overflow-y:auto;height:100%">
+      <div style="padding:0 18px;max-width:430px;margin:0 auto;padding-bottom:100px">
+
+        <!-- Header -->
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+          <button onclick="navTo('home')" style="background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.1);border-radius:12px;width:36px;height:36px;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;-webkit-tap-highlight-color:transparent">←</button>
+          <div style="font-size:20px;font-weight:800;flex:1">Histórico</div>
+          <div id="hist-count" style="font-size:12px;color:rgba(255,255,255,.35)"></div>
         </div>
+
+        <!-- Filtro período -->
+        <div style="display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none">
+          <button onclick="setHistPeriod('all',this)"   id="hfp-all"   class="hf-btn hf-active">Todos</button>
+          <button onclick="setHistPeriod('day',this)"   id="hfp-day"   class="hf-btn">Hoje</button>
+          <button onclick="setHistPeriod('week',this)"  id="hfp-week"  class="hf-btn">Semana</button>
+          <button onclick="setHistPeriod('month',this)" id="hfp-month" class="hf-btn">Mês</button>
+          <button onclick="setHistPeriod('year',this)"  id="hfp-year"  class="hf-btn">Ano</button>
+        </div>
+
+        <!-- Filtro desporto -->
+        <div id="hist-sport-filters" style="display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none"></div>
+
+        <!-- Filtro cidade -->
+        <div id="hist-city-filters" style="display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none"></div>
+
+        <!-- Lista -->
+        <div id="history-list"></div>
       </div>
     </div>
 
@@ -6896,14 +6930,139 @@ function renderHomeActs() {
   el.innerHTML = recent.map(function(a) { return actCard(a, true); }).join('');
 }
 
+var _histPeriod = 'all';
+var _histSport  = 'all';
+var _histCity   = 'all';
+
+function setHistPeriod(p, btn) {
+  _histPeriod = p;
+  document.querySelectorAll('[id^="hfp-"]').forEach(function(b){ b.classList.remove('hf-active'); });
+  if (btn) btn.classList.add('hf-active');
+  renderHistory();
+}
+
+function setHistSport(s, btn) {
+  _histSport = s;
+  document.querySelectorAll('.hfs-btn').forEach(function(b){ b.classList.remove('hf-active'); });
+  if (btn) btn.classList.add('hf-active');
+  renderHistory();
+}
+
+function setHistCity(city, btn) {
+  _histCity = city;
+  document.querySelectorAll('.hfc-btn').forEach(function(b){ b.classList.remove('hf-active'); });
+  if (btn) btn.classList.add('hf-active');
+  renderHistory();
+}
+
 function renderHistory() {
   var el = document.getElementById('history-list');
   if (!el) return;
-  if (!_allActivities.length) {
-    el.innerHTML = '<div style="text-align:center;padding:60px 0;color:rgba(255,255,255,.3)"><div style="font-size:40px;margin-bottom:12px">📭</div><div style="font-size:14px;font-weight:600;color:rgba(255,255,255,.4)">Sem atividades ainda</div><div style="font-size:12px;color:rgba(255,255,255,.25);margin-top:6px">As tuas atividades aparecem aqui</div></div>';
+
+  // Build sport filter chips
+  var sports = ['all'];
+  var cities = ['all'];
+  _allActivities.forEach(function(a) {
+    if (a.type && sports.indexOf(a.type) < 0) sports.push(a.type);
+    if (a.city && cities.indexOf(a.city) < 0) cities.push(a.city);
+  });
+
+  var sportEl = document.getElementById('hist-sport-filters');
+  if (sportEl) {
+    sportEl.innerHTML = sports.map(function(s) {
+      var ic = s === 'all' ? '🏅' : (_actIcons[s] || '🏅');
+      var lbl = s === 'all' ? 'Todos' : s;
+      var active = _histSport === s ? ' hf-active' : '';
+      return '<button onclick="setHistSport(\'' + s + '\',this)" class="hf-btn hfs-btn' + active + '">' + ic + ' ' + lbl + '</button>';
+    }).join('');
+  }
+
+  var cityEl = document.getElementById('hist-city-filters');
+  if (cityEl && cities.length > 1) {
+    cityEl.style.display = 'flex';
+    cityEl.innerHTML = cities.map(function(city) {
+      var lbl = city === 'all' ? '🌍 Todas as cidades' : '📍 '+city;
+      var active = _histCity === city ? ' hf-active' : '';
+      return '<button onclick="setHistCity(\'' + city + '\',this)" class="hf-btn hfc-btn' + active + '">' + lbl + '</button>';
+    }).join('');
+  } else if (cityEl) {
+    cityEl.style.display = 'none';
+  }
+
+  // Filter activities
+  var now = new Date();
+  var filtered = _allActivities.filter(function(a) {
+    // Period filter
+    if (_histPeriod !== 'all') {
+      var parts = (a.date||'').split('/');
+      var d = parts.length === 3 ? new Date(parts[2], parts[1]-1, parts[0]) : null;
+      if (!d) return false;
+      if (_histPeriod === 'day') {
+        if (d.toDateString() !== now.toDateString()) return false;
+      } else if (_histPeriod === 'week') {
+        var weekAgo = new Date(now); weekAgo.setDate(now.getDate()-7);
+        if (d < weekAgo) return false;
+      } else if (_histPeriod === 'month') {
+        if (d.getMonth() !== now.getMonth() || d.getFullYear() !== now.getFullYear()) return false;
+      } else if (_histPeriod === 'year') {
+        if (d.getFullYear() !== now.getFullYear()) return false;
+      }
+    }
+    // Sport filter
+    if (_histSport !== 'all' && a.type !== _histSport) return false;
+    // City filter
+    if (_histCity !== 'all' && a.city !== _histCity) return false;
+    return true;
+  });
+
+  // Count
+  var countEl = document.getElementById('hist-count');
+  if (countEl) countEl.textContent = filtered.length + ' actividade' + (filtered.length !== 1 ? 's' : '');
+
+  if (!filtered.length) {
+    el.innerHTML = '<div style="text-align:center;padding:60px 0"><div style="font-size:40px;margin-bottom:12px">🔍</div><div style="font-size:14px;font-weight:600;color:rgba(255,255,255,.4)">Sem actividades</div><div style="font-size:12px;color:rgba(255,255,255,.25);margin-top:6px">Tenta outro filtro</div></div>';
     return;
   }
-  el.innerHTML = _allActivities.map(function(a) { return actCard(a, false); }).join('');
+
+  el.innerHTML = filtered.map(function(a) {
+    var realIdx = _allActivities.indexOf(a);
+    return histCard(a, realIdx);
+  }).join('');
+}
+
+function histCard(a, idx) {
+  var ic = _actIcons[a.type] || '🏅';
+  return '<div style="background:#111;border:1px solid rgba(255,255,255,.08);border-radius:16px;margin-bottom:10px;overflow:hidden">'    + '<div style="padding:14px 16px">'    + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">'    + '<div style="width:36px;height:36px;background:rgba(255,255,255,.07);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px">'+ic+'</div>'    + '<div style="flex:1"><div style="font-size:14px;font-weight:700;color:#fff">'+(a.title||a.type)+'</div>'    + '<div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:1px">'+(a.date||'')+(a.city?' · 📍'+a.city.split(',')[0]:'')+'</div></div>'    + '<button onclick="openActDetailByIdx('+idx+')" style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:6px 10px;color:#4ADE80;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Ver</button>'    + '</div>'    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">'    + '<div style="text-align:center"><div style="font-size:15px;font-weight:800;color:#fff">'+(a.dist||'—')+'</div><div style="font-size:9px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px">Distância</div></div>'    + '<div style="text-align:center"><div style="font-size:15px;font-weight:800;color:#fff">'+(a.dur||'—')+'</div><div style="font-size:9px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px">Tempo</div></div>'    + '<div style="text-align:center"><div style="font-size:15px;font-weight:800;color:#22C55E">'+(a.pace||'—')+'</div><div style="font-size:9px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px">Pace</div></div>'    + '</div>'    + '<div style="display:flex;gap:8px">'    + '<button data-idx="'+idx+'" onclick="openActDetail(this)" style="flex:1;padding:9px;border-radius:10px;background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.15);color:#4ADE80;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Performance</button>'    + '<button data-idx="'+idx+'" onclick="openShareSheet(this)" style="flex:1;padding:9px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.5);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>Partilhar</button>'    + '<button onclick="confirmDeleteAct('+idx+')" style="padding:9px 12px;border-radius:10px;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.15);color:#F87171;font-size:13px;cursor:pointer;font-family:inherit">🗑</button>'    + '</div></div></div>';
+}
+
+function openActDetailByIdx(idx) {
+  _currentAct = _allActivities[idx];
+  if (!_currentAct) return;
+  renderActDetail(_currentAct);
+  navTo('act-detail');
+}
+
+function confirmDeleteAct(idx) {
+  var a = _allActivities[idx];
+  if (!a) return;
+  var name = a.title || a.type || 'actividade';
+  if (!confirm('Eliminar "' + name + '"?\n\nEsta acção não pode ser desfeita.')) return;
+  deleteActivity(idx);
+}
+
+async function deleteActivity(idx) {
+  var a = _allActivities[idx];
+  if (!a) return;
+  // Delete from Supabase
+  if (_db && a.id) {
+    await _db.from('activities').delete().eq('id', a.id);
+  }
+  // Remove locally
+  _allActivities.splice(idx, 1);
+  renderHistory();
+  renderHomeActs();
+  renderStatsCard();
+  toast('🗑 Actividade eliminada');
 }
 
 function actCard(a, compact) {
