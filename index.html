@@ -2809,7 +2809,14 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
       var userRes = await _db.auth.getUser();
       if (!userRes.data || !userRes.data.user) return;
       var uid = userRes.data.user.id;
-      await _db.from('activities').insert({ type:act.type, title:act.title, dist:act.dist, dur:act.dur, pace:act.pace, cal:act.cal, date:act.date, source:act.source||'manual', user_id:uid });
+      var res = await _db.from('activities').insert({
+        type:act.type, title:act.title, dist:act.dist, dur:act.dur,
+        pace:act.pace, cal:act.cal, date:act.date,
+        startTime:act.startTime||null,
+        source:act.source||'manual', user_id:uid
+      }).select('id').single();
+      // Save Supabase-generated ID back to local activity object
+      if (res.data && res.data.id) act.id = res.data.id;
     } catch(e) { console.error('dbSyncActivity:', e); }
   }
 
@@ -4780,8 +4787,8 @@ function renderActDetailMap(a) {
     return;
   }
 
-  // If geocoding already saved — draw immediately
-  if ('city' in a || 'startStreet' in a) {
+  // If geocoding already saved — draw immediately (null means 'checked, not found')
+  if (a.city !== undefined || a.startStreet !== undefined) {
     drawVectorRoute(ctx, W, H, route, a.startStreet||null, a.endStreet||null, a.city||null);
     return;
   }
