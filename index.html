@@ -348,11 +348,6 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
 
   <div style="display:flex;flex-direction:column;gap:12px">
 
-
-
-
-    <div class="divider">ou</div>
-
     <!-- Email login -->
     <button class="btn btn-ghost" onclick="go('s-login')">
       ✉️ Entrar com Email
@@ -363,9 +358,6 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
       <span style="color:#fff;font-weight:600;cursor:pointer" onclick="go('s-register')"> Criar conta</span>
     </div>
 
-    <button class="btn" onclick="loginDemo()" style="background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.15);color:rgba(255,255,255,.5);font-size:14px;margin-top:4px">
-      👀 Explorar sem conta
-    </button>
   </div>
 </div>
 
@@ -512,18 +504,16 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
   </div>
 
   <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:24px">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <div>
-        <div class="label">Nome</div>
-        <div class="input-wrap">
-          <input id="reg-name" type="text" placeholder="João" style="padding-left:14px" autocomplete="given-name" oninput="checkRegForm()"/>
-        </div>
+    <div>
+      <div class="label">Nome</div>
+      <div class="input-wrap">
+        <input id="reg-name" type="text" placeholder="João" style="padding-left:14px" autocomplete="given-name" oninput="checkRegForm()"/>
       </div>
-      <div>
-        <div class="label">Apelido</div>
-        <div class="input-wrap">
-          <input id="reg-last" type="text" placeholder="Silva" style="padding-left:14px" autocomplete="family-name" oninput="checkRegForm()"/>
-        </div>
+    </div>
+    <div>
+      <div class="label">Apelido</div>
+      <div class="input-wrap">
+        <input id="reg-last" type="text" placeholder="Silva" style="padding-left:14px" autocomplete="family-name" oninput="checkRegForm()"/>
       </div>
     </div>
     <div>
@@ -881,7 +871,7 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
       <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:18px;margin-bottom:20px;display:flex;flex-direction:column;gap:14px">
         <div style="display:flex;gap:12px">
           <div style="width:32px;height:32px;background:rgba(255,255,255,.08);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">⭐</div>
-          <div><div style="font-size:13px;font-weight:700;color:#fff">Ganha pontos por atividade</div><div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px;line-height:1.7">Cada atividade com <strong style="color:#fff">≥ 5 km</strong> ou <strong style="color:#fff">≥ 1 hora</strong> vale <strong style="color:#fff">+5 pts</strong></div></div>
+          <div><div style="font-size:13px;font-weight:700;color:#fff">Ganha pontos por atividade</div><div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px;line-height:1.7">Cada atividade com <strong style="color:#fff">≥ 5 km</strong> ou <strong style="color:#fff">≥ 60 minutos</strong> vale <strong style="color:#fff">+5 pts</strong></div></div>
         </div>
         <div style="height:1px;background:rgba(255,255,255,.06)"></div>
         <div style="display:flex;gap:12px">
@@ -6633,7 +6623,7 @@ function renderHistory() {
 
 function histCard(a, idx) {
   var ic = _actIcons[a.type] || '🏅';
-  return '<div style="background:#111;border:1px solid rgba(255,255,255,.08);border-radius:16px;margin-bottom:10px;overflow:hidden">'    + '<div style="padding:14px 16px">'    + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">'    + '<div style="width:36px;height:36px;background:rgba(255,255,255,.07);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px">'+ic+'</div>'    + '<div style="flex:1"><div style="font-size:14px;font-weight:700;color:#fff">'+(a.title||a.type)+'</div>'    + '<div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:1px">'+(a.date||'')+(a.city?' · 📍'+a.city.split(',')[0]:'')+'</div></div>'    + '<button onclick="openActDetailByIdx('+idx+')" style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:6px 10px;color:#4ADE80;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Ver</button>'    + '</div>'    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">'    + '<div style="text-align:center"><div style="font-size:15px;font-weight:800;color:#fff">'+(a.dist||'—')+'</div><div style="font-size:9px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px">Distância</div></div>'    + '<div style="text-align:center"><div style="font-size:15px;font-weight:800;color:#fff">'+(a.dur||'—')+'</div><div style="font-size:9px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px">Tempo</div></div>'    + '<div style="text-align:center"><div style="font-size:15px;font-weight:800;color:#22C55E">'+(a.pace||'—')+'</div><div style="font-size:9px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px">Pace</div></div>'    + '</div>'    + '<div style="display:flex;gap:8px">'    + '<button data-idx="'+idx+'" onclick="openActDetail(this)" style="flex:1;padding:9px;border-radius:10px;background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.15);color:#4ADE80;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Performance</button>'    + '<button data-idx="'+idx+'" onclick="openShareSheet(this)" style="flex:1;padding:9px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.5);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>Partilhar</button>'    + '<button onclick="confirmDeleteAct('+idx+')" style="padding:9px 12px;border-radius:10px;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.15);color:#F87171;font-size:13px;cursor:pointer;font-family:inherit">🗑</button>'    + '</div></div></div>';
+  return '<div style="background:#111;border:1px solid rgba(255,255,255,.08);border-radius:16px;margin-bottom:10px;overflow:hidden">'    + '<div style="padding:14px 16px">'    + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">'    + '<div style="width:36px;height:36px;background:rgba(255,255,255,.07);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px">'+ic+'</div>'    + '<div style="flex:1"><div style="font-size:14px;font-weight:700;color:#fff">'+(a.title||a.type)+'</div>'    + '<div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:1px">'+(a.date||'')+(a.startTime?' · '+a.startTime:'')+(a.city?' · 📍'+a.city.split(',')[0]:'')+'</div></div>'    + '<button onclick="openActDetailByIdx('+idx+')" style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:6px 10px;color:#4ADE80;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Ver</button>'    + '</div>'    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">'    + '<div style="text-align:center"><div style="font-size:15px;font-weight:800;color:#fff">'+(a.dist||'—')+'</div><div style="font-size:9px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px">Distância</div></div>'    + '<div style="text-align:center"><div style="font-size:15px;font-weight:800;color:#fff">'+(a.dur||'—')+'</div><div style="font-size:9px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px">Tempo</div></div>'    + '<div style="text-align:center"><div style="font-size:15px;font-weight:800;color:#22C55E">'+(a.pace||'—')+'</div><div style="font-size:9px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px">Pace</div></div>'    + '</div>'    + '<div style="display:flex;gap:8px">'    + '<button data-idx="'+idx+'" onclick="openActDetail(this)" style="flex:1;padding:9px;border-radius:10px;background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.15);color:#4ADE80;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Performance</button>'    + '<button data-idx="'+idx+'" onclick="openShareSheet(this)" style="flex:1;padding:9px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.5);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>Partilhar</button>'    + '<button onclick="confirmDeleteAct('+idx+')" style="padding:9px 12px;border-radius:10px;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.15);color:#F87171;font-size:13px;cursor:pointer;font-family:inherit">🗑</button>'    + '</div></div></div>';
 }
 
 function openActDetailByIdx(idx) {
@@ -6672,9 +6662,13 @@ function actCard(a, compact) {
   return '<div style="background:#111;border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:16px;margin-bottom:10px">'
     + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
     + '<div style="display:flex;align-items:center;gap:10px">'
-    + '<div style="width:36px;height:36px;background:rgba(255,255,255,.08);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px">' + ic + '</div>'
-    + '<div><div style="font-size:14px;font-weight:700;color:#fff">' + (a.title||a.type) + '</div>'
-    + '<div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px">' + ic + ' ' + a.type + ' · ' + a.date + '</div></div>'
+    + '<div style="width:42px;height:42px;background:rgba(255,255,255,.08);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">' + ic + '</div>'
+    + '<div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (a.title||a.type) + '</div>'
+    + '<div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
+    + a.date
+    + (a.startTime ? ' · ' + a.startTime : '')
+    + (a.city ? ' · 📍' + a.city.split(',')[0] : '')
+    + '</div></div>'
     + '</div>'
     + (function(){
       var km = parseFloat(a.dist) || 0;
@@ -7431,7 +7425,7 @@ function initPerfAdv() {
       <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:18px;margin-bottom:20px;display:flex;flex-direction:column;gap:14px">
         <div style="display:flex;gap:12px">
           <div style="width:32px;height:32px;background:rgba(255,255,255,.08);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">⭐</div>
-          <div><div style="font-size:13px;font-weight:700;color:#fff">Ganha pontos por atividade</div><div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px;line-height:1.7">Cada atividade com <strong style="color:#fff">≥ 5 km</strong> ou <strong style="color:#fff">≥ 1 hora</strong> vale <strong style="color:#fff">+5 pts</strong></div></div>
+          <div><div style="font-size:13px;font-weight:700;color:#fff">Ganha pontos por atividade</div><div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px;line-height:1.7">Cada atividade com <strong style="color:#fff">≥ 5 km</strong> ou <strong style="color:#fff">≥ 60 minutos</strong> vale <strong style="color:#fff">+5 pts</strong></div></div>
         </div>
         <div style="height:1px;background:rgba(255,255,255,.06)"></div>
         <div style="display:flex;gap:12px">
@@ -7898,7 +7892,7 @@ function initPerfAdv() {
       <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:18px;margin-bottom:20px;display:flex;flex-direction:column;gap:14px">
         <div style="display:flex;gap:12px">
           <div style="width:32px;height:32px;background:rgba(255,255,255,.08);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">⭐</div>
-          <div><div style="font-size:13px;font-weight:700;color:#fff">Ganha pontos por atividade</div><div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px;line-height:1.7">Cada atividade com <strong style="color:#fff">≥ 5 km</strong> ou <strong style="color:#fff">≥ 1 hora</strong> vale <strong style="color:#fff">+5 pts</strong></div></div>
+          <div><div style="font-size:13px;font-weight:700;color:#fff">Ganha pontos por atividade</div><div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px;line-height:1.7">Cada atividade com <strong style="color:#fff">≥ 5 km</strong> ou <strong style="color:#fff">≥ 60 minutos</strong> vale <strong style="color:#fff">+5 pts</strong></div></div>
         </div>
         <div style="height:1px;background:rgba(255,255,255,.06)"></div>
         <div style="display:flex;gap:12px">
@@ -8553,7 +8547,7 @@ function initPerfAdv() {
       <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:18px;margin-bottom:20px;display:flex;flex-direction:column;gap:14px">
         <div style="display:flex;gap:12px">
           <div style="width:32px;height:32px;background:rgba(255,255,255,.08);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">⭐</div>
-          <div><div style="font-size:13px;font-weight:700;color:#fff">Ganha pontos por atividade</div><div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px;line-height:1.7">Cada atividade com <strong style="color:#fff">≥ 5 km</strong> ou <strong style="color:#fff">≥ 1 hora</strong> vale <strong style="color:#fff">+5 pts</strong></div></div>
+          <div><div style="font-size:13px;font-weight:700;color:#fff">Ganha pontos por atividade</div><div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px;line-height:1.7">Cada atividade com <strong style="color:#fff">≥ 5 km</strong> ou <strong style="color:#fff">≥ 60 minutos</strong> vale <strong style="color:#fff">+5 pts</strong></div></div>
         </div>
         <div style="height:1px;background:rgba(255,255,255,.06)"></div>
         <div style="display:flex;gap:12px">
@@ -9020,7 +9014,7 @@ function initPerfAdv() {
       <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:18px;margin-bottom:20px;display:flex;flex-direction:column;gap:14px">
         <div style="display:flex;gap:12px">
           <div style="width:32px;height:32px;background:rgba(255,255,255,.08);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">⭐</div>
-          <div><div style="font-size:13px;font-weight:700;color:#fff">Ganha pontos por atividade</div><div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px;line-height:1.7">Cada atividade com <strong style="color:#fff">≥ 5 km</strong> ou <strong style="color:#fff">≥ 1 hora</strong> vale <strong style="color:#fff">+5 pts</strong></div></div>
+          <div><div style="font-size:13px;font-weight:700;color:#fff">Ganha pontos por atividade</div><div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px;line-height:1.7">Cada atividade com <strong style="color:#fff">≥ 5 km</strong> ou <strong style="color:#fff">≥ 60 minutos</strong> vale <strong style="color:#fff">+5 pts</strong></div></div>
         </div>
         <div style="height:1px;background:rgba(255,255,255,.06)"></div>
         <div style="display:flex;gap:12px">
