@@ -1219,8 +1219,8 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
         <!-- XY Mood chart -->
         <div style="margin-bottom:12px">
           <div style="display:flex;gap:5px;margin-bottom:10px">
-            <button onclick="setHapChartPeriod('week',this)"  id="hapc-tab-week"  style="flex:1;padding:6px 2px;border-radius:8px;background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.5);font-size:10px;font-weight:700;cursor:pointer;font-family:inherit">Semana</button>
-            <button onclick="setHapChartPeriod('month',this)" id="hapc-tab-month" style="flex:1;padding:6px 2px;border-radius:8px;background:#fff;border:none;color:#000;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit">Mês</button>
+            <button onclick="setHapChartPeriod('week',this)"  id="hapc-tab-week"  style="flex:1;padding:6px 2px;border-radius:8px;background:#fff;border:none;color:#000;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit">Semana</button>
+            <button onclick="setHapChartPeriod('month',this)" id="hapc-tab-month" style="flex:1;padding:6px 2px;border-radius:8px;background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.5);font-size:10px;font-weight:700;cursor:pointer;font-family:inherit">Mês</button>
             <button onclick="setHapChartPeriod('3month',this)"id="hapc-tab-3month"style="flex:1;padding:6px 2px;border-radius:8px;background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.5);font-size:10px;font-weight:700;cursor:pointer;font-family:inherit">3 Meses</button>
             <button onclick="setHapChartPeriod('year',this)"  id="hapc-tab-year"  style="flex:1;padding:6px 2px;border-radius:8px;background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.5);font-size:10px;font-weight:700;cursor:pointer;font-family:inherit">Ano</button>
             <button onclick="setHapChartPeriod('all',this)"   id="hapc-tab-all"   style="flex:1;padding:6px 2px;border-radius:8px;background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.5);font-size:10px;font-weight:700;cursor:pointer;font-family:inherit">Tudo</button>
@@ -2354,7 +2354,7 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
         // Restore weight chart if data loaded
         if (_weightLog.length > 0) renderWeightChart();
         // Restore happiness if data loaded
-        if (_happinessLog.length > 0) { renderHappinessMeter(); }
+        if (_happinessLog.length > 0) { renderHappinessMeter(); drawHappinessChart(); }
         // Restore stats
         renderStatsCard();
         renderHomeActs();
@@ -5020,7 +5020,7 @@ function syncPerfHappiness() {
   if (typeof drawPerfHapChart === 'function') drawPerfHapChart();
 }
 
-var _hapChartPeriod = 'month';
+var _hapChartPeriod = 'week';
 
 function setHapChartPeriod(period, btn) {
   _hapChartPeriod = period;
