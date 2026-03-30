@@ -1489,8 +1489,8 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
         <!-- XY Mood chart with period tabs -->
         <div style="margin-bottom:12px">
           <div style="display:flex;gap:5px;margin-bottom:10px">
-            <button onclick="setPerfHapPeriod('week',this)"   id="ph-tab-week"   style="flex:1;padding:6px 2px;border-radius:8px;background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.5);font-size:10px;font-weight:700;cursor:pointer;font-family:inherit">Semana</button>
-            <button onclick="setPerfHapPeriod('month',this)"  id="ph-tab-month"  style="flex:1;padding:6px 2px;border-radius:8px;background:#fff;border:none;color:#000;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit">Mês</button>
+            <button onclick="setPerfHapPeriod('week',this)"   id="ph-tab-week"   style="flex:1;padding:6px 2px;border-radius:8px;background:#fff;border:none;color:#000;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit">Semana</button>
+            <button onclick="setPerfHapPeriod('month',this)"  id="ph-tab-month"  style="flex:1;padding:6px 2px;border-radius:8px;background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.5);font-size:10px;font-weight:700;cursor:pointer;font-family:inherit">Mês</button>
             <button onclick="setPerfHapPeriod('3month',this)" id="ph-tab-3month" style="flex:1;padding:6px 2px;border-radius:8px;background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.5);font-size:10px;font-weight:700;cursor:pointer;font-family:inherit">3 Meses</button>
             <button onclick="setPerfHapPeriod('year',this)"   id="ph-tab-year"   style="flex:1;padding:6px 2px;border-radius:8px;background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.5);font-size:10px;font-weight:700;cursor:pointer;font-family:inherit">Ano</button>
             <button onclick="setPerfHapPeriod('all',this)"    id="ph-tab-all"    style="flex:1;padding:6px 2px;border-radius:8px;background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.5);font-size:10px;font-weight:700;cursor:pointer;font-family:inherit">Tudo</button>
@@ -2354,7 +2354,10 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
         // Restore weight chart if data loaded
         if (_weightLog.length > 0) renderWeightChart();
         // Restore happiness if data loaded
-        if (_happinessLog.length > 0) { renderHappinessMeter(); drawHappinessChart(); }
+        if (_happinessLog.length > 0) {
+          renderHappinessMeter();
+          setHapChartPeriod('week', null);   // both charts = week on launch
+        }
         // Restore stats
         renderStatsCard();
         renderHomeActs();
@@ -5024,13 +5027,19 @@ var _hapChartPeriod = 'week';
 
 function setHapChartPeriod(period, btn) {
   _hapChartPeriod = period;
+  _perfHapPeriod  = period;  // keep both in sync
   ['week','month','3month','year','all'].forEach(function(t) {
     var el = document.getElementById('hapc-tab-'+t);
     if (!el) return;
     if (t===period) { el.style.background='#fff'; el.style.color='#000'; }
     else            { el.style.background='rgba(255,255,255,.08)'; el.style.color='rgba(255,255,255,.5)'; }
+    var el2 = document.getElementById('ph-tab-'+t);
+    if (!el2) return;
+    if (t===period) { el2.style.background='#fff'; el2.style.color='#000'; }
+    else            { el2.style.background='rgba(255,255,255,.08)'; el2.style.color='rgba(255,255,255,.5)'; }
   });
   drawHappinessChart();
+  drawPerfHapChart();
 }
 
 function getHapEntries(period) {
@@ -5543,17 +5552,23 @@ function drawWeightCanvas(canvas, values, dates) {
 
 
 // ── PERF PAGE HAPPINESS ──
-var _perfHapPeriod = 'month';
+var _perfHapPeriod = 'week';
 
 function setPerfHapPeriod(period, btn) {
-  _perfHapPeriod = period;
+  _perfHapPeriod  = period;
+  _hapChartPeriod = period;  // keep both in sync
   ['week','month','3month','year','all'].forEach(function(t) {
     var el = document.getElementById('ph-tab-'+t);
     if (!el) return;
     if (t===period) { el.style.background='#fff'; el.style.color='#000'; }
     else            { el.style.background='rgba(255,255,255,.08)'; el.style.color='rgba(255,255,255,.5)'; }
+    var el2 = document.getElementById('hapc-tab-'+t);
+    if (!el2) return;
+    if (t===period) { el2.style.background='#fff'; el2.style.color='#000'; }
+    else            { el2.style.background='rgba(255,255,255,.08)'; el2.style.color='rgba(255,255,255,.5)'; }
   });
   drawPerfHapChart();
+  drawHappinessChart();
 }
 
 function drawPerfHapChart() {
