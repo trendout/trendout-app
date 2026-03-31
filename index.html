@@ -2323,7 +2323,14 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
         });
       }
       if (moodsRes.data)   _happinessLog  = moodsRes.data;
-      if (weightsRes.data) _weightLog     = weightsRes.data;
+      if (weightsRes.data) {
+        // Sort ascending by date so _weightLog[last] = most recent
+        _weightLog = weightsRes.data.slice().sort(function(a,b){
+          var pa=a.date.split('/'), pb=b.date.split('/');
+          return new Date(parseInt(pa[2]),parseInt(pa[1])-1,parseInt(pa[0])) -
+                 new Date(parseInt(pb[2]),parseInt(pb[1])-1,parseInt(pb[0]));
+        });
+      }
       var userData = { name: user.email, email: user.email };
       if (profileRes.data) {
         var p = profileRes.data;
