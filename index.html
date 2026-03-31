@@ -1347,8 +1347,8 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
 
       <!-- Period tabs -->
       <div style="display:flex;gap:6px;margin-bottom:20px">
-        <button onclick="setPerfPeriod('today',this)" id="perf-tab-today" style="flex:1;padding:9px 4px;border-radius:12px;background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.5);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Hoje</button>
-        <button onclick="setPerfPeriod('week',this)" id="perf-tab-week" style="flex:1;padding:9px 4px;border-radius:12px;background:#fff;border:none;color:#000;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Semana</button>
+        <button onclick="setPerfPeriod('today',this)" id="perf-tab-today" style="flex:1;padding:9px 4px;border-radius:12px;background:#fff;border:none;color:#000;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Hoje</button>
+        <button onclick="setPerfPeriod('week',this)" id="perf-tab-week" style="flex:1;padding:9px 4px;border-radius:12px;background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.5);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Semana</button>
         <button onclick="setPerfPeriod('month',this)" id="perf-tab-month" style="flex:1;padding:9px 4px;border-radius:12px;background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.5);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Mês</button>
         <button onclick="setPerfPeriod('year',this)" id="perf-tab-year" style="flex:1;padding:9px 4px;border-radius:12px;background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.5);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Ano</button>
       </div>
@@ -5735,7 +5735,7 @@ function updatePerfHapStats(entries) {
 }
 
 // ── PERFORMANCE PAGE ──
-var _perfPeriod = 'week';
+var _perfPeriod = 'today';
 
 function setPerfPeriod(period, btn) {
   _perfPeriod = period;
@@ -6845,8 +6845,17 @@ function navTo(page) {
   var pg = document.getElementById('page-'+page);
   if (pg) pg.classList.add('active');
   if (page === 'perf-adv') { setTimeout(initPerfAdv, 50); }
-  if (page === 'perf')     { setTimeout(function(){ if(typeof renderPerfPage==='function') renderPerfPage(); }, 50);
-                             setTimeout(function(){ if(_happinessLog.length) drawPerfHapChart(); }, 100); }
+  if (page === 'perf') {
+    setTimeout(function(){
+      // Show 'today' if has activities today, else fallback to 'week'
+      var today = new Date().toLocaleDateString('pt-PT');
+      var hasToday = _allActivities.some(function(a){ return a.date === today; });
+      var period = hasToday ? 'today' : 'week';
+      if (typeof setPerfPeriod === 'function') setPerfPeriod(period, document.getElementById('perf-tab-'+period));
+      if (typeof renderPerfPage === 'function') renderPerfPage();
+      if (_happinessLog.length) drawPerfHapChart();
+    }, 50);
+  }
   if (page === 'profile')  { setTimeout(function(){ if(_happinessLog.length) { renderHappinessMeter(); drawHappinessChart(); } }, 50); }
   // Only highlight nav for known tabs
   var navPages = ['home','record','enjoy','profile'];
