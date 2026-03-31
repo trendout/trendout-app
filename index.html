@@ -2355,8 +2355,9 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
         if (_weightLog.length > 0) renderWeightChart();
         // Restore happiness if data loaded
         if (_happinessLog.length > 0) {
-          renderHappinessMeter();
-          setHapChartPeriod('week', null);   // both charts = week on launch
+          setHapChartPeriod('week', null);  // set week + update both tab UIs
+          renderHappinessMeter();            // draw profile chart
+          // perf chart drawn via syncPerfHappiness inside renderHappinessMeter
         }
         // Restore stats
         renderStatsCard();
@@ -4985,7 +4986,8 @@ function renderHappinessMeter() {
   }
   if (streakEl) streakEl.textContent = streak+'🔥';
 
-  // Draw chart
+  // Draw chart — ensure week is active and both charts in sync
+  if (_hapChartPeriod !== _perfHapPeriod) _perfHapPeriod = _hapChartPeriod;
   drawHappinessChart();
 
   // Sync perf page happiness meter
@@ -6843,6 +6845,9 @@ function navTo(page) {
   var pg = document.getElementById('page-'+page);
   if (pg) pg.classList.add('active');
   if (page === 'perf-adv') { setTimeout(initPerfAdv, 50); }
+  if (page === 'perf')     { setTimeout(function(){ if(typeof renderPerfPage==='function') renderPerfPage(); }, 50);
+                             setTimeout(function(){ if(_happinessLog.length) drawPerfHapChart(); }, 100); }
+  if (page === 'profile')  { setTimeout(function(){ if(_happinessLog.length) { renderHappinessMeter(); drawHappinessChart(); } }, 50); }
   // Only highlight nav for known tabs
   var navPages = ['home','record','enjoy','profile'];
   document.querySelectorAll('.nav-btn').forEach(function(b) {
@@ -6853,6 +6858,7 @@ function navTo(page) {
     renderHistory();
     document.querySelectorAll('.nav-btn').forEach(function(b) { b.classList.remove('on'); });
   }
+  if (page === 'act-detail') { document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('on');}); }
 }
 
 // ── TOAST ──
