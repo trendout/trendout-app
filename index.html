@@ -2801,6 +2801,8 @@ function stopGps() {
     dur:durStr, pace:paceStr+' /km',
     cal:Math.round(_gps.distKm*65+_gps.seconds*0.05),
     date:new Date().toLocaleDateString('pt-PT'),
+    startTime: new Date().toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'}),
+    source: 'gps',
     route: _gps.route.slice(),
     splits: _gps.kmSplits.slice(),
     totalSeconds: _gps.seconds,
@@ -6440,28 +6442,49 @@ function copyCode(elOrCode) {
 var _origAddActivity = addActivity;
 addActivity = function(act) {
   _origAddActivity(act);
-  // Check if qualifies: >= 5km OR >= 1h duration
-  var km = parseFloat((act.dist||'0').replace(/[^0-9.]/g,'')) || 0;
-  var durParts = (act.dur||'0:00').split(':');
-  var totalMins = 0;
-  if (durParts.length === 3) {
-    totalMins = parseInt(durParts[0]||0)*60 + parseInt(durParts[1]||0);
-  } else if (durParts.length === 2) {
-    totalMins = parseInt(durParts[0]||0)*60 + parseInt(durParts[1]||0);
+
+  // ── EnjoyPoints: only for REAL data ──
+  // GPS activities: use distKm (real GPS metres) and totalSeconds (real elapsed time)
+  // Manual activities: use entered values but flag as unverified
+  var isGps = act.source === 'gps' || act.hasGps === true;
+
+  var km, totalMins;
+  if (isGps) {
+    // GPS: use precise tracked values
+    km        = act.distKm || parseFloat((act.dist||'0').replace(/[^0-9.]/g,'')) || 0;
+    totalMins = act.totalSeconds ? act.totalSeconds / 60 : 0;
+  } else {
+    // Manual entry: parse from display strings (cannot verify)
+    km = parseFloat((act.dist||'0').replace(/[^0-9.]/g,'')) || 0;
+    var durParts = (act.dur||'').split(':');
+    // Handle formats: "42:30" (mm:ss), "1h 30m", "45m"
+    if (act.dur && act.dur.indexOf('h') >= 0) {
+      var hMatch = act.dur.match(/(\d+)h/);
+      var mMatch = act.dur.match(/(\d+)m/);
+      totalMins = (hMatch ? parseInt(hMatch[1])*60 : 0) + (mMatch ? parseInt(mMatch[1]) : 0);
+    } else if (durParts.length >= 2) {
+      totalMins = parseInt(durParts[0]||0)*60 + parseInt(durParts[1]||0);
+    } else {
+      totalMins = parseInt(durParts[0]||0);
+    }
   }
-  var qualifiesKm  = km >= 5;
-  var qualifiesTime = totalMins >= 60;
-  if (qualifiesKm || qualifiesTime) {
-    var reason = qualifiesKm ? km.toFixed(1)+'km' : Math.floor(totalMins/60)+'h'+('0'+totalMins%60).slice(-2)+'m';
+
+  var qualifiesKm   = km >= 5;
+  var qualifiesMins = totalMins >= 60;
+
+  if (qualifiesKm || qualifiesMins) {
+    var reason = qualifiesKm
+      ? km.toFixed(1) + 'km reais'
+      : Math.floor(totalMins) + ' min de atividade';
     addEnjoyPts(5, (act.type||'Atividade') + ' — ' + reason);
-    toast('⭐ +5 EnjoyLife Points! (' + reason + ')');
-    // Check coupon unlock
+    var badge = isGps ? '⭐' : '⭐';
+    toast(badge + ' +5 EnjoyLife Points! (' + reason + ')');
     checkCouponUnlock();
   } else {
     var needed = [];
-    if (km < 5) needed.push((5-km).toFixed(1)+'km em falta');
-    if (totalMins < 60) needed.push((60-totalMins)+'min em falta');
-    toast('🏃 Atividade guardada — ' + needed.join(' ou ') + ' para ganhar pts');
+    if (km < 5)         needed.push((5 - km).toFixed(1) + 'km em falta');
+    if (totalMins < 60) needed.push(Math.ceil(60 - totalMins) + 'min em falta');
+    toast('🏃 Atividade guardada — ' + needed.join(' ou ') + ' para ⭐ pts');
   }
 };
 
