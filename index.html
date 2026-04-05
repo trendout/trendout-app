@@ -2611,6 +2611,40 @@ function closeGpsPreview() {
   openActModal();
 }
 
+// GPS quality thresholds
+var GPS_MAX_ACCURACY = 30;   // metres — ignore points worse than this
+var GPS_RECONNECT_MS = 10000; // reconnect if no update in 10s
+var GPS_WAKELOCK     = null;  // Screen Wake Lock reference
+
+function gpsSetStatus(txt, color) {
+  var el = document.getElementById('gps-status');
+  if (el) { el.textContent = txt; el.style.color = color || '#fff'; }
+}
+
+function gpsStartWatch() {
+  if (_gps.watchId) { navigator.geolocation.clearWatch(_gps.watchId); _gps.watchId = null; }
+  _gps.watchId = navigator.geolocation.watchPosition(
+    onGpsPosition,
+    function(err) {
+      gpsSetStatus('⚠️ GPS: ' + (err.code === 1 ? 'sem permissão' : err.code === 2 ? 'sinal perdido' : 'timeout'), '#F97316');
+      // Auto-reconnect on signal loss
+      if (_gps.active && !_gps.paused) {
+        setTimeout(function(){ if(_gps.active && !_gps.paused) gpsStartWatch(); }, 3000);
+      }
+    },
+    { enableHighAccuracy: true, maximumAge: 1000, timeout: 15000 }
+  );
+}
+
+function gpsReconnectCheck() {
+  if (!_gps.active || _gps.paused) return;
+  var now = Date.now();
+  if (_gps.lastUpdate && (now - _gps.lastUpdate) > GPS_RECONNECT_MS) {
+    gpsSetStatus('🔄 A reconectar GPS...', '#FACC15');
+    gpsStartWatch();
+  }
+}
+
 function startGpsRecording() {
   var prev = document.getElementById('gps-preview');
   if (prev) prev.style.display = 'none';
@@ -2621,9 +2655,9 @@ function startGpsRecording() {
   _gps.active=true; _gps.paused=false;
   _gps.seconds=0; _gps.distKm=0;
   _gps.route=[]; _gps.lastKm=0; _gps.kmSplits=[];
+  _gps.lastUpdate = null; _gps.badPoints = 0;
   _gps.hr=60+Math.floor(Math.random()*20);
   _gps.elev=10+Math.floor(Math.random()*30); _gps.elevDir=1;
-  _gps.route.push({lat:_gps.centerLat, lng:_gps.centerLng});
 
   var ic=document.getElementById('gps-sport-ic');
   var nm=document.getElementById('gps-sport-name');
@@ -2635,14 +2669,24 @@ function startGpsRecording() {
   }, 50);
 
   _gps.timer = setInterval(gpsTimerTick, 1000);
+  // Check for GPS stall every 5 seconds
+  _gps.reconnectTimer = setInterval(gpsReconnectCheck, 5000);
+
+  // Request Wake Lock to keep screen on
+  if ('wakeLock' in navigator) {
+    navigator.wakeLock.request('screen').then(function(lock) {
+      GPS_WAKELOCK = lock;
+      lock.addEventListener('release', function() { GPS_WAKELOCK = null; });
+    }).catch(function(){});
+  }
 
   if (_gps.hasGps && navigator.geolocation) {
-    _gps.watchId = navigator.geolocation.watchPosition(onGpsPosition, null, {enableHighAccuracy:true, maximumAge:2000});
-    var stEl=document.getElementById('gps-status'); if(stEl) stEl.textContent='📍 GPS ativo';
+    gpsStartWatch();
+    gpsSetStatus('📍 A aguardar GPS...', '#FACC15');
   } else {
     _gps.lastLat=_gps.centerLat; _gps.lastLng=_gps.centerLng;
     _gps.simTimer=setInterval(simulateGpsStep, 4000);
-    var stEl=document.getElementById('gps-status'); if(stEl) stEl.textContent='📡 Simulado';
+    gpsSetStatus('📡 Simulado', 'rgba(255,255,255,.5)');
   }
 }
 
@@ -2662,7 +2706,21 @@ function gpsTimerTick() {
 }
 
 function onGpsPosition(pos) {
-  if (_gps.paused) return;
+  if (!_gps.active || _gps.paused) return;
+  var acc = pos.coords.accuracy;
+  _gps.lastUpdate = Date.now();
+
+  // Filter bad accuracy points
+  if (acc > GPS_MAX_ACCURACY) {
+    _gps.badPoints = (_gps.badPoints || 0) + 1;
+    gpsSetStatus('📶 Sinal fraco (' + Math.round(acc) + 'm) — a aguardar...', '#FACC15');
+    return;
+  }
+
+  _gps.badPoints = 0;
+  // Show accuracy in status
+  var accStr = acc < 10 ? '🟢' : acc < 20 ? '🟡' : '🟠';
+  gpsSetStatus(accStr + ' GPS ±' + Math.round(acc) + 'm', '#fff');
   updateGpsPosition(pos.coords.latitude, pos.coords.longitude);
 }
 
@@ -2723,9 +2781,11 @@ function toggleGpsPause() {
 }
 
 function stopGps() {
-  if(_gps.timer) clearInterval(_gps.timer);
-  if(_gps.simTimer) clearInterval(_gps.simTimer);
-  if(_gps.watchId) navigator.geolocation.clearWatch(_gps.watchId);
+  if(_gps.timer)          clearInterval(_gps.timer);
+  if(_gps.simTimer)       clearInterval(_gps.simTimer);
+  if(_gps.reconnectTimer) clearInterval(_gps.reconnectTimer);
+  if(_gps.watchId)        navigator.geolocation.clearWatch(_gps.watchId);
+  if(GPS_WAKELOCK)        { GPS_WAKELOCK.release().catch(function(){}); GPS_WAKELOCK = null; }
   _gps.active=false;
   var h=Math.floor(_gps.seconds/3600),m=Math.floor((_gps.seconds%3600)/60),s=_gps.seconds%60;
   var durStr=(h>0?pad(h)+':':'')+pad(m)+':'+pad(s);
@@ -7251,6 +7311,18 @@ function initPerfAdv() {
   buildPerfHeatmap();
 }
 
+
+// Re-acquire wake lock if released by system (e.g. screen dimmed briefly)
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'visible' && _gps.active && !GPS_WAKELOCK) {
+    if ('wakeLock' in navigator) {
+      navigator.wakeLock.request('screen').then(function(lock) {
+        GPS_WAKELOCK = lock;
+        lock.addEventListener('release', function() { GPS_WAKELOCK = null; });
+      }).catch(function(){});
+    }
+  }
+});
 
 </script>
 
