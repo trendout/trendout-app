@@ -2246,7 +2246,14 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
           return a;
         });
       }
-      if (moodsRes.data)   _happinessLog  = moodsRes.data;
+      if (moodsRes.data) {
+        // Sort ascending by date so [last] = most recent entry
+        _happinessLog = moodsRes.data.slice().sort(function(a,b){
+          var pa=a.date.split('/'), pb=b.date.split('/');
+          return new Date(parseInt(pa[2]),parseInt(pa[1])-1,parseInt(pa[0])) -
+                 new Date(parseInt(pb[2]),parseInt(pb[1])-1,parseInt(pb[0]));
+        });
+      }
       if (weightsRes.data) {
         // Sort ascending by date so _weightLog[last] = most recent
         _weightLog = weightsRes.data.slice().sort(function(a,b){
@@ -4865,70 +4872,36 @@ function saveHappiness() {
   dbSyncMood({date:today, score:_hapScore, note:note});
   closeHappinessLog();
   renderHappinessMeter();
+  // Update perf page stats for current period
+  var entries = getHapEntries(_perfHapPeriod);
+  updatePerfHapStats(entries);
   toast(_hapEmojis[_hapScore]+' Humor registado — '+_hapLabels[_hapScore]);
 }
 
 function renderHappinessMeter() {
   if (!_happinessLog.length) return;
-  var last = _happinessLog[_happinessLog.length-1];
+  // _happinessLog is sorted ascending — last entry = most recent
+  var last  = _happinessLog[_happinessLog.length-1];
   var score = last.score;
 
-  // Big emoji + score
-  var emojiEl = document.getElementById('happiness-emoji');
-  var scoreEl = document.getElementById('happiness-score');
-  var labelEl = document.getElementById('happiness-label');
-  var trendEl = document.getElementById('happiness-trend');
-  var barEl   = document.getElementById('happiness-bar');
-  if (emojiEl) emojiEl.textContent = _hapEmojis[score];
-  if (scoreEl) { scoreEl.textContent = score; scoreEl.style.color = _hapColors[score]; }
-  if (labelEl) { labelEl.textContent = _hapLabels[score]; labelEl.style.color = _hapColors[score]; }
-  if (barEl)   barEl.style.width = (score/10*100)+'%';
-
-  // Trend vs previous
-  if (_happinessLog.length >= 2 && trendEl) {
-    var prev = _happinessLog[_happinessLog.length-2].score;
-    var diff = score - prev;
-    if (diff > 0)      { trendEl.textContent='↑ +'+diff+' vs ontem'; trendEl.style.color='#22C55E'; }
-    else if (diff < 0) { trendEl.textContent='↓ '+diff+' vs ontem';  trendEl.style.color='#EF4444'; }
-    else               { trendEl.textContent='→ Igual ao último registo'; trendEl.style.color='rgba(255,255,255,.4)'; }
-  }
-
-  // Stats
-  var scores = _happinessLog.map(function(e){return e.score;});
-  var avg = scores.reduce(function(a,b){return a+b;},0)/scores.length;
-  var best = Math.max.apply(null,scores);
-  var avgEl = document.getElementById('hap-avg');
-  var bestEl = document.getElementById('hap-best');
-  var daysEl = document.getElementById('hap-days');
-  var streakEl = document.getElementById('hap-streak');
-  if (avgEl)  { avgEl.textContent = avg.toFixed(1); avgEl.style.color = _hapColors[Math.round(avg)]; }
-  if (bestEl) { bestEl.textContent = best; bestEl.style.color = _hapColors[best]; }
-  if (daysEl) daysEl.textContent = _happinessLog.length;
-
-  // Streak
-  var streak = 0;
-  var today = new Date(); today.setHours(0,0,0,0);
-  for (var i=_happinessLog.length-1;i>=0;i--) {
-    var p=_happinessLog[i].date.split('/');
-    var d=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
-    var expected=new Date(today); expected.setDate(today.getDate()-streak);
-    if (d.toDateString()===expected.toDateString()) streak++;
-    else break;
-  }
-  if (streakEl) streakEl.textContent = streak+'🔥';
-
-  // Draw chart — ensure week is active and both charts in sync
-  if (_hapChartPeriod !== _perfHapPeriod) _perfHapPeriod = _hapChartPeriod;
-  drawHappinessChart();
-
-  // Sync perf page happiness meter
+  // Sync to perf page meter (the only happiness meter now)
   syncPerfHappiness();
+
+  // Draw perf chart with current period
+  if (_hapChartPeriod !== _perfHapPeriod) _perfHapPeriod = _hapChartPeriod;
+  if (typeof drawPerfHapChart === 'function') drawPerfHapChart();
 }
 
 function syncPerfHappiness() {
   if (!_happinessLog.length) return;
-  var last  = _happinessLog[_happinessLog.length - 1];
-  var score = last.score;
+  // Use average of current period — not just last entry
+  var entries  = getHapEntries(_perfHapPeriod);
+  if (!entries.length) entries = _happinessLog.slice();
+  var scores   = entries.map(function(e){ return e.score; });
+  var avg      = scores.reduce(function(a,b){ return a+b; }, 0) / scores.length;
+  var avgRound = Math.round(avg);
+  var last     = _happinessLog[_happinessLog.length - 1];
+  var prev     = _happinessLog.length > 1 ? _happinessLog[_happinessLog.length - 2].score : null;
 
   var phEmoji = document.getElementById('ph-emoji');
   var phScore = document.getElementById('ph-score');
@@ -4936,21 +4909,18 @@ function syncPerfHappiness() {
   var phTrend = document.getElementById('ph-trend');
   var phBar   = document.getElementById('ph-bar');
 
-  if (phEmoji) phEmoji.textContent = _hapEmojis[score];
-  if (phScore) { phScore.textContent = score; phScore.style.color = _hapColors ? _hapColors[score] : '#22C55E'; }
-  if (phLabel) phLabel.textContent = _hapLabels ? (_hapLabels[score] || '') : '';
+  // Big emoji + score = AVERAGE of selected period
+  if (phEmoji) phEmoji.textContent = _hapEmojis[avgRound];
+  if (phScore) { phScore.textContent = avg.toFixed(1); phScore.style.color = _hapColors[avgRound]; }
+  if (phLabel) { phLabel.textContent = _hapLabels[avgRound]; phLabel.style.color = _hapColors[avgRound]; }
+  if (phBar)   { phBar.style.width = (avg / 10 * 100) + '%'; phBar.style.background = _hapColors[avgRound]; }
 
-  if (phTrend && _happinessLog.length > 1) {
-    var prev = _happinessLog[_happinessLog.length - 2].score;
-    var diff = score - prev;
+  // Trend: most recent vs previous entry
+  if (phTrend && prev !== null) {
+    var diff = last.score - prev;
     phTrend.textContent = diff > 0 ? '↑ +' + diff + ' vs anterior' : diff < 0 ? '↓ ' + diff + ' vs anterior' : '→ igual ao anterior';
-    phTrend.style.color  = diff > 0 ? '#22C55E' : diff < 0 ? '#EF4444' : 'rgba(255,255,255,.4)';
-  }
-
-  if (phBar) {
-    phBar.style.width      = (score * 10) + '%';
-    phBar.style.background = _hapColors ? (_hapColors[score] || '#22C55E') : '#22C55E';
-  }
+    phTrend.style.color = diff > 0 ? '#22C55E' : diff < 0 ? '#EF4444' : 'rgba(255,255,255,.4)';
+  } else if (phTrend) phTrend.textContent = '';
 
   // Redraw perf happiness chart
   if (typeof drawPerfHapChart === 'function') drawPerfHapChart();
@@ -5629,25 +5599,27 @@ function updatePerfHapStats(entries) {
     return;
   }
 
-  var last  = entries[entries.length-1];
-  var score = last.score;
-  var scores = entries.map(function(e){return e.score;});
-  var avg  = scores.reduce(function(a,b){return a+b;},0)/scores.length;
-  var best = Math.max.apply(null,scores);
+  var scores  = entries.map(function(e){return e.score;});
+  var avg     = scores.reduce(function(a,b){return a+b;},0)/scores.length;
+  var avgRound = Math.round(avg);  // emoji/score represents the AVERAGE of the period
+  var best    = Math.max.apply(null,scores);
+  var last    = entries[entries.length-1];  // most recent entry (for trend)
 
-  if(emojiEl)  emojiEl.textContent = _hapEmojis[score];
-  if(scoreEl)  { scoreEl.textContent=score; scoreEl.style.color=_hapColors[score]; }
-  if(labelEl)  { labelEl.textContent=_hapLabels[score]; labelEl.style.color=_hapColors[score]; }
-  if(barEl)    barEl.style.width=(score/10*100)+'%';
+  // Big emoji + score = AVERAGE of selected period
+  if(emojiEl)  emojiEl.textContent = _hapEmojis[avgRound];
+  if(scoreEl)  { scoreEl.textContent=avg.toFixed(1); scoreEl.style.color=_hapColors[avgRound]; }
+  if(labelEl)  { labelEl.textContent=_hapLabels[avgRound]; labelEl.style.color=_hapColors[avgRound]; }
+  if(barEl)    barEl.style.width=(avg/10*100)+'%';
 
+  // Trend: last entry vs previous entry
   if(entries.length>=2 && trendEl){
-    var prev=entries[entries.length-2].score, diff=score-prev;
+    var prev=entries[entries.length-2].score, diff=last.score-prev;
     if(diff>0)       { trendEl.textContent='↑ +'+diff+' vs anterior'; trendEl.style.color='#22C55E'; }
     else if(diff<0)  { trendEl.textContent='↓ '+diff+' vs anterior';  trendEl.style.color='#EF4444'; }
     else             { trendEl.textContent='→ Igual ao anterior';      trendEl.style.color='rgba(255,255,255,.4)'; }
   } else if(trendEl) trendEl.textContent='';
 
-  if(avgEl)  { avgEl.textContent=avg.toFixed(1); avgEl.style.color=_hapColors[Math.round(avg)]; }
+  if(avgEl)  { avgEl.textContent=avg.toFixed(1); avgEl.style.color=_hapColors[avgRound]; }
   if(bestEl) { bestEl.textContent=best+' '+_hapEmojis[best]; bestEl.style.color=_hapColors[best]; }
   if(daysEl)   daysEl.textContent=entries.length;
 
