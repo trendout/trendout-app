@@ -1598,395 +1598,131 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
 </body>
 </html>
 
-    <div class="app-page" id="page-perf-adv" style="overflow-y:auto;height:100%;padding-top:max(env(safe-area-inset-top,0px),16px);background:#000;">
-      <div class="perf-adv-wrap" style="max-width:430px;margin:0 auto;padding:0 18px 100px">
+    <!-- ═══ PERFORMANCE AVANÇADA PAGE ═══ -->
+    <div class="app-page" id="page-perf-adv" style="overflow-y:auto;height:100%;background:#000;padding-top:max(env(safe-area-inset-top,0px),0px)">
+      <div style="max-width:430px;margin:0 auto;padding:20px 16px 100px">
 
-
-  <!-- Header -->
-  <div class="perf-adv-header">
-    <button class="perf-adv-back" onclick="navTo('home')">←</button>
-    <div>
-      <div class="header-title">Performance Avançada</div>
-      <div class="header-sub">Análise completa dos teus treinos</div>
-    </div>
-    <button class="perf-adv-export-btn" style="width:auto;padding:8px 14px;font-size:11px;margin-top:0;border-radius:10px" onclick="exportPerfPDF()">↓ PDF</button>
-  </div>
-
-  <!-- Period tabs -->
-  <div class="perf-adv-period-bar">
-    <button class="perf-adv-period-btn on" onclick="setPerfAdvPeriod('week',this)">Semana</button>
-    <button class="perf-adv-period-btn" onclick="setPerfAdvPeriod('month',this)">Mês</button>
-    <button class="perf-adv-period-btn" onclick="setPerfAdvPeriod('3month',this)">3 Meses</button>
-    <button class="perf-adv-period-btn" onclick="setPerfAdvPeriod('year',this)">Ano</button>
-  </div>
-
-  <!-- ── HERO STATS ── -->
-  <div class="perf-adv-hero-stats perf-adv-fade-up">
-    <div class="perf-adv-hero-stat" style="background:linear-gradient(135deg,#0a1a0a,#0f0f0f);border:1px solid rgba(34,197,94,.2)">
-      <div class="glow perf-adv-glow" style="background:radial-gradient(circle,rgba(34,197,94,.15),transparent 70%)"></div>
-      <div class="perf-adv-hero-stat-val" style="color:var(--green2)" id="stat-km">47.3</div>
-      <div class="perf-adv-hero-stat-lbl" style="color:var(--green)">km totais</div>
-      <div class="perf-adv-hero-stat-delta" style="color:var(--green2)">↑ +12% vs período anterior</div>
-    </div>
-    <div class="perf-adv-hero-stat" style="background:linear-gradient(135deg,#0d1117,#0f0f0f);border:1px solid rgba(96,165,250,.2)">
-      <div class="glow perf-adv-glow" style="background:radial-gradient(circle,rgba(96,165,250,.12),transparent 70%)"></div>
-      <div class="perf-adv-hero-stat-val" style="color:var(--blue2)" id="stat-acts">8</div>
-      <div class="perf-adv-hero-stat-lbl" style="color:var(--blue2)">atividades</div>
-      <div class="perf-adv-hero-stat-delta" style="color:var(--blue2)">↑ +2 vs anterior</div>
-    </div>
-    <div class="perf-adv-hero-stat" style="background:linear-gradient(135deg,#1a1000,#0f0f0f);border:1px solid rgba(250,204,21,.15)">
-      <div class="glow perf-adv-glow" style="background:radial-gradient(circle,rgba(250,204,21,.1),transparent 70%)"></div>
-      <div class="perf-adv-hero-stat-val" style="color:var(--yellow)" id="stat-time">6h 42m</div>
-      <div class="perf-adv-hero-stat-lbl" style="color:var(--yellow)">tempo total</div>
-      <div class="perf-adv-hero-stat-delta" style="color:var(--yellow)">↑ +48min</div>
-    </div>
-    <div class="perf-adv-hero-stat" style="background:linear-gradient(135deg,#1a0d00,#0f0f0f);border:1px solid rgba(249,115,22,.15)">
-      <div class="glow perf-adv-glow" style="background:radial-gradient(circle,rgba(249,115,22,.1),transparent 70%)"></div>
-      <div class="perf-adv-hero-stat-val" style="color:var(--orange)" id="stat-kcal">3,847</div>
-      <div class="perf-adv-hero-stat-lbl" style="color:var(--orange)">kcal</div>
-      <div class="perf-adv-hero-stat-delta" style="color:var(--orange)">↑ +8% eficiência</div>
-    </div>
-  </div>
-
-  <!-- ── FITNESS SCORE ── -->
-  <div class="perf-adv-sec">Fitness Score</div>
-  <div class="perf-adv-chart-card perf-adv-fade-up" style="border-color:rgba(167,139,250,.2)">
-    <div class="perf-adv-chart-card-hdr">
-      <div>
-        <div class="perf-adv-chart-title">VO₂ Máx estimado</div>
-        <div class="perf-adv-chart-sub">Calculado com base no pace e FC dos teus treinos</div>
-      </div>
-      <span class="perf-adv-chart-badge" style="background:rgba(167,139,250,.15);color:var(--purple2)">BRILHANTE</span>
-    </div>
-    <div style="display:flex;align-items:center;gap:20px">
-      <div class="fitness-ring">
-        <svg width="110" height="110" viewBox="0 0 110 110">
-          <circle cx="55" cy="55" r="46" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="8"/>
-          <circle cx="55" cy="55" r="46" fill="none"
-            stroke="url(#vo2grad)" stroke-width="8"
-            stroke-linecap="round" stroke-dasharray="289"
-            style="stroke-dashoffset:72;transform:rotate(-90deg);transform-origin:55px 55px;transition:stroke-dashoffset 1s ease"/>
-          <defs>
-            <linearGradient id="vo2grad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#7C3AED"/>
-              <stop offset="100%" stop-color="#A78BFA"/>
-            </linearGradient>
-          </defs>
-        </svg>
-        <div class="fitness-score">
-          <div class="fitness-score-val" style="color:var(--purple2)">51</div>
-          <div class="fitness-score-lbl">ml/kg/min</div>
+        <!-- Header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+          <button onclick="navTo('perf')" style="background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.1);border-radius:12px;width:36px;height:36px;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">←</button>
+          <div style="text-align:center">
+            <div style="font-size:16px;font-weight:800;color:#fff">Performance Avançada</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:1px">✨ Premium</div>
+          </div>
+          <div style="width:36px"></div>
         </div>
-      </div>
-      <div style="flex:1">
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <div>
-            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-              <span style="font-size:10px;color:var(--muted)">Resistência</span>
-              <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--green2)">84%</span>
-            </div>
-            <div style="height:5px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden">
-              <div style="width:84%;height:100%;background:var(--green);border-radius:100px"></div>
-            </div>
+
+        <!-- Period tabs -->
+        <div style="display:flex;gap:6px;margin-bottom:20px;background:rgba(255,255,255,.05);border-radius:14px;padding:4px">
+          <button id="padv-tab-week"   onclick="setPerfAdvPeriod('week',this)"   style="flex:1;padding:8px 4px;border-radius:10px;background:#fff;border:none;color:#000;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Semana</button>
+          <button id="padv-tab-month"  onclick="setPerfAdvPeriod('month',this)"  style="flex:1;padding:8px 4px;border-radius:10px;background:none;border:none;color:rgba(255,255,255,.5);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Mês</button>
+          <button id="padv-tab-3month" onclick="setPerfAdvPeriod('3month',this)" style="flex:1;padding:8px 4px;border-radius:10px;background:none;border:none;color:rgba(255,255,255,.5);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">3 Meses</button>
+          <button id="padv-tab-year"   onclick="setPerfAdvPeriod('year',this)"   style="flex:1;padding:8px 4px;border-radius:10px;background:none;border:none;color:rgba(255,255,255,.5);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Ano</button>
+        </div>
+
+        <!-- Hero stats row -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+          <div style="background:#111;border:1px solid rgba(34,197,94,.2);border-radius:16px;padding:14px">
+            <div style="font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Distância total</div>
+            <div id="padv-stat-km" style="font-size:24px;font-weight:900;color:#22C55E">—</div>
+            <div id="padv-stat-km-delta" style="font-size:10px;color:rgba(255,255,255,.35);margin-top:2px"></div>
           </div>
-          <div>
-            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-              <span style="font-size:10px;color:var(--muted)">Velocidade</span>
-              <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--blue2)">72%</span>
-            </div>
-            <div style="height:5px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden">
-              <div style="width:72%;height:100%;background:var(--blue);border-radius:100px"></div>
-            </div>
+          <div style="background:#111;border:1px solid rgba(249,115,22,.2);border-radius:16px;padding:14px">
+            <div style="font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Calorias</div>
+            <div id="padv-stat-cal" style="font-size:24px;font-weight:900;color:#F97316">—</div>
+            <div id="padv-stat-cal-delta" style="font-size:10px;color:rgba(255,255,255,.35);margin-top:2px"></div>
           </div>
-          <div>
-            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-              <span style="font-size:10px;color:var(--muted)">Força</span>
-              <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--yellow)">61%</span>
-            </div>
-            <div style="height:5px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden">
-              <div style="width:61%;height:100%;background:var(--yellow);border-radius:100px"></div>
-            </div>
+          <div style="background:#111;border:1px solid rgba(96,165,250,.2);border-radius:16px;padding:14px">
+            <div style="font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Pace médio</div>
+            <div id="padv-stat-pace" style="font-size:24px;font-weight:900;color:#60A5FA">—</div>
+            <div id="padv-stat-pace-delta" style="font-size:10px;color:rgba(255,255,255,.35);margin-top:2px"></div>
           </div>
-          <div>
-            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-              <span style="font-size:10px;color:var(--muted)">Recuperação</span>
-              <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--teal)">78%</span>
+          <div style="background:#111;border:1px solid rgba(167,139,250,.2);border-radius:16px;padding:14px">
+            <div style="font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">VO₂ Est.</div>
+            <div id="padv-stat-vo2" style="font-size:24px;font-weight:900;color:#A78BFA">—</div>
+            <div id="padv-stat-vo2-label" style="font-size:10px;color:rgba(255,255,255,.35);margin-top:2px"></div>
+          </div>
+        </div>
+
+        <!-- Distância semanal chart -->
+        <div style="background:#111;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px;margin-bottom:12px">
+          <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:4px">📈 Distância por sessão</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:12px">km por actividade no período</div>
+          <canvas id="padv-dist-chart" height="110" style="width:100%"></canvas>
+          <div id="padv-dist-labels" style="display:flex;justify-content:space-between;margin-top:6px"></div>
+        </div>
+
+        <!-- Pace por km chart -->
+        <div style="background:#111;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px;margin-bottom:12px">
+          <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:4px">⚡ Evolução do Pace</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:12px">min/km — valores mais baixos = mais rápido</div>
+          <canvas id="padv-pace-chart" height="110" style="width:100%"></canvas>
+          <div id="padv-pace-labels" style="display:flex;justify-content:space-between;margin-top:6px"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:12px">
+            <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px;text-align:center">
+              <div id="padv-pace-avg" style="font-size:16px;font-weight:800;color:#fff">—</div>
+              <div style="font-size:9px;color:rgba(255,255,255,.35);margin-top:2px">Pace médio</div>
             </div>
-            <div style="height:5px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden">
-              <div style="width:78%;height:100%;background:var(--teal);border-radius:100px"></div>
+            <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px;text-align:center">
+              <div id="padv-pace-best" style="font-size:16px;font-weight:800;color:#22C55E">—</div>
+              <div style="font-size:9px;color:rgba(255,255,255,.35);margin-top:2px">Melhor pace</div>
+            </div>
+            <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px;text-align:center">
+              <div id="padv-pace-trend" style="font-size:16px;font-weight:800;color:#60A5FA">—</div>
+              <div style="font-size:9px;color:rgba(255,255,255,.35);margin-top:2px">Tendência</div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- ── DISTANCE TREND ── -->
-  <div class="perf-adv-sec">Evolução da Distância</div>
-  <div class="perf-adv-chart-card perf-adv-fade-up">
-    <div class="perf-adv-chart-card-hdr">
-      <div>
-        <div class="perf-adv-chart-title">Distância semanal (km)</div>
-        <div class="perf-adv-chart-sub">Evolução ao longo do tempo</div>
-      </div>
-      <span class="perf-adv-chart-badge" style="background:rgba(34,197,94,.1);color:var(--green2)">+18% mês</span>
-    </div>
-    <canvas id="dist-chart" height="100"></canvas>
-    <div id="dist-labels" style="display:flex;justify-content:space-between;margin-top:6px"></div>
-  </div>
-
-  <!-- ── PACE ANALYSIS ── -->
-  <div class="perf-adv-sec">Análise de Pace</div>
-  <div class="perf-adv-chart-card perf-adv-fade-up">
-    <div class="perf-adv-chart-card-hdr">
-      <div>
-        <div class="perf-adv-chart-title">Distribuição de zonas de pace</div>
-        <div class="perf-adv-chart-sub">% do tempo em cada zona</div>
-      </div>
-    </div>
-    <!-- Zone bars -->
-    <div style="display:flex;flex-direction:column;gap:10px">
-      <div class="perf-adv-pace-row">
-        <div class="perf-adv-pace-zone" style="color:#60A5FA">Z1 Fácil</div>
-        <div class="perf-adv-pace-bar-wrap"><div class="perf-adv-pace-bar" style="width:28%;background:linear-gradient(90deg,#1D4ED8,#60A5FA)"></div></div>
-        <div class="perf-adv-pace-pct">28%</div>
-      </div>
-      <div class="perf-adv-pace-row">
-        <div class="perf-adv-pace-zone" style="color:#4ADE80">Z2 Aeróbio</div>
-        <div class="perf-adv-pace-bar-wrap"><div class="perf-adv-pace-bar" style="width:42%;background:linear-gradient(90deg,#16A34A,#4ADE80)"></div></div>
-        <div class="perf-adv-pace-pct">42%</div>
-      </div>
-      <div class="perf-adv-pace-row">
-        <div class="perf-adv-pace-zone" style="color:#FACC15">Z3 Tempo</div>
-        <div class="perf-adv-pace-bar-wrap"><div class="perf-adv-pace-bar" style="width:18%;background:linear-gradient(90deg,#D97706,#FACC15)"></div></div>
-        <div class="perf-adv-pace-pct">18%</div>
-      </div>
-      <div class="perf-adv-pace-row">
-        <div class="perf-adv-pace-zone" style="color:#F97316">Z4 Limiar</div>
-        <div class="perf-adv-pace-bar-wrap"><div class="perf-adv-pace-bar" style="width:9%;background:linear-gradient(90deg,#C2410C,#F97316)"></div></div>
-        <div class="perf-adv-pace-pct">9%</div>
-      </div>
-      <div class="perf-adv-pace-row">
-        <div class="perf-adv-pace-zone" style="color:#EF4444">Z5 Máximo</div>
-        <div class="perf-adv-pace-bar-wrap"><div class="perf-adv-pace-bar" style="width:3%;background:linear-gradient(90deg,#991B1B,#EF4444)"></div></div>
-        <div class="perf-adv-pace-pct">3%</div>
-      </div>
-    </div>
-    <!-- Pace stats -->
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:14px">
-      <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px;text-align:center">
-        <div style="font-size:16px;font-weight:700;color:#fff;font-family:'DM Mono',monospace">5:08</div>
-        <div style="font-size:9px;color:var(--muted);margin-top:2px">Pace médio</div>
-      </div>
-      <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px;text-align:center">
-        <div style="font-size:16px;font-weight:700;color:var(--green2);font-family:'DM Mono',monospace">4:31</div>
-        <div style="font-size:9px;color:var(--muted);margin-top:2px">Pace melhor</div>
-      </div>
-      <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px;text-align:center">
-        <div style="font-size:16px;font-weight:700;color:var(--blue2);font-family:'DM Mono',monospace">↓0:12</div>
-        <div style="font-size:9px;color:var(--muted);margin-top:2px">Melhoria/mês</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── WEEKLY HEATMAP ── -->
-  <div class="perf-adv-sec">Mapa de Consistência</div>
-  <div class="perf-adv-chart-card perf-adv-fade-up">
-    <div class="perf-adv-chart-card-hdr">
-      <div>
-        <div class="perf-adv-chart-title">Atividade por dia — últimas 8 semanas</div>
-        <div class="perf-adv-chart-sub">Intensidade relativa de cada treino</div>
-      </div>
-    </div>
-    <div style="display:flex;gap:4px;margin-bottom:6px">
-      <div style="width:28px"></div>
-      <div style="flex:1;display:grid;grid-template-columns:repeat(7,1fr);gap:4px">
-        <div class="hm-label">S</div><div class="hm-label">T</div><div class="hm-label">Q</div>
-        <div class="hm-label">Q</div><div class="hm-label">S</div><div class="hm-label">S</div><div class="hm-label">D</div>
-      </div>
-    </div>
-    <div id="heatmap-grid" style="display:flex;flex-direction:column;gap:4px"></div>
-    <div style="display:flex;align-items:center;gap:6px;margin-top:10px;justify-content:flex-end">
-      <span style="font-size:9px;color:var(--muted)">Menos</span>
-      <div style="width:10px;height:10px;border-radius:3px;background:rgba(255,255,255,.06)"></div>
-      <div style="width:10px;height:10px;border-radius:3px;background:rgba(34,197,94,.2)"></div>
-      <div style="width:10px;height:10px;border-radius:3px;background:rgba(34,197,94,.5)"></div>
-      <div style="width:10px;height:10px;border-radius:3px;background:#22C55E"></div>
-      <span style="font-size:9px;color:var(--muted)">Mais</span>
-    </div>
-  </div>
-
-  <!-- ── HEART RATE ── -->
-  <div class="perf-adv-sec">Frequência Cardíaca</div>
-  <div class="perf-adv-chart-card perf-adv-fade-up" style="border-color:rgba(239,68,68,.15)">
-    <div class="perf-adv-chart-card-hdr">
-      <div>
-        <div class="perf-adv-chart-title">FC média por treino</div>
-        <div class="perf-adv-chart-sub">Últimas 8 atividades</div>
-      </div>
-      <span class="perf-adv-chart-badge" style="background:rgba(239,68,68,.1);color:#F87171">❤️ BPM</span>
-    </div>
-    <canvas id="hr-chart" height="80"></canvas>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-top:12px">
-      <div style="text-align:center">
-        <div style="font-size:16px;font-weight:700;color:#F87171;font-family:'DM Mono',monospace">142</div>
-        <div style="font-size:9px;color:var(--muted)">FC Média</div>
-      </div>
-      <div style="text-align:center">
-        <div style="font-size:16px;font-weight:700;color:var(--red);font-family:'DM Mono',monospace">178</div>
-        <div style="font-size:9px;color:var(--muted)">FC Máx</div>
-      </div>
-      <div style="text-align:center">
-        <div style="font-size:16px;font-weight:700;color:var(--green2);font-family:'DM Mono',monospace">58</div>
-        <div style="font-size:9px;color:var(--muted)">FC Repouso</div>
-      </div>
-      <div style="text-align:center">
-        <div style="font-size:16px;font-weight:700;color:var(--yellow);font-family:'DM Mono',monospace">76%</div>
-        <div style="font-size:9px;color:var(--muted)">FC Máx uso</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── PERSONAL RECORDS ── -->
-  <div class="perf-adv-sec">Recordes Pessoais</div>
-  <div class="perf-adv-records-grid perf-adv-fade-up">
-    <div class="perf-adv-record-card" style="border-color:rgba(250,204,21,.15)">
-      <div class="perf-adv-record-emoji">🏃</div>
-      <div class="perf-adv-record-val" style="color:var(--yellow)">4:31</div>
-      <div class="perf-adv-record-lbl">Melhor pace/km</div>
-      <div class="perf-adv-record-date">📅 12/03/2026</div>
-    </div>
-    <div class="perf-adv-record-card" style="border-color:rgba(34,197,94,.15)">
-      <div class="perf-adv-record-emoji">📏</div>
-      <div class="perf-adv-record-val" style="color:var(--green2)">21.4km</div>
-      <div class="perf-adv-record-lbl">Distância máx</div>
-      <div class="perf-adv-record-date">📅 05/03/2026</div>
-    </div>
-    <div class="perf-adv-record-card" style="border-color:rgba(96,165,250,.15)">
-      <div class="perf-adv-record-emoji">⏱️</div>
-      <div class="perf-adv-record-val" style="color:var(--blue2)">2h 18m</div>
-      <div class="perf-adv-record-lbl">Treino mais longo</div>
-      <div class="perf-adv-record-date">📅 05/03/2026</div>
-    </div>
-    <div class="perf-adv-record-card" style="border-color:rgba(249,115,22,.15)">
-      <div class="perf-adv-record-emoji">🔥</div>
-      <div class="perf-adv-record-val" style="color:var(--orange)">1,247</div>
-      <div class="perf-adv-record-lbl">Kcal num treino</div>
-      <div class="perf-adv-record-date">📅 05/03/2026</div>
-    </div>
-    <div class="perf-adv-record-card" style="border-color:rgba(167,139,250,.15)">
-      <div class="perf-adv-record-emoji">🔥</div>
-      <div class="perf-adv-record-val" style="color:var(--purple2)">14🔥</div>
-      <div class="perf-adv-record-lbl">Streak de treinos</div>
-      <div class="perf-adv-record-date">📅 Fev–Mar 2026</div>
-    </div>
-    <div class="perf-adv-record-card" style="border-color:rgba(45,212,191,.15)">
-      <div class="perf-adv-record-emoji">❤️</div>
-      <div class="perf-adv-record-val" style="color:var(--teal)">178</div>
-      <div class="perf-adv-record-lbl">FC máxima</div>
-      <div class="perf-adv-record-date">📅 15/02/2026</div>
-    </div>
-  </div>
-
-  <!-- ── SPORT BREAKDOWN ── -->
-  <div class="perf-adv-sec">Por Desporto</div>
-  <div class="perf-adv-chart-card perf-adv-fade-up">
-    <div class="perf-adv-chart-card-hdr">
-      <div class="perf-adv-chart-title">Distribuição de atividades</div>
-      <div class="perf-adv-chart-sub">Este mês · 8 treinos</div>
-    </div>
-    <div>
-      <div class="perf-adv-sport-row">
-        <div class="perf-adv-sport-icon" style="background:rgba(34,197,94,.1)">🏃</div>
-        <div>
-          <div class="perf-adv-sport-name">Corrida</div>
-          <div style="font-size:10px;color:var(--muted)">5 treinos · 31.2km</div>
+        <!-- Calorias chart -->
+        <div style="background:#111;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px;margin-bottom:12px">
+          <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:4px">🔥 Calorias por actividade</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:12px">kcal queimadas em cada sessão</div>
+          <canvas id="padv-cal-chart" height="110" style="width:100%"></canvas>
+          <div id="padv-cal-labels" style="display:flex;justify-content:space-between;margin-top:6px"></div>
         </div>
-        <div style="flex:1;padding:0 10px">
-          <div class="perf-adv-sport-bar-wrap" style="width:100%"><div class="perf-adv-sport-bar" style="width:63%;background:var(--green)"></div></div>
-        </div>
-        <div class="perf-adv-sport-pct">63%</div>
-      </div>
-      <div class="perf-adv-sport-row">
-        <div class="perf-adv-sport-icon" style="background:rgba(96,165,250,.1)">🚴</div>
-        <div>
-          <div class="perf-adv-sport-name">Ciclismo</div>
-          <div style="font-size:10px;color:var(--muted)">2 treinos · 42.1km</div>
-        </div>
-        <div style="flex:1;padding:0 10px">
-          <div class="perf-adv-sport-bar-wrap" style="width:100%"><div class="perf-adv-sport-bar" style="width:25%;background:var(--blue)"></div></div>
-        </div>
-        <div class="perf-adv-sport-pct">25%</div>
-      </div>
-      <div class="perf-adv-sport-row">
-        <div class="perf-adv-sport-icon" style="background:rgba(167,139,250,.1)">🧘</div>
-        <div>
-          <div class="perf-adv-sport-name">Yoga</div>
-          <div style="font-size:10px;color:var(--muted)">1 treino · 60min</div>
-        </div>
-        <div style="flex:1;padding:0 10px">
-          <div class="perf-adv-sport-bar-wrap" style="width:100%"><div class="perf-adv-sport-bar" style="width:12%;background:var(--purple2)"></div></div>
-        </div>
-        <div class="perf-adv-sport-pct">12%</div>
-      </div>
-    </div>
-  </div>
 
-  <!-- ── VS PERÍODO ANTERIOR ── -->
-  <div class="perf-adv-sec">Comparação</div>
-  <div class="perf-adv-chart-card perf-adv-fade-up">
-    <div class="perf-adv-chart-card-hdr">
-      <div class="perf-adv-chart-title">Este mês vs mês anterior</div>
-    </div>
-    <div>
-      <div class="perf-adv-compare-row perf-adv-compare-row-header">
-        <div class="perf-adv-compare-col perf-adv-compare-label">Métrica</div>
-        <div class="perf-adv-compare-col">Anterior</div>
-        <div class="perf-adv-compare-col">Atual</div>
-      </div>
-      <div class="perf-adv-compare-row">
-        <div class="perf-adv-compare-col perf-adv-compare-label">Distância</div>
-        <div class="perf-adv-compare-col">39.1 km</div>
-        <div class="compare-col better">47.3 km</div>
-      </div>
-      <div class="perf-adv-compare-row">
-        <div class="perf-adv-compare-col perf-adv-compare-label">Treinos</div>
-        <div class="perf-adv-compare-col">6</div>
-        <div class="compare-col better">8</div>
-      </div>
-      <div class="perf-adv-compare-row">
-        <div class="perf-adv-compare-col perf-adv-compare-label">Pace médio</div>
-        <div class="perf-adv-compare-col">5:20/km</div>
-        <div class="compare-col better">5:08/km</div>
-      </div>
-      <div class="perf-adv-compare-row">
-        <div class="perf-adv-compare-col perf-adv-compare-label">FC média</div>
-        <div class="perf-adv-compare-col">148 bpm</div>
-        <div class="compare-col better">142 bpm</div>
-      </div>
-      <div class="perf-adv-compare-row">
-        <div class="perf-adv-compare-col perf-adv-compare-label">Calorias</div>
-        <div class="perf-adv-compare-col">3,560</div>
-        <div class="compare-col better">3,847</div>
-      </div>
-      <div class="perf-adv-compare-row">
-        <div class="perf-adv-compare-col perf-adv-compare-label">Tempo total</div>
-        <div class="perf-adv-compare-col">5h 54m</div>
-        <div class="compare-col better">6h 42m</div>
-      </div>
-    </div>
-  </div>
+        <!-- VO2 + Peso -->
+        <div style="background:#111;border:1px solid rgba(167,139,250,.2);border-radius:16px;padding:16px;margin-bottom:12px">
+          <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:4px">🫁 VO₂ Máx Estimado</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:16px">Calculado com base no pace médio e peso actual</div>
+          <div style="display:flex;align-items:center;gap:20px">
+            <div style="position:relative;width:110px;height:110px;flex-shrink:0">
+              <svg width="110" height="110" viewBox="0 0 110 110" style="position:absolute;top:0;left:0">
+                <circle cx="55" cy="55" r="46" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="8"/>
+                <circle id="padv-vo2-ring" cx="55" cy="55" r="46" fill="none"
+                  stroke="url(#padv-vo2-grad)" stroke-width="8" stroke-linecap="round"
+                  stroke-dasharray="289" stroke-dashoffset="289"
+                  style="transform:rotate(-90deg);transform-origin:55px 55px;transition:stroke-dashoffset 1.2s ease"/>
+                <defs>
+                  <linearGradient id="padv-vo2-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#7C3AED"/>
+                    <stop offset="100%" stop-color="#A78BFA"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+                <div id="padv-vo2-val" style="font-size:22px;font-weight:900;color:#A78BFA">—</div>
+                <div style="font-size:9px;color:rgba(255,255,255,.4)">ml/kg/min</div>
+              </div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:12px;color:rgba(255,255,255,.6)">Classificação: <span id="padv-vo2-class" style="color:#A78BFA;font-weight:700">—</span></div>
+              <div style="font-size:11px;color:rgba(255,255,255,.35)" id="padv-vo2-tip">Regista mais actividades para um cálculo mais preciso</div>
+            </div>
+          </div>
+        </div>
 
-  <!-- Export -->
-  <button class="perf-adv-export-btn perf-adv-fade-up" onclick="exportPerfPDF()">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-    Exportar Relatório de Performance PDF
-  </button>
-
+        <!-- Relação Peso x Performance -->
+        <div style="background:#111;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px;margin-bottom:12px">
+          <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:4px">⚖️ Peso vs Performance</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:16px">Correlação entre peso registado e pace médio</div>
+          <canvas id="padv-weight-chart" height="110" style="width:100%"></canvas>
+          <div id="padv-weight-insight" style="margin-top:12px;background:rgba(255,255,255,.04);border-radius:10px;padding:12px;font-size:12px;color:rgba(255,255,255,.5);line-height:1.5"></div>
+        </div>
 
       </div>
     </div>
-
 
     <!-- ═══ ACTIVITY DETAIL PAGE ═══ -->
     <div class="app-page" id="page-act-detail" style="overflow-y:auto;height:100%;background:#000">
@@ -7327,12 +7063,304 @@ function exportPerfPDF() {
 }
 
 // Init
-function initPerfAdv() {
-  var d = _perfAdvData[_perfAdvPeriod];
-  drawPerfDistChart(d.dists, d.labels);
-  drawPerfHRChart(d.hr);
-  buildPerfHeatmap();
+function getPerfAdvEntries(period) {
+  var now = new Date(); now.setHours(0,0,0,0);
+  var cutoff = new Date(now);
+  if      (period==='week')   cutoff.setDate(now.getDate()-7);
+  else if (period==='month')  cutoff.setMonth(now.getMonth()-1);
+  else if (period==='3month') cutoff.setMonth(now.getMonth()-3);
+  else if (period==='year')   cutoff.setFullYear(now.getFullYear()-1);
+  else return _allActivities.slice();
+  return _allActivities.filter(function(a) {
+    var p = (a.date||'').split('/');
+    if (p.length < 3) return false;
+    var d = new Date(parseInt(p[2]), parseInt(p[1])-1, parseInt(p[0]));
+    return d >= cutoff;
+  });
 }
+
+function paceToSecs(paceStr) {
+  // "5:30 /km" → 330
+  var m = (paceStr||'').match(/(\d+):(\d+)/);
+  if (!m) return 0;
+  return parseInt(m[1])*60 + parseInt(m[2]);
+}
+
+function secsToMinKm(secs) {
+  if (!secs) return '—';
+  return Math.floor(secs/60) + ':' + (secs%60<10?'0':'') + Math.floor(secs%60);
+}
+
+function calcVO2(paceSecs, weightKg) {
+  // Cooper/Daniels estimate from pace (min/km)
+  // VO2max ≈ (483 / pace_min_km) + 3.5
+  if (!paceSecs || paceSecs <= 0) return 0;
+  var paceMin = paceSecs / 60;
+  var vo2 = (483 / paceMin) + 3.5;
+  // Weight correction: lighter athletes have higher VO2/kg
+  if (weightKg && weightKg > 0) {
+    var idealWt = 70;
+    var wtFactor = 1 + (idealWt - weightKg) * 0.002;
+    vo2 = vo2 * Math.max(0.85, Math.min(1.15, wtFactor));
+  }
+  return Math.round(Math.min(80, Math.max(20, vo2)));
+}
+
+function vo2Class(v) {
+  if (v >= 60) return {label:'Elite', color:'#A78BFA'};
+  if (v >= 52) return {label:'Excelente', color:'#22C55E'};
+  if (v >= 44) return {label:'Bom', color:'#60A5FA'};
+  if (v >= 36) return {label:'Médio', color:'#FACC15'};
+  if (v >= 28) return {label:'Razoável', color:'#F97316'};
+  return {label:'A melhorar', color:'#EF4444'};
+}
+
+function drawPadvCanvas(canvasId, data, color, labelElId, labels, isBar) {
+  var canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  var labelsEl = document.getElementById(labelElId);
+  if (labelsEl) {
+    labelsEl.innerHTML = labels.map(function(l){
+      return '<span style="font-size:9px;color:rgba(255,255,255,.3)">' + l + '</span>';
+    }).join('');
+  }
+  var ctx = canvas.getContext('2d');
+  var W = canvas.offsetWidth || 360; var H = 110;
+  canvas.width = W; canvas.height = H;
+  ctx.clearRect(0,0,W,H);
+  if (!data.length) {
+    ctx.fillStyle = 'rgba(255,255,255,.15)';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Sem dados no período', W/2, H/2);
+    return;
+  }
+  var max = Math.max.apply(null, data);
+  var min = Math.min.apply(null, data);
+  if (max === min) { max = min + 1; }
+  var pad = 8; var bw = (W - pad*2) / data.length;
+
+  if (isBar) {
+    data.forEach(function(v, i) {
+      var barH = ((v - min) / (max - min)) * (H - 24) + 8;
+      var x = pad + i * bw + bw*0.15;
+      var bW = bw * 0.7;
+      var grad = ctx.createLinearGradient(0, H-barH, 0, H);
+      grad.addColorStop(0, color);
+      grad.addColorStop(1, color.replace(')', ', 0.3)').replace('rgb', 'rgba'));
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.roundRect(x, H-barH, bW, barH, [4,4,0,0]);
+      ctx.fill();
+      // value label
+      ctx.fillStyle = 'rgba(255,255,255,.5)';
+      ctx.font = '9px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(v.toFixed(v%1?1:0), x+bW/2, H-barH-3);
+    });
+  } else {
+    // Line chart
+    var pts = data.map(function(v,i){
+      return { x: pad + i*(W-pad*2)/(data.length-1||1), y: H-pad - ((v-min)/(max-min))*(H-pad*3) };
+    });
+    // Gradient fill
+    var grad = ctx.createLinearGradient(0,0,0,H);
+    grad.addColorStop(0, color.replace(')', ', 0.3)').replace('rgb','rgba'));
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, H);
+    pts.forEach(function(p){ ctx.lineTo(p.x, p.y); });
+    ctx.lineTo(pts[pts.length-1].x, H);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+    // Line
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    pts.forEach(function(p,i){ i===0 ? ctx.moveTo(p.x,p.y) : ctx.lineTo(p.x,p.y); });
+    ctx.stroke();
+    // Dots
+    pts.forEach(function(p,i){
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 3, 0, Math.PI*2);
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,.6)';
+      ctx.font = '9px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(data[i].toFixed(data[i]%1?1:0), p.x, p.y-7);
+    });
+  }
+}
+
+var _perfAdvPeriod = 'week';
+
+function setPerfAdvPeriod(period, btn) {
+  _perfAdvPeriod = period;
+  ['week','month','3month','year'].forEach(function(t) {
+    var el = document.getElementById('padv-tab-'+t);
+    if (!el) return;
+    if (t===period) { el.style.background='#fff'; el.style.color='#000'; }
+    else            { el.style.background='none'; el.style.color='rgba(255,255,255,.5)'; }
+  });
+  renderPerfAdv();
+}
+
+function initPerfAdv() {
+  renderPerfAdv();
+}
+
+function renderPerfAdv() {
+  var acts = getPerfAdvEntries(_perfAdvPeriod).filter(function(a){
+    return parseFloat((a.dist||'0').replace(/[^0-9.]/g,'')) > 0;
+  });
+
+  // ── Hero stats ──
+  var totalKm  = acts.reduce(function(s,a){ return s + (parseFloat((a.dist||'0').replace(/[^0-9.]/g,''))||0); }, 0);
+  var totalCal = acts.reduce(function(s,a){ return s + (parseFloat((a.cal||'0').replace(/[^0-9.]/g,''))||0); }, 0);
+  var paceActs = acts.filter(function(a){ return paceToSecs(a.pace) > 0; });
+  var avgPaceSecs = paceActs.length
+    ? paceActs.reduce(function(s,a){ return s+paceToSecs(a.pace); },0) / paceActs.length : 0;
+  var lastWt = _weightLog.length ? _weightLog[_weightLog.length-1].weight : 0;
+  var vo2 = avgPaceSecs ? calcVO2(avgPaceSecs, lastWt) : 0;
+  var vo2c = vo2Class(vo2);
+
+  var el;
+  el = document.getElementById('padv-stat-km');   if(el) el.textContent = totalKm.toFixed(1)+' km';
+  el = document.getElementById('padv-stat-cal');  if(el) el.textContent = Math.round(totalCal)+' kcal';
+  el = document.getElementById('padv-stat-pace'); if(el) el.textContent = avgPaceSecs ? secsToMinKm(avgPaceSecs)+' /km' : '—';
+  el = document.getElementById('padv-stat-vo2');  if(el) { el.textContent = vo2 || '—'; el.style.color = vo2c.color; }
+  el = document.getElementById('padv-stat-vo2-label'); if(el) el.textContent = vo2 ? vo2c.label : 'Sem dados';
+
+  // Deltas (compare to previous period)
+  var prevActs = getPrevPeriodEntries(_perfAdvPeriod).filter(function(a){
+    return parseFloat((a.dist||'0').replace(/[^0-9.]/g,'')) > 0;
+  });
+  var prevKm  = prevActs.reduce(function(s,a){ return s+(parseFloat((a.dist||'0').replace(/[^0-9.]/g,''))||0); },0);
+  var prevCal = prevActs.reduce(function(s,a){ return s+(parseFloat((a.cal||'0').replace(/[^0-9.]/g,''))||0); },0);
+  var prevPaceActs = prevActs.filter(function(a){ return paceToSecs(a.pace)>0; });
+  var prevAvgPace  = prevPaceActs.length ? prevPaceActs.reduce(function(s,a){return s+paceToSecs(a.pace);},0)/prevPaceActs.length : 0;
+
+  function delta(cur, prev, unit, lowerIsBetter) {
+    if (!prev) return '';
+    var d = cur - prev; var pct = Math.round(d/prev*100);
+    var up = lowerIsBetter ? d<0 : d>0;
+    return (up?'↑':'↓')+' '+(d>0?'+':'')+pct+'% vs período anterior';
+  }
+  el=document.getElementById('padv-stat-km-delta');   if(el) el.textContent=delta(totalKm,prevKm,'km',false);
+  el=document.getElementById('padv-stat-cal-delta');  if(el) el.textContent=delta(totalCal,prevCal,'kcal',false);
+  el=document.getElementById('padv-stat-pace-delta'); if(el) el.textContent=prevAvgPace?delta(avgPaceSecs,prevAvgPace,'/km',true):'';
+
+  // ── Distance chart ──
+  var distData   = acts.slice(-8).map(function(a){ return parseFloat((a.dist||'0').replace(/[^0-9.]/g,''))||0; });
+  var distLabels = acts.slice(-8).map(function(a){ return (a.date||'').substring(0,5); });
+  drawPadvCanvas('padv-dist-chart', distData, '#22C55E', 'padv-dist-labels', distLabels, true);
+
+  // ── Pace chart ──
+  var paceData   = paceActs.slice(-8).map(function(a){ return +(paceToSecs(a.pace)/60).toFixed(2); });
+  var paceLabels = paceActs.slice(-8).map(function(a){ return (a.date||'').substring(0,5); });
+  drawPadvCanvas('padv-pace-chart', paceData, '#60A5FA', 'padv-pace-labels', paceLabels, false);
+
+  var bestPaceSecs = paceActs.length ? Math.min.apply(null, paceActs.map(function(a){return paceToSecs(a.pace);})) : 0;
+  var paceFirst = paceActs.length > 1 ? paceToSecs(paceActs[0].pace) : 0;
+  var paceLast  = paceActs.length > 1 ? paceToSecs(paceActs[paceActs.length-1].pace) : 0;
+  var paceTrendSecs = paceFirst && paceLast ? paceLast - paceFirst : 0;
+  el=document.getElementById('padv-pace-avg');   if(el) el.textContent = secsToMinKm(Math.round(avgPaceSecs));
+  el=document.getElementById('padv-pace-best');  if(el) { el.textContent=secsToMinKm(bestPaceSecs); el.style.color='#22C55E'; }
+  el=document.getElementById('padv-pace-trend'); if(el) {
+    if (paceTrendSecs < 0) { el.textContent='↓'+secsToMinKm(Math.abs(paceTrendSecs)); el.style.color='#22C55E'; }
+    else if (paceTrendSecs > 0) { el.textContent='↑+'+secsToMinKm(paceTrendSecs); el.style.color='#EF4444'; }
+    else el.textContent = '→';
+  }
+
+  // ── Calories chart ──
+  var calData   = acts.slice(-8).map(function(a){ return parseFloat((a.cal||'0').replace(/[^0-9.]/g,''))||0; });
+  var calLabels = acts.slice(-8).map(function(a){ return (a.date||'').substring(0,5); });
+  drawPadvCanvas('padv-cal-chart', calData, '#F97316', 'padv-cal-labels', calLabels, true);
+
+  // ── VO2 ring ──
+  var ring = document.getElementById('padv-vo2-ring');
+  if (ring && vo2) {
+    var pct = (vo2 - 20) / 60;
+    ring.style.strokeDashoffset = 289 - (289 * pct);
+    ring.style.stroke = vo2c.color;
+  }
+  el=document.getElementById('padv-vo2-val');   if(el) { el.textContent=vo2||'—'; el.style.color=vo2c.color; }
+  el=document.getElementById('padv-vo2-class'); if(el) { el.textContent=vo2?vo2c.label:'—'; el.style.color=vo2c.color; }
+  el=document.getElementById('padv-vo2-tip');
+  if(el) el.textContent = vo2
+    ? 'Para melhorar: treinos de intervalos de alta intensidade e sessões longas aeróbias.'
+    : 'Regista actividades com GPS e pace para calcular o VO₂ estimado.';
+
+  // ── Peso vs Performance chart ──
+  // Match weight entries to activity dates and show correlation
+  var wpData = []; var wpLabels = [];
+  _weightLog.slice(-8).forEach(function(w) {
+    // Find nearest activity by date
+    var nearAct = acts.filter(function(a){ return a.date && a.date <= w.date; });
+    var nearPace = nearAct.length ? paceToSecs(nearAct[nearAct.length-1].pace) : 0;
+    if (w.weight && nearPace) {
+      wpData.push(+(w.weight).toFixed(1));
+      wpLabels.push(w.date.substring(0,5));
+    }
+  });
+  if (wpData.length >= 2) {
+    drawPadvCanvas('padv-weight-chart', wpData, '#FACC15', null, wpLabels, false);
+    // Correlation insight
+    var wFirst = wpData[0]; var wLast = wpData[wpData.length-1];
+    var insight;
+    if (wLast < wFirst) {
+      insight = '📉 Perdeste ' + (wFirst-wLast).toFixed(1) + 'kg neste período. Cada kg menos tende a melhorar o pace em ~2-3 seg/km.';
+    } else if (wLast > wFirst) {
+      insight = '📈 Ganhaste ' + (wLast-wFirst).toFixed(1) + 'kg neste período. Foca-te em manter a consistência dos treinos.';
+    } else {
+      insight = '⚖️ Peso estável neste período. Mantém a regularidade para continuar a melhorar o pace.';
+    }
+    el=document.getElementById('padv-weight-insight'); if(el) el.textContent=insight;
+  } else {
+    var wpCanvas = document.getElementById('padv-weight-chart');
+    if (wpCanvas) {
+      var ctx = wpCanvas.getContext('2d');
+      wpCanvas.width = wpCanvas.offsetWidth||360; wpCanvas.height=110;
+      ctx.fillStyle='rgba(255,255,255,.15)'; ctx.font='12px sans-serif'; ctx.textAlign='center';
+      ctx.fillText('Regista o peso e actividades para ver a correlação', wpCanvas.width/2, 55);
+    }
+    el=document.getElementById('padv-weight-insight');
+    if(el) el.textContent='Regista o teu peso regularmente em conjunto com as actividades para ver a correlação com a performance.';
+  }
+}
+
+function getPrevPeriodEntries(period) {
+  var now = new Date(); now.setHours(0,0,0,0);
+  var start = new Date(now); var end = new Date(now);
+  if      (period==='week')   { start.setDate(now.getDate()-14); end.setDate(now.getDate()-7); }
+  else if (period==='month')  { start.setMonth(now.getMonth()-2); end.setMonth(now.getMonth()-1); }
+  else if (period==='3month') { start.setMonth(now.getMonth()-6); end.setMonth(now.getMonth()-3); }
+  else if (period==='year')   { start.setFullYear(now.getFullYear()-2); end.setFullYear(now.getFullYear()-1); }
+  else return [];
+  return _allActivities.filter(function(a) {
+    var p = (a.date||'').split('/');
+    if (p.length < 3) return false;
+    var d = new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
+    return d >= start && d < end;
+  });
+}
+
+// ── DEV: Premium test mode ──
+// Run in browser console: trendoutUnlockPremium()
+window.trendoutUnlockPremium = function() {
+  _isPremium = true;
+  updatePremiumUI();
+  showPaymentSuccess();
+  console.log('%c✅ Premium activado em modo teste', 'color:#FACC15;font-size:16px;font-weight:bold');
+};
+window.trendoutResetPremium = function() {
+  _isPremium = false;
+  updatePremiumUI();
+  console.log('%c🔄 Premium desactivado', 'color:#888;font-size:14px');
+};
 
 
 // Re-acquire wake lock if released by system (e.g. screen dimmed briefly)
