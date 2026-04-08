@@ -1340,7 +1340,7 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
       </div>
 
       <!-- AI Coach: Recuperação Emocional -->
-      <div onclick="openUpgrade()" style="background:linear-gradient(135deg,#0d1a12,#111);border:1px solid rgba(16,185,129,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div onclick="openRecoveryCoach()" style="background:linear-gradient(135deg,#0d1a12,#111);border:1px solid rgba(16,185,129,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
         <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
           <div style="width:40px;height:40px;background:linear-gradient(135deg,#059669,#10B981);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🌱</div>
           <div>
@@ -2915,7 +2915,7 @@ function generateNutritionPlan() {
 
   fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'anthropic-dangerous-direct-browser-access': 'true', 'anthropic-version': '2023-06-01' },
     body: JSON.stringify({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 1500,
@@ -3142,7 +3142,7 @@ function generateAIInsights() {
 
   fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'anthropic-dangerous-direct-browser-access': 'true', 'anthropic-version': '2023-06-01' },
     body: JSON.stringify({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 1000,
@@ -3938,7 +3938,7 @@ function generateInsightsPage() {
 
   fetch('https://api.anthropic.com/v1/messages', {
     method:'POST',
-    headers:{'Content-Type':'application/json'},
+    headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true','anthropic-version':'2023-06-01'},
     body: JSON.stringify({
       model:'claude-sonnet-4-20250514', max_tokens:1200,
       system: sysPrompt,
@@ -7498,7 +7498,7 @@ function generateRecoveryPlan() {
   var today2=new Date().toLocaleDateString('pt-PT'),l7m=_happinessLog.slice(-7),l7a=_allActivities.slice(0,7),lastM=_happinessLog.length?_happinessLog[_happinessLog.length-1]:null,avgM=l7m.length?(l7m.reduce(function(s,e){return s+e.score;},0)/l7m.length).toFixed(1):null,totKm=l7a.reduce(function(s,a){return s+(parseFloat((a.dist||'0').replace(/[^0-9.]/g,''))||0);},0),lastWt=_weightLog.length?_weightLog[_weightLog.length-1].weight:null;
   var sP='És um coach de recuperação emocional e fitness da app Trendout. Analisas dados reais de treino, humor e bem-estar. Respondes em português de Portugal. Devolves APENAS JSON válido sem markdown.';
   var uP='Cria plano de recuperação personalizado. Devolve APENAS: {"today":{"status":"frase estado actual (1 frase)","intensity":"Leve|Moderado|Intenso|Descanso","workout":{"name":"nome","duration":"minutos","description":"descrição"},"warmup":["ex1","ex2","ex3"],"exercises":[{"name":"nome","sets":"séries x reps","tip":"dica"}],"cooldown":["ex1","ex2"],"affirmation":"frase motivacional"},"weekly":[{"day":"Segunda","intensity":"Leve|Moderado|Intenso|Descanso","focus":"foco","why":"porquê"}],"mental":{"score":'+avgM+',"analysis":"análise 2-3 frases","patterns":"padrões 1-2 frases","strategies":["s1","s2","s3"],"breathing":{"name":"técnica","steps":["p1","p2","p3"]}},"tips":[{"emoji":"💤","title":"Sono","content":"dica"},{"emoji":"💧","title":"Hidratação","content":"dica"},{"emoji":"🧘","title":"Mindfulness","content":"dica"},{"emoji":"⚡","title":"Energia","content":"dica"},{"emoji":"🤝","title":"Recuperação","content":"dica"}]}\n\nDados: '+JSON.stringify({humor:{ultimo:lastM,media7:avgM,registos:l7m},treino:{atividades:l7a,kmSemana:totKm.toFixed(1)},peso:lastWt,hoje:today2},null,2)+'\n\nAdapta TUDO ao estado emocional real. Sê empático e específico.'
-  fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,system:sP,messages:[{role:'user',content:uP}]})})
+  fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true','anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,system:sP,messages:[{role:'user',content:uP}]})})
   .then(function(r){return r.json();})
   .then(function(resp){
     _recoveryLoading=false;if(btn){btn.textContent='Analisar ↻';btn.style.opacity='1';}
@@ -8489,7 +8489,7 @@ window.trendoutResetPremium = function() {
       </div>
 
       <!-- AI Coach: Recuperação Emocional -->
-      <div onclick="openUpgrade()" style="background:linear-gradient(135deg,#0d1a12,#111);border:1px solid rgba(16,185,129,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div onclick="openRecoveryCoach()" style="background:linear-gradient(135deg,#0d1a12,#111);border:1px solid rgba(16,185,129,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
         <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
           <div style="width:40px;height:40px;background:linear-gradient(135deg,#059669,#10B981);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🌱</div>
           <div>
@@ -9611,7 +9611,7 @@ window.trendoutResetPremium = function() {
       </div>
 
       <!-- AI Coach: Recuperação Emocional -->
-      <div onclick="openUpgrade()" style="background:linear-gradient(135deg,#0d1a12,#111);border:1px solid rgba(16,185,129,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div onclick="openRecoveryCoach()" style="background:linear-gradient(135deg,#0d1a12,#111);border:1px solid rgba(16,185,129,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
         <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
           <div style="width:40px;height:40px;background:linear-gradient(135deg,#059669,#10B981);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🌱</div>
           <div>
