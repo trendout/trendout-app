@@ -312,124 +312,6 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-
-<style id="padv-styles">
-
-:root {
-  --bg:#030303; --surface:#0c0c0c; --card:#0f0f0f; --card2:#141414;
-  --border:rgba(255,255,255,.07); --border2:rgba(255,255,255,.13);
-  --text:#fff; --muted:rgba(255,255,255,.45); --faint:rgba(255,255,255,.15);
-  --green:#22C55E; --green2:#4ADE80; --yellow:#FACC15;
-  --purple:#7C3AED; --purple2:#A78BFA;
-  --blue:#3B82F6; --blue2:#60A5FA;
-  --orange:#F97316; --red:#EF4444; --teal:#2DD4BF;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
-
-/* noise */
-body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");pointer-events:none;z-index:0}
-
-.page{position:relative;z-index:1;max-width:430px;margin:0 auto;padding:max(env(safe-area-inset-top,0px),24px) 18px 100px}
-
-/* ── HEADER ── */
-.header{display:flex;align-items:center;gap:12px;margin-bottom:6px}
-.back-btn{width:36px;height:36px;border-radius:12px;background:rgba(255,255,255,.07);border:1.5px solid var(--border2);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
-.back-btn:hover{background:rgba(255,255,255,.12)}
-.header-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.3px}
-.header-sub{font-size:11px;color:var(--muted);margin-top:1px}
-
-/* ── PERIOD TABS ── */
-.period-bar{display:flex;gap:5px;background:rgba(255,255,255,.04);border-radius:12px;padding:4px;margin:16px 0}
-.period-btn{flex:1;padding:7px 4px;border-radius:9px;border:none;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;color:var(--muted);background:none}
-.period-btn.on{background:#fff;color:#000}
-
-/* ── SECTION TITLE ── */
-.sec{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:22px 0 10px;display:flex;align-items:center;gap:8px}
-.sec::after{content:'';flex:1;height:1px;background:var(--border)}
-
-/* ── HERO STATS ── */
-.hero-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
-.hero-stat{border-radius:18px;padding:16px;position:relative;overflow:hidden;transition:transform .2s}
-.hero-stat:hover{transform:translateY(-2px)}
-.hero-stat-val{font-family:'DM Mono',monospace;font-size:28px;font-weight:500;line-height:1;margin-bottom:4px}
-.hero-stat-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.8px;opacity:.6}
-.hero-stat-delta{font-size:11px;font-weight:700;margin-top:6px}
-.hero-stat .glow{position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;pointer-events:none}
-
-/* ── CHART CARD ── */
-.chart-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:18px;margin-bottom:10px;position:relative;overflow:hidden}
-.chart-card-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
-.chart-title{font-size:13px;font-weight:700;color:#fff}
-.chart-sub{font-size:10px;color:var(--muted);margin-top:2px}
-.chart-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:7px}
-
-/* ── RADAR ── */
-.radar-wrap{display:flex;align-items:center;justify-content:center;padding:8px 0 4px}
-
-/* ── PACE DISTRIBUTION ── */
-.pace-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-.pace-zone{font-size:10px;font-weight:700;width:55px;flex-shrink:0}
-.pace-bar-wrap{flex:1;height:8px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden}
-.pace-bar{height:100%;border-radius:100px;transition:width .8s cubic-bezier(.34,1.1,.64,1)}
-.pace-pct{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);width:30px;text-align:right;flex-shrink:0}
-
-/* ── WEEKLY HEATMAP ── */
-.heatmap{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-.hm-cell{aspect-ratio:1;border-radius:5px;transition:transform .15s}
-.hm-cell:hover{transform:scale(1.2)}
-.hm-label{font-size:8px;color:var(--muted);text-align:center;margin-bottom:4px}
-
-/* ── RECORD CARDS ── */
-.records-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.record-card{background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:13px;transition:all .2s}
-.record-card:hover{border-color:var(--border2)}
-.record-emoji{font-size:18px;margin-bottom:6px}
-.record-val{font-family:'DM Mono',monospace;font-size:18px;font-weight:500;color:#fff;margin-bottom:2px}
-.record-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
-.record-date{font-size:9px;color:var(--faint);margin-top:4px}
-
-/* ── SPORT BREAKDOWN ── */
-.sport-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
-.sport-row:last-child{border-bottom:none}
-.sport-icon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
-.sport-name{font-size:12px;font-weight:600;flex:1}
-.sport-bar-wrap{width:70px;height:5px;background:rgba(255,255,255,.07);border-radius:100px;overflow:hidden}
-.sport-bar{height:100%;border-radius:100px}
-.sport-pct{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);width:28px;text-align:right}
-
-/* ── VO2 / FITNESS SCORE ── */
-.fitness-ring{display:flex;align-items:center;justify-content:center;position:relative}
-.fitness-score{position:absolute;text-align:center}
-.fitness-score-val{font-family:'Syne',sans-serif;font-size:32px;font-weight:800}
-.fitness-score-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-top:2px}
-
-/* ── TREND LINE ── */
-canvas{display:block;width:100%}
-
-/* ── COMPARE TABLE ── */
-.compare-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;padding:9px 0;border-bottom:1px solid var(--border);font-size:11px}
-.compare-row:last-child{border-bottom:none}
-.compare-row.header{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding-bottom:6px}
-.compare-col{text-align:center}
-.compare-col.label{text-align:left;color:var(--muted)}
-.better{color:var(--green2);font-weight:700}
-.worse{color:var(--red);font-weight:700}
-
-/* ── EXPORT BTN ── */
-.export-btn{width:100%;padding:14px;border-radius:14px;background:linear-gradient(135deg,var(--purple),var(--blue));border:none;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s;margin-top:8px}
-.export-btn:hover{opacity:.88;transform:translateY(-1px)}
-
-/* ── ANIMATIONS ── */
-@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-@keyframes countUp{from{opacity:0}to{opacity:1}}
-.fade-up{animation:fadeUp .4s ease both}
-
-/* override conflicts */
-.page{background:#000!important}
-body::before{display:none}
-</style>
 </head>
 <body>
 <div id="app">
@@ -587,7 +469,7 @@ body::before{display:none}
     <div>
       <div class="label">Password</div>
       <div class="input-wrap">
-        <div class="ico"></div>
+        <div class="ico">🔒</div>
         <input id="login-pass" type="password" placeholder="A tua password" autocomplete="current-password"/>
         <button class="eye" onclick="togglePass('login-pass',this)">👁</button>
       </div>
@@ -645,7 +527,7 @@ body::before{display:none}
     <div>
       <div class="label">Password</div>
       <div class="input-wrap">
-        <div class="ico"></div>
+        <div class="ico">🔒</div>
         <input id="reg-pass" type="password" placeholder="Mínimo 8 caracteres" autocomplete="new-password" oninput="checkPassStrength();checkRegForm()"/>
         <button class="eye" onclick="togglePass('reg-pass',this)">👁</button>
       </div>
@@ -739,17 +621,17 @@ body::before{display:none}
       <div style="display:flex;flex-direction:column;gap:12px">
         <div style="display:flex;align-items:flex-start;gap:12px">
           <div style="width:32px;height:32px;background:linear-gradient(135deg,#7C3AED,#3B82F6);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">✨</div>
-          <div><div style="font-size:13px;font-weight:700;color:#fff">🔒 Insights IA — Correlação Humor × Treino</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Descobre padrões únicos entre o teu estado mental e performance</div></div>
+          <div><div style="font-size:13px;font-weight:700;color:#fff">Insights IA — Correlação Humor × Treino</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Descobre padrões únicos entre o teu estado mental e performance</div></div>
         </div>
         <div style="height:1px;background:rgba(255,255,255,.06)"></div>
         <div style="display:flex;align-items:flex-start;gap:12px">
           <div style="width:32px;height:32px;background:linear-gradient(135deg,#059669,#10B981);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">🌱</div>
-          <div><div style="font-size:13px;font-weight:700;color:#fff">🔒 Coach de Recuperação Emocional</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Treino adaptado ao teu estado mental em tempo real</div></div>
+          <div><div style="font-size:13px;font-weight:700;color:#fff">Coach de Recuperação Emocional</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Treino adaptado ao teu estado mental em tempo real</div></div>
         </div>
         <div style="height:1px;background:rgba(255,255,255,.06)"></div>
         <div style="display:flex;align-items:flex-start;gap:12px">
           <div style="width:32px;height:32px;background:linear-gradient(135deg,#15803D,#22C55E);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">🥗</div>
-          <div><div style="font-size:13px;font-weight:700;color:#fff">🔒 Coach de Alimentação IA</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Plano nutricional diário e semanal personalizado</div></div>
+          <div><div style="font-size:13px;font-weight:700;color:#fff">Coach de Alimentação IA</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Plano nutricional diário e semanal personalizado</div></div>
         </div>
         <div style="height:1px;background:rgba(255,255,255,.06)"></div>
         <div style="display:flex;align-items:flex-start;gap:12px">
@@ -1440,7 +1322,7 @@ body::before{display:none}
         <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
           <div style="width:40px;height:40px;background:linear-gradient(135deg,#7C3AED,#3B82F6);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">✨</div>
           <div>
-            <div style="font-size:14px;font-weight:800;color:#fff">Insights IA 🔒</div>
+            <div style="font-size:14px;font-weight:800;color:#fff">Insights IA</div>
             <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Correlação humor × treino</div>
           </div>
         </div>
@@ -1449,16 +1331,16 @@ body::before{display:none}
             <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,.35)">a partir de</div>
             <div style="font-size:13px;font-weight:900;color:#FACC15">4,99€/mês</div>
           </div>
-          <div style="width:34px;height:34px;background:rgba(250,204,21,.1);border:1.5px solid rgba(250,204,21,.3);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0"></div>
+          <div style="width:34px;height:34px;background:rgba(250,204,21,.1);border:1.5px solid rgba(250,204,21,.3);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🔒</div>
         </div>
       </div>
 
       <!-- AI Coach: Recuperação Emocional -->
-      <div onclick="openRecoveryCoach()" style="background:linear-gradient(135deg,#0d1a12,#111);border:1px solid rgba(16,185,129,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div onclick="openUpgrade()" style="background:linear-gradient(135deg,#0d1a12,#111);border:1px solid rgba(16,185,129,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
         <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
           <div style="width:40px;height:40px;background:linear-gradient(135deg,#059669,#10B981);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🌱</div>
           <div>
-            <div style="font-size:14px;font-weight:800;color:#fff">🔒 Coach de Recuperação</div>
+            <div style="font-size:14px;font-weight:800;color:#fff">Coach de Recuperação</div>
             <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Treino adaptado ao teu estado mental</div>
           </div>
         </div>
@@ -1467,16 +1349,16 @@ body::before{display:none}
             <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,.35)">a partir de</div>
             <div style="font-size:13px;font-weight:900;color:#FACC15">4,99€/mês</div>
           </div>
-          <div style="width:34px;height:34px;background:rgba(250,204,21,.1);border:1.5px solid rgba(250,204,21,.3);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0"></div>
+          <div style="width:34px;height:34px;background:rgba(250,204,21,.1);border:1.5px solid rgba(250,204,21,.3);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🔒</div>
         </div>
       </div>
 
       <!-- Coach de Alimentação -->
-      <div onclick="openNutritionCoach()" style="background:linear-gradient(135deg,#0d1a0f,#111);border:1px solid rgba(34,197,94,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div onclick="openUpgrade()" style="background:linear-gradient(135deg,#0d1a0f,#111);border:1px solid rgba(34,197,94,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
         <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
           <div style="width:40px;height:40px;background:linear-gradient(135deg,#15803D,#22C55E);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🥗</div>
           <div>
-            <div style="font-size:14px;font-weight:800;color:#fff">🔒 Coach de Alimentação</div>
+            <div style="font-size:14px;font-weight:800;color:#fff">Coach de Alimentação</div>
             <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Nutrição adaptada ao teu treino e humor</div>
           </div>
         </div>
@@ -1485,7 +1367,7 @@ body::before{display:none}
             <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,.35)">a partir de</div>
             <div style="font-size:13px;font-weight:900;color:#FACC15">4,99€/mês</div>
           </div>
-          <div style="width:34px;height:34px;background:rgba(250,204,21,.1);border:1.5px solid rgba(250,204,21,.3);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0"></div>
+          <div style="width:34px;height:34px;background:rgba(250,204,21,.1);border:1.5px solid rgba(250,204,21,.3);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🔒</div>
         </div>
       </div>
 
@@ -1560,9 +1442,9 @@ body::before{display:none}
             <div style="font-size:9px;color:rgba(255,255,255,.35);margin-top:2px">Streak</div>
           </div>
         </div>
-
-
       </div>
+
+
     </div>
   </div>
 
@@ -2177,6 +2059,24 @@ body::before{display:none}
             Sem dados de splits para esta actividade
           </div>
         </div>
+
+        <!-- Performance Avançada button -->
+        <div style="padding:20px 18px 0">
+          <button onclick="if(!_isPremium){openUpgrade();}else{navTo('perf-adv');}" style="width:100%;padding:13px;border-radius:14px;background:rgba(250,204,21,.08);border:1.5px solid rgba(250,204,21,.2);color:#FACC15;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            ✨ Performance Avançada
+            <span id="det-prem-badge" style="font-size:10px;background:rgba(250,204,21,.15);border-radius:6px;padding:2px 7px">PREMIUM</span>
+          </button>
+        </div>
+
+        <!-- Partilhar button -->
+        <div style="padding:12px 18px 30px">
+          <button onclick="openShareSheetDet()" style="width:100%;padding:13px;border-radius:14px;background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.08);color:rgba(255,255,255,.55);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+            Partilhar actividade
+          </button>
+        </div>
+
       </div>
     </div>
 
@@ -2937,7 +2837,6 @@ function showNutritionTab(tab, btn) {
   ['meals','nutrients','shopping','weekly'].forEach(function(t) {
     var panel = document.getElementById('nutrition-content-'+t);
     var tabBtn = document.getElementById('nt-'+t);
-    var wrap=document.getElementById('nutrition-panel-'+t);if(wrap)wrap.style.display=t===tab?'block':'none';
     if (panel) panel.style.display = t===tab ? 'block' : 'none';
     if (tabBtn) {
       if (t===tab) { tabBtn.style.background='#fff'; tabBtn.style.color='#000'; }
@@ -3009,12 +2908,16 @@ function generateNutritionPlan() {
     }, null, 2)
   + '\n\nSê específico com os dados reais. Alimentos portugueses/mediterrâneos. Porções realistas.';
 
-  callClaudeAPI({
-      model: 'claude-sonnet-4-5',
+  fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
       max_tokens: 1500,
       system: systemPrompt,
       messages: [{ role: 'user', content: userPrompt }]
     })
+  })
   .then(function(r){ return r.json(); })
   .then(function(resp) {
     _nutritionLoading = false;
@@ -3026,8 +2929,6 @@ function generateNutritionPlan() {
       // Show tabs
       var tabsEl = document.getElementById('nutrition-tabs');
       if (tabsEl) tabsEl.style.display='flex';
-      var cc=document.getElementById('nutrition-context-card'),ct=document.getElementById('nutrition-context-text');
-      if(cc&&ct&&_nutritionData.meals&&_nutritionData.meals.context){ct.textContent=_nutritionData.meals.context;cc.style.display='block';}
       renderNutritionMeals(_nutritionData.meals);
       renderNutritionNutrients(_nutritionData.nutrients);
       renderNutritionShopping(_nutritionData.shopping);
@@ -3232,12 +3133,16 @@ function generateAIInsights() {
     + JSON.stringify(data, null, 2)
     + '\n\nIMPORTANTE: Se há poucos dados, faz análise com o que existe e encoraja o atleta a registar mais. Sê específico, usa os números reais dos dados. Não uses frases genéricas.';
 
-  callClaudeAPI({
-      model: 'claude-sonnet-4-5',
+  fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
       max_tokens: 1000,
       system: systemPrompt,
       messages: [{ role: 'user', content: userPrompt }]
     })
+  })
   .then(function(r){ return r.json(); })
   .then(function(data) {
     _insightsLoading = false;
@@ -3795,14 +3700,6 @@ var _insightsPeriod = 'month';
 var _insightsPageData = null;
 var _insightsPageLoading = false;
 
-
-function pearsonCorr(xs, ys) {
-  if (xs.length < 3) return null;
-  var n=xs.length, mx=xs.reduce(function(a,b){return a+b;},0)/n, my=ys.reduce(function(a,b){return a+b;},0)/n;
-  var num=0,dx2=0,dy2=0;
-  for(var i=0;i<n;i++){var dx=xs[i]-mx,dy=ys[i]-my;num+=dx*dy;dx2+=dx*dx;dy2+=dy*dy;}
-  return dx2&&dy2?num/Math.sqrt(dx2*dy2):null;
-}
 function navToInsights() {
   if (!_isPremium) { openUpgrade(); return; }
   navTo('insights');
@@ -4024,28 +3921,29 @@ function generateInsightsPage() {
   var schema = '{"insights":[{"id":"i1","emoji":"\uD83C\uDFC3","category":"Correla\u00e7\u00e3o","title":"T\u00edtulo impactante","text":"Insight detalhado e espec\u00edfico com dados reais (2-3 frases). Usa os n\u00fameros.","highlight":"Frase curta de destaque","positive":true},{"id":"i2","emoji":"\uD83D\uDE0A","category":"Padr\u00e3o de humor","title":"...","text":"...","highlight":"...","positive":true},{"id":"i3","emoji":"\uD83D\uDCC8","category":"Tend\u00eancia","title":"...","text":"...","highlight":"...","positive":true},{"id":"i4","emoji":"\u26A0\uFE0F","category":"Aten\u00e7\u00e3o","title":"...","text":"...","highlight":"...","positive":false},{"id":"i5","emoji":"\uD83D\uDCA1","category":"Recomenda\u00e7\u00e3o","title":"...","text":"...","highlight":"...","positive":true}]}';
   var userPrompt = 'Analisa os dados deste atleta e gera 5 insights personalizados sobre a correlacao entre humor e treino. Devolve APENAS este JSON: ' + schema + ' DADOS DO ATLETA: ' + JSON.stringify({nome: athleteName, periodo: periodLabel, hoje: today, totalRegistosHumor: data.moods.length, totalAtividades: data.acts.length, humorMediaDiasTreino: avg(moodsWithTrain), humorMediaDiasDescanso: avg(moodsWithout), ultimosHumores: data.moods.slice(-14), ultimasAtividades: data.acts.slice(0,10).map(function(a){ return {data:a.date,tipo:a.type,km:a.dist,dur:a.dur}; })}) + ' Se especifico com os numeros reais. Cada insight deve ser unico e accionavel.';
 
-  callClaudeAPI({
-      model:'claude-sonnet-4-5', max_tokens:1200,
+  fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      model:'claude-sonnet-4-20250514', max_tokens:1200,
       system: sysPrompt,
       messages:[{role:'user',content:userPrompt}]
     })
+  })
   .then(function(r){return r.json();})
   .then(function(resp){
     _insightsPageLoading=false;
     if(btn){btn.style.opacity='1';} if(ico) ico.textContent='✨';
-    console.log('Insights API resp:', JSON.stringify(resp).substring(0,300));
-    if(resp.error){ document.getElementById('insights-cards-list').innerHTML='<div style="text-align:center;padding:30px;color:#EF4444;font-size:13px">❌ '+resp.error.message+'</div>'; return; }
     var text=(resp.content||[]).map(function(b){return b.text||'';}).join('');
     var clean=text.replace(/```json|```/g,'').trim();
     try {
       _insightsPageData = JSON.parse(clean);
       renderInsightCards(_insightsPageData.insights||[]);
-    } catch(e){ console.error('Parse err:',e,clean.substring(0,200)); showInsightsPageError(); }
+    } catch(e){ showInsightsPageError(); }
   })
-  .catch(function(err){
+  .catch(function(){
     _insightsPageLoading=false;
     if(btn){btn.style.opacity='1';} if(ico) ico.textContent='✨';
-    console.error('Fetch error:',err);
     showInsightsPageError();
   });
 }
@@ -6932,13 +6830,7 @@ function navTo(page) {
   document.querySelectorAll('.app-page').forEach(function(p) { p.classList.remove('active'); });
   var pg = document.getElementById('page-'+page);
   if (pg) pg.classList.add('active');
-  if (page === 'perf-adv') {
-    // Re-sync fresh data before rendering
-    Promise.all([
-      _db ? _db.from('activities').select('*').eq('user_id', _userId).order('created_at', {ascending:false}).limit(500).then(function(r){ if(r.data && r.data.length) { _allActivities = r.data.map(function(row){ return { id:row.id, type:row.sport||row.type||'Corrida', date:row.date, dist:row.distance_km?(row.distance_km+' km'):(row.dist||'0 km'), dur:row.duration_min?(Math.floor(row.duration_min/60)+':'+(row.duration_min%60<10?'0':'')+row.duration_min%60):(row.dur||'0:00'), pace:row.pace||'—', cal:row.calories_kcal?(row.calories_kcal+' kcal'):(row.cal||'0 kcal'), note:row.note||'', city:row.city||'', hasGps:!!(row.route_points), source:row.source||'manual' }; }); } }) : Promise.resolve(),
-      _db && _userId ? _db.from('weight_logs').select('*').eq('user_id', _userId).order('logged_at', {ascending:true}).then(function(r){ if(r.data && r.data.length) { _weightLog = r.data.map(function(w){ return { date:w.date||new Date(w.logged_at).toLocaleDateString('pt-PT'), weight:parseFloat(w.weight_kg)||0, note:w.note||'' }; }); } }) : Promise.resolve()
-    ]).then(function(){ setTimeout(initPerfAdv, 50); }).catch(function(){ setTimeout(initPerfAdv, 50); });
-  }
+  if (page === 'perf-adv') { setTimeout(initPerfAdv, 50); }
   if (page === 'perf') {
     setTimeout(function(){
       // Show 'today' if has activities today, else fallback to 'week'
@@ -7454,320 +7346,6 @@ document.addEventListener('visibilitychange', function() {
     }
   }
 });
-
-
-// ── PERFORMANCE AVANÇADA — real data ──
-function getPerfAdvEntries(period) {
-  var now=new Date(); now.setHours(0,0,0,0); var cutoff=new Date(now);
-  if(period==='week')   cutoff.setDate(now.getDate()-7);
-  else if(period==='month')  cutoff.setMonth(now.getMonth()-1);
-  else if(period==='3month') cutoff.setMonth(now.getMonth()-3);
-  else if(period==='year')   cutoff.setFullYear(now.getFullYear()-1);
-  else return _allActivities.slice();
-  return _allActivities.filter(function(a){
-    var p=(a.date||'').split('/'); if(p.length<3) return false;
-    return new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]))>=cutoff;
-  });
-}
-function getPrevPeriodEntries(period){
-  var now=new Date();now.setHours(0,0,0,0);var s=new Date(now),e=new Date(now);
-  if(period==='week'){s.setDate(now.getDate()-14);e.setDate(now.getDate()-7);}
-  else if(period==='month'){s.setMonth(now.getMonth()-2);e.setMonth(now.getMonth()-1);}
-  else if(period==='3month'){s.setMonth(now.getMonth()-6);e.setMonth(now.getMonth()-3);}
-  else if(period==='year'){s.setFullYear(now.getFullYear()-2);e.setFullYear(now.getFullYear()-1);}
-  else return [];
-  return _allActivities.filter(function(a){
-    var p=(a.date||'').split('/');if(p.length<3)return false;
-    var d=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));return d>=s&&d<e;
-  });
-}
-function paceToSecs(ps){var m=(ps||'').match(/(\d+):(\d+)/);return m?parseInt(m[1])*60+parseInt(m[2]):0;}
-function secsToMinKm(s){if(!s)return'—';return Math.floor(s/60)+':'+(s%60<10?'0':'')+Math.floor(s%60);}
-function calcVO2(paceSecs,wt){if(!paceSecs||paceSecs<=0)return 0;var pm=paceSecs/60,v=(483/pm)+3.5;if(wt>0){var wf=1+(70-wt)*0.002;v*=Math.max(0.85,Math.min(1.15,wf));}return Math.round(Math.min(80,Math.max(20,v)));}
-function vo2Class(v){if(v>=60)return{label:'Elite',color:'#A78BFA'};if(v>=52)return{label:'Excelente',color:'#22C55E'};if(v>=44)return{label:'Bom',color:'#60A5FA'};if(v>=36)return{label:'Médio',color:'#FACC15'};if(v>=28)return{label:'Razoável',color:'#F97316'};return{label:'A melhorar',color:'#EF4444'};}
-
-var _perfAdvPeriod = 'week';
-
-function setPerfAdvPeriod(period) {
-  _perfAdvPeriod = period;
-  ['week','month','3month','year'].forEach(function(t){
-    var el=document.getElementById('padv-tab-'+t); if(!el) return;
-    if(t===period){el.style.background='#fff';el.style.color='#000';}
-    else{el.style.background='none';el.style.color='rgba(255,255,255,.45)';}
-  });
-  renderPerfAdv();
-}
-function initPerfAdv(){renderPerfAdv();}
-
-function renderPerfAdv(){
-  var dpr = window.devicePixelRatio || 1;
-  var acts = getPerfAdvEntries(_perfAdvPeriod);
-  var totalKm  = acts.reduce(function(s,a){return s+(parseFloat((a.dist||'0').replace(/[^0-9.]/g,''))||0);},0);
-  var totalCal = acts.reduce(function(s,a){return s+(parseFloat((a.cal||'0').replace(/[^0-9]/g,''))||0);},0);
-  var totalMins= acts.reduce(function(s,a){var p=(a.dur||'0:00').split(':');return s+(parseInt(p[0]||0)*60)+(parseInt(p[1]||0));},0);
-  var h=Math.floor(totalMins/60),m=totalMins%60;
-  var pa=acts.filter(function(a){return paceToSecs(a.pace)>0;});
-  var avgPS=pa.length?pa.reduce(function(s,a){return s+paceToSecs(a.pace);},0)/pa.length:0;
-  var lastWt=_weightLog.length?_weightLog[_weightLog.length-1].weight:0;
-  var vo2=avgPS?calcVO2(avgPS,lastWt):0, vc=vo2Class(vo2);
-  var el;
-
-  // Hero stats
-  el=document.getElementById('stat-km');   if(el) el.textContent=totalKm>=100?Math.round(totalKm)+' km':totalKm.toFixed(1)+' km';
-  el=document.getElementById('stat-acts'); if(el) el.textContent=acts.length;
-  el=document.getElementById('stat-time'); if(el) el.textContent=(h>0?h+'h ':'')+(m<10?'0':'')+m+'m';
-  el=document.getElementById('stat-kcal'); if(el) el.textContent=Math.round(totalCal).toLocaleString('pt-PT')+' kcal';
-
-  // Deltas
-  var prev=getPrevPeriodEntries(_perfAdvPeriod);
-  var prevKm=prev.reduce(function(s,a){return s+(parseFloat((a.dist||'0').replace(/[^0-9.]/g,''))||0);},0);
-  function deltaStr(cur,prv,unit){if(!prv)return'';var d=cur-prv,pct=Math.round(d/prv*100);return(d>=0?'↑ +':'↓ ')+Math.abs(pct)+'% vs anterior';}
-  el=document.querySelector('[data-delta="km"]');   if(el) el.textContent=deltaStr(totalKm,prevKm,'km');
-  el=document.querySelector('[data-delta="kcal"]');  if(el) el.textContent=deltaStr(totalCal,prev.reduce(function(s,a){return s+(parseFloat((a.cal||'0').replace(/[^0-9]/g,''))||0);},0),'kcal');
-
-  // VO2 ring
-  if(vo2){
-    var ring=document.getElementById('padv-vo2-ring');
-    if(ring){ring.style.strokeDashoffset=289-(289*(vo2-20)/60);ring.style.stroke=vc.color;}
-    el=document.getElementById('padv-vo2-val');   if(el){el.textContent=vo2;el.style.color=vc.color;}
-    el=document.getElementById('padv-vo2-class'); if(el){el.textContent=vc.label;el.style.color=vc.color;}
-  }
-
-  // Distance chart — group by week/month
-  var distData=[], distLabels=[];
-  if(_perfAdvPeriod==='week'||_perfAdvPeriod==='month'){
-    acts.slice(-8).forEach(function(a){
-      distData.push(parseFloat((a.dist||'0').replace(/[^0-9.]/g,''))||0);
-      distLabels.push((a.date||'—').substring(0,5));
-    });
-  } else {
-    // Group by month
-    var byMonth={};
-    acts.forEach(function(a){var p=(a.date||'—').split('/');var key=p[1]+'/'+p[2];if(!byMonth[key])byMonth[key]={km:0,label:p[1]+'/'+(p[2]||'')};byMonth[key].km+=(parseFloat((a.dist||'0').replace(/[^0-9.]/g,''))||0);});
-    Object.values(byMonth).slice(-8).forEach(function(m){distData.push(parseFloat(m.km.toFixed(1)));distLabels.push(m.label);});
-  }
-  if(distData.length) padvDrawDistChart(distData, distLabels);
-
-  // Pace zones — compute from pace distribution
-  var zones=[0,0,0,0,0]; // Z1<6min, Z2 5-6, Z3 4:30-5, Z4 4-4:30, Z5<4
-  pa.forEach(function(a){
-    var ps=paceToSecs(a.pace);
-    if(ps>=360)zones[0]++;
-    else if(ps>=300)zones[1]++;
-    else if(ps>=270)zones[2]++;
-    else if(ps>=240)zones[3]++;
-    else zones[4]++;
-  });
-  var total=zones.reduce(function(a,b){return a+b;},0)||1;
-  var zoneIds=['z1-bar','z2-bar','z3-bar','z4-bar','z5-bar'];
-  var zonePctIds=['z1-pct','z2-pct','z3-pct','z4-pct','z5-pct'];
-  zones.forEach(function(v,i){
-    var pct=Math.round(v/total*100);
-    el=document.getElementById(zoneIds[i]);   if(el)el.style.width=pct+'%';
-    el=document.getElementById(zonePctIds[i]);if(el)el.textContent=pct+'%';
-  });
-
-  // Pace stats
-  var bestPS=pa.length?Math.min.apply(null,pa.map(function(a){return paceToSecs(a.pace);})):0;
-  el=document.getElementById('padv-pace-avg');  if(el)el.textContent=avgPS?secsToMinKm(Math.round(avgPS)):'—';
-  el=document.getElementById('padv-pace-best'); if(el)el.textContent=bestPS?secsToMinKm(bestPS):'—';
-
-  // Heatmap
-  padvBuildHeatmap();
-
-  // Personal records
-  var allKm=_allActivities.map(function(a){return parseFloat((a.dist||'0').replace(/[^0-9.]/g,''))||0;});
-  var recKm=allKm.length?Math.max.apply(null,allKm):0;
-  el=document.getElementById('rec-km');     if(el)el.textContent=recKm.toFixed(2)+' km';
-  el=document.getElementById('rec-pace');   if(el)el.textContent=bestPS?secsToMinKm(bestPS)+' /km':'—';
-  el=document.getElementById('rec-acts');   if(el)el.textContent=_allActivities.length;
-
-  // Sport breakdown
-  var sports={};
-  _allActivities.forEach(function(a){var t=a.type||'Outro';sports[t]=(sports[t]||0)+1;});
-  var sportHtml=Object.entries(sports).sort(function(a,b){return b[1]-a[1];}).slice(0,4).map(function(kv){
-    var pct=Math.round(kv[1]/_allActivities.length*100);
-    return'<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05)"><div style="flex:1;font-size:13px;color:#fff;font-weight:600">'+kv[0]+'</div><div style="font-size:12px;color:rgba(255,255,255,.4)">'+kv[1]+' treinos</div><div style="font-size:12px;font-weight:700;color:#22C55E">'+pct+'%</div></div>';
-  }).join('');
-  el=document.getElementById('sport-breakdown'); if(el)el.innerHTML=sportHtml||'<div style="font-size:13px;color:rgba(255,255,255,.4);padding:16px 0;text-align:center">Sem dados</div>';
-
-  // Weight vs perf insight
-  if(_weightLog.length>=2){
-    var wFirst=_weightLog[0].weight,wLast=_weightLog[_weightLog.length-1].weight,wDiff=wLast-wFirst;
-    el=document.getElementById('weight-insight');
-    if(el)el.textContent=wDiff<0?'Perdeste '+(Math.abs(wDiff).toFixed(1))+'kg. Cada kg menos melhora o pace ~2-3seg/km.':wDiff>0?'Ganhaste '+(wDiff.toFixed(1))+'kg. Foca na consistência dos treinos.':'Peso estável. Continua assim!';
-  }
-}
-
-
-
-
-
-// ── Distance chart ──
-function padvDrawDistChart(vals, labels) {
-  var canvas = document.getElementById('dist-chart');
-  var W = canvas.parentElement.offsetWidth - 36;
-  var H = 100;
-  canvas.width  = W * dpr; canvas.height = H * dpr;
-  canvas.style.width = W+'px'; canvas.style.height = H+'px';
-  var ctx = canvas.getContext('2d'); ctx.scale(dpr, dpr);
-  var pL=4, pR=4, pT=10, pB=4;
-  var cw=W-pL-pR, ch=H-pT-pB;
-  ctx.clearRect(0,0,W,H);
-  var max = Math.max.apply(null, vals) * 1.15;
-
-  function bx(i){ return pL + i*(cw/(vals.length)); }
-  function bh(v){ return (v/max)*ch; }
-
-  vals.forEach(function(v,i){
-    var x = bx(i) + 2;
-    var bw = cw/vals.length - 4;
-    var h  = bh(v);
-    var y  = pT + ch - h;
-    // Gradient fill
-    var grad = ctx.createLinearGradient(0,y,0,pT+ch);
-    grad.addColorStop(0,'rgba(34,197,94,.9)');
-    grad.addColorStop(1,'rgba(34,197,94,.15)');
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.roundRect(x, y, bw, h, [4,4,0,0]);
-    ctx.fill();
-    // Value on top
-    ctx.fillStyle = 'rgba(255,255,255,.6)';
-    ctx.font = 'bold '+(7*dpr/dpr)+'px DM Mono, monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText(v, x + bw/2, y - 3);
-  });
-
-  // X labels
-  var labEl = document.getElementById('dist-labels');
-  labEl.innerHTML = labels.map(function(l){
-    return '<span style="font-size:9px;color:rgba(255,255,255,.4);font-weight:600;flex:1;text-align:center">'+l+'</span>';
-  }).join('');
-  labEl.style.display = 'flex';
-}
-
-// ── HR chart (line) ──
-function padvDrawHRChart(vals) {
-  var canvas = document.getElementById('hr-chart');
-  var W = canvas.parentElement.offsetWidth - 36;
-  var H = 80;
-  canvas.width  = W * dpr; canvas.height = H * dpr;
-  canvas.style.width = W+'px'; canvas.style.height = H+'px';
-  var ctx = canvas.getContext('2d'); ctx.scale(dpr, dpr);
-  var pL=4, pR=4, pT=10, pB=4;
-  var cw=W-pL-pR, ch=H-pT-pB;
-  ctx.clearRect(0,0,W,H);
-  var min = Math.min.apply(null,vals)-10;
-  var max = Math.max.apply(null,vals)+10;
-
-  function px(i){ return pL + i*(cw/(vals.length-1)); }
-  function py(v){ return pT+ch-(v-min)/(max-min)*ch; }
-
-  if(vals.length < 2) return;
-
-  // Area
-  var ag = ctx.createLinearGradient(0,pT,0,pT+ch);
-  ag.addColorStop(0,'rgba(239,68,68,.2)'); ag.addColorStop(1,'rgba(239,68,68,0)');
-  ctx.beginPath();
-  ctx.moveTo(px(0),pT+ch); ctx.lineTo(px(0),py(vals[0]));
-  for(var i=1;i<vals.length;i++){
-    var cp=(px(i-1)+px(i))/2;
-    ctx.bezierCurveTo(cp,py(vals[i-1]),cp,py(vals[i]),px(i),py(vals[i]));
-  }
-  ctx.lineTo(px(vals.length-1),pT+ch);
-  ctx.closePath(); ctx.fillStyle=ag; ctx.fill();
-
-  // Line
-  ctx.beginPath(); ctx.strokeStyle='#EF4444'; ctx.lineWidth=2; ctx.lineCap='round';
-  ctx.moveTo(px(0),py(vals[0]));
-  for(var j=1;j<vals.length;j++){
-    var cp2=(px(j-1)+px(j))/2;
-    ctx.bezierCurveTo(cp2,py(vals[j-1]),cp2,py(vals[j]),px(j),py(vals[j]));
-  }
-  ctx.stroke();
-
-  // Dots
-  vals.forEach(function(v,i){
-    ctx.beginPath(); ctx.fillStyle='#EF4444';
-    ctx.shadowColor='#EF4444'; ctx.shadowBlur=6;
-    ctx.arc(px(i),py(v),3,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=0;
-    ctx.fillStyle='rgba(255,255,255,.8)'; ctx.font='bold 8px DM Mono,monospace';
-    ctx.textAlign='center'; ctx.fillText(v,px(i),py(v)-7);
-  });
-}
-
-// ── Heatmap ──
-function padvBuildHeatmap() {
-  var grid = document.getElementById('heatmap-grid');
-  var intensities = [
-    [0,2,3,0,1,3,0],
-    [2,0,3,2,0,2,1],
-    [0,3,0,3,2,0,0],
-    [1,0,2,0,3,1,0],
-    [3,2,0,1,0,3,2],
-    [0,1,3,0,2,0,3],
-    [2,0,1,3,0,2,0],
-    [0,3,0,2,1,0,3],
-  ];
-  var weeks = ['8 sem','7 sem','6 sem','5 sem','4 sem','3 sem','2 sem','Atual'];
-  var colors = [
-    'rgba(255,255,255,.06)',
-    'rgba(34,197,94,.2)',
-    'rgba(34,197,94,.5)',
-    '#22C55E'
-  ];
-  grid.innerHTML = '';
-  intensities.forEach(function(week, wi){
-    var row = document.createElement('div');
-    row.style.cssText = 'display:flex;gap:4px;align-items:center';
-    var lbl = document.createElement('div');
-    lbl.style.cssText = 'width:28px;font-size:8px;color:rgba(255,255,255,.3);flex-shrink:0;text-align:right';
-    lbl.textContent = weeks[wi];
-    row.appendChild(lbl);
-    var cells = document.createElement('div');
-    cells.style.cssText = 'flex:1;display:grid;grid-template-columns:repeat(7,1fr);gap:4px';
-    week.forEach(function(v){
-      var cell = document.createElement('div');
-      cell.className = 'hm-cell';
-      cell.style.cssText = 'background:'+colors[v]+';border-radius:4px;height:16px';
-      cell.title = v===0?'Descanso':v===1?'Leve':v===2?'Moderado':'Intenso';
-      cells.appendChild(cell);
-    });
-    row.appendChild(cells);
-    grid.appendChild(row);
-  });
-}
-
-
-// Init
-window.addEventListener('load', function() {
-  var d = DATA[period];
-  padvDrawDistChart(d.dists, d.labels);
-  padvDrawHRChart(d.hr);
-  padvBuildHeatmap();
-});
-window.addEventListener('resize', function() {
-  var d = DATA[period];
-  padvDrawDistChart(d.dists, d.labels);
-  padvDrawHRChart(d.hr);
-});
-
-
-// ── DEV: Premium test mode ──
-// Consola do browser: trendoutUnlockPremium()
-window.trendoutUnlockPremium = function() {
-  _isPremium = true;
-  updatePremiumUI();
-  showPaymentSuccess();
-  console.log('%c✅ Premium activado em modo teste', 'color:#FACC15;font-size:16px;font-weight:bold');
-};
-window.trendoutResetPremium = function() {
-  _isPremium = false;
-  updatePremiumUI();
-  console.log('%c🔄 Premium desactivado', 'color:#888;font-size:14px');
-};
-
 
 </script>
 
@@ -8691,7 +8269,7 @@ window.trendoutResetPremium = function() {
         <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
           <div style="width:40px;height:40px;background:linear-gradient(135deg,#7C3AED,#3B82F6);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">✨</div>
           <div>
-            <div style="font-size:14px;font-weight:800;color:#fff">Insights IA 🔒</div>
+            <div style="font-size:14px;font-weight:800;color:#fff">Insights IA</div>
             <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Correlação humor × treino</div>
           </div>
         </div>
@@ -8700,16 +8278,16 @@ window.trendoutResetPremium = function() {
             <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,.35)">a partir de</div>
             <div style="font-size:13px;font-weight:900;color:#FACC15">4,99€/mês</div>
           </div>
-          <div style="width:34px;height:34px;background:rgba(250,204,21,.1);border:1.5px solid rgba(250,204,21,.3);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0"></div>
+          <div style="width:34px;height:34px;background:rgba(250,204,21,.1);border:1.5px solid rgba(250,204,21,.3);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🔒</div>
         </div>
       </div>
 
       <!-- AI Coach: Recuperação Emocional -->
-      <div onclick="openRecoveryCoach()" style="background:linear-gradient(135deg,#0d1a12,#111);border:1px solid rgba(16,185,129,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div onclick="openUpgrade()" style="background:linear-gradient(135deg,#0d1a12,#111);border:1px solid rgba(16,185,129,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
         <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
           <div style="width:40px;height:40px;background:linear-gradient(135deg,#059669,#10B981);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🌱</div>
           <div>
-            <div style="font-size:14px;font-weight:800;color:#fff">🔒 Coach de Recuperação</div>
+            <div style="font-size:14px;font-weight:800;color:#fff">Coach de Recuperação</div>
             <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Treino adaptado ao teu estado mental</div>
           </div>
         </div>
@@ -8718,16 +8296,16 @@ window.trendoutResetPremium = function() {
             <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,.35)">a partir de</div>
             <div style="font-size:13px;font-weight:900;color:#FACC15">4,99€/mês</div>
           </div>
-          <div style="width:34px;height:34px;background:rgba(250,204,21,.1);border:1.5px solid rgba(250,204,21,.3);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0"></div>
+          <div style="width:34px;height:34px;background:rgba(250,204,21,.1);border:1.5px solid rgba(250,204,21,.3);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🔒</div>
         </div>
       </div>
 
       <!-- Coach de Alimentação -->
-      <div onclick="openNutritionCoach()" style="background:linear-gradient(135deg,#0d1a0f,#111);border:1px solid rgba(34,197,94,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div onclick="openUpgrade()" style="background:linear-gradient(135deg,#0d1a0f,#111);border:1px solid rgba(34,197,94,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
         <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
           <div style="width:40px;height:40px;background:linear-gradient(135deg,#15803D,#22C55E);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🥗</div>
           <div>
-            <div style="font-size:14px;font-weight:800;color:#fff">🔒 Coach de Alimentação</div>
+            <div style="font-size:14px;font-weight:800;color:#fff">Coach de Alimentação</div>
             <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Nutrição adaptada ao teu treino e humor</div>
           </div>
         </div>
@@ -8736,7 +8314,7 @@ window.trendoutResetPremium = function() {
             <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,.35)">a partir de</div>
             <div style="font-size:13px;font-weight:900;color:#FACC15">4,99€/mês</div>
           </div>
-          <div style="width:34px;height:34px;background:rgba(250,204,21,.1);border:1.5px solid rgba(250,204,21,.3);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0"></div>
+          <div style="width:34px;height:34px;background:rgba(250,204,21,.1);border:1.5px solid rgba(250,204,21,.3);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🔒</div>
         </div>
       </div>
 
@@ -9813,7 +9391,7 @@ window.trendoutResetPremium = function() {
         <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
           <div style="width:40px;height:40px;background:linear-gradient(135deg,#7C3AED,#3B82F6);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">✨</div>
           <div>
-            <div style="font-size:14px;font-weight:800;color:#fff">Insights IA 🔒</div>
+            <div style="font-size:14px;font-weight:800;color:#fff">Insights IA</div>
             <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Correlação humor × treino</div>
           </div>
         </div>
@@ -9822,16 +9400,16 @@ window.trendoutResetPremium = function() {
             <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,.35)">a partir de</div>
             <div style="font-size:13px;font-weight:900;color:#FACC15">4,99€/mês</div>
           </div>
-          <div style="width:34px;height:34px;background:rgba(250,204,21,.1);border:1.5px solid rgba(250,204,21,.3);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0"></div>
+          <div style="width:34px;height:34px;background:rgba(250,204,21,.1);border:1.5px solid rgba(250,204,21,.3);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🔒</div>
         </div>
       </div>
 
       <!-- AI Coach: Recuperação Emocional -->
-      <div onclick="openRecoveryCoach()" style="background:linear-gradient(135deg,#0d1a12,#111);border:1px solid rgba(16,185,129,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div onclick="openUpgrade()" style="background:linear-gradient(135deg,#0d1a12,#111);border:1px solid rgba(16,185,129,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
         <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
           <div style="width:40px;height:40px;background:linear-gradient(135deg,#059669,#10B981);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🌱</div>
           <div>
-            <div style="font-size:14px;font-weight:800;color:#fff">🔒 Coach de Recuperação</div>
+            <div style="font-size:14px;font-weight:800;color:#fff">Coach de Recuperação</div>
             <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Treino adaptado ao teu estado mental</div>
           </div>
         </div>
@@ -9840,16 +9418,16 @@ window.trendoutResetPremium = function() {
             <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,.35)">a partir de</div>
             <div style="font-size:13px;font-weight:900;color:#FACC15">4,99€/mês</div>
           </div>
-          <div style="width:34px;height:34px;background:rgba(250,204,21,.1);border:1.5px solid rgba(250,204,21,.3);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0"></div>
+          <div style="width:34px;height:34px;background:rgba(250,204,21,.1);border:1.5px solid rgba(250,204,21,.3);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🔒</div>
         </div>
       </div>
 
       <!-- Coach de Alimentação -->
-      <div onclick="openNutritionCoach()" style="background:linear-gradient(135deg,#0d1a0f,#111);border:1px solid rgba(34,197,94,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div onclick="openUpgrade()" style="background:linear-gradient(135deg,#0d1a0f,#111);border:1px solid rgba(34,197,94,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
         <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
           <div style="width:40px;height:40px;background:linear-gradient(135deg,#15803D,#22C55E);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🥗</div>
           <div>
-            <div style="font-size:14px;font-weight:800;color:#fff">🔒 Coach de Alimentação</div>
+            <div style="font-size:14px;font-weight:800;color:#fff">Coach de Alimentação</div>
             <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Nutrição adaptada ao teu treino e humor</div>
           </div>
         </div>
@@ -9858,7 +9436,7 @@ window.trendoutResetPremium = function() {
             <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,.35)">a partir de</div>
             <div style="font-size:13px;font-weight:900;color:#FACC15">4,99€/mês</div>
           </div>
-          <div style="width:34px;height:34px;background:rgba(250,204,21,.1);border:1.5px solid rgba(250,204,21,.3);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0"></div>
+          <div style="width:34px;height:34px;background:rgba(250,204,21,.1);border:1.5px solid rgba(250,204,21,.3);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🔒</div>
         </div>
       </div>
 
@@ -10331,7 +9909,7 @@ window.trendoutResetPremium = function() {
     <div>
       <div class="label">Nova password</div>
       <div class="input-wrap">
-        <div class="ico"></div>
+        <div class="ico">🔒</div>
         <input id="new-pass" type="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password"/>
         <button class="eye" onclick="togglePass('new-pass',this)">👁</button>
       </div>
@@ -10339,7 +9917,7 @@ window.trendoutResetPremium = function() {
     <div>
       <div class="label">Confirmar password</div>
       <div class="input-wrap">
-        <div class="ico"></div>
+        <div class="ico">🔒</div>
         <input id="new-pass-confirm" type="password" placeholder="Repete a nova password" autocomplete="new-password"/>
         <button class="eye" onclick="togglePass('new-pass-confirm',this)">👁</button>
       </div>
@@ -10443,480 +10021,5 @@ window.trendoutResetPremium = function() {
     </div>
   </div>
 
-
-  <!-- ═══ NUTRITION COACH OVERLAY ═══ -->
-  <div id="nutrition-overlay" style="display:none;position:fixed;inset:0;background:#000;z-index:600;overflow-y:auto;-webkit-overflow-scrolling:touch">
-    <div style="max-width:430px;margin:0 auto;padding:max(env(safe-area-inset-top,0px),20px) 16px 100px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-        <button onclick="closeNutritionCoach()" style="background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.1);border-radius:12px;width:36px;height:36px;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">←</button>
-        <div style="text-align:center">
-          <div style="font-size:16px;font-weight:800;color:#fff">🥗 Coach de Alimentação</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:1px">✨ Premium · IA Personalizada</div>
-        </div>
-        <button id="nutrition-btn" onclick="generateNutritionPlan()" style="background:rgba(34,197,94,.1);border:1.5px solid rgba(34,197,94,.3);border-radius:12px;padding:7px 12px;color:#22C55E;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Gerar ↻</button>
-      </div>
-      <div id="nutrition-context-card" style="background:linear-gradient(135deg,#0d1a0f,#111);border:1px solid rgba(34,197,94,.2);border-radius:16px;padding:14px 16px;margin-bottom:16px;display:none">
-        <div id="nutrition-context-text" style="font-size:13px;color:rgba(255,255,255,.7);line-height:1.5;font-style:italic"></div>
-      </div>
-      <div id="nutrition-tabs" style="display:none;gap:6px;margin-bottom:16px;background:rgba(255,255,255,.05);border-radius:14px;padding:4px">
-        <button id="nt-meals"     onclick="showNutritionTab('meals',this)"     style="flex:1;padding:8px 4px;border-radius:10px;background:#fff;border:none;color:#000;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">🍽 Hoje</button>
-        <button id="nt-weekly"    onclick="showNutritionTab('weekly',this)"    style="flex:1;padding:8px 4px;border-radius:10px;background:none;border:none;color:rgba(255,255,255,.5);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">📅 Semana</button>
-        <button id="nt-nutrients" onclick="showNutritionTab('nutrients',this)" style="flex:1;padding:8px 4px;border-radius:10px;background:none;border:none;color:rgba(255,255,255,.5);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">💊 Nutrientes</button>
-        <button id="nt-shopping"  onclick="showNutritionTab('shopping',this)"  style="flex:1;padding:8px 4px;border-radius:10px;background:none;border:none;color:rgba(255,255,255,.5);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">🛒 Lista</button>
-      </div>
-      <div id="nutrition-panel-meals">
-        <div id="nutrition-empty" style="text-align:center;padding:40px 20px">
-          <div style="font-size:52px;margin-bottom:16px">🥗</div>
-          <div style="font-size:16px;font-weight:800;color:#fff;margin-bottom:8px">Plano nutricional personalizado</div>
-          <div style="font-size:13px;color:rgba(255,255,255,.4);line-height:1.6;margin-bottom:24px">A IA analisa os teus treinos, humor e objectivos para criar um plano alimentar diário e semanal adaptado a ti.</div>
-          <button onclick="generateNutritionPlan()" style="padding:14px 28px;border-radius:14px;background:linear-gradient(135deg,#16A34A,#22C55E);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">✨ Gerar plano de hoje</button>
-        </div>
-        <div id="nutrition-content-meals"></div>
-      </div>
-      <div id="nutrition-panel-weekly"   style="display:none"><div id="nutrition-content-weekly"></div></div>
-      <div id="nutrition-panel-nutrients" style="display:none"><div id="nutrition-content-nutrients"></div></div>
-      <div id="nutrition-panel-shopping"  style="display:none"><div id="nutrition-content-shopping"></div></div>
-    </div>
-  </div>
-
-
-  <!-- ═══ RECOVERY COACH OVERLAY ═══ -->
-  <div id="recovery-overlay" style="display:none;position:fixed;inset:0;background:#000;z-index:600;overflow-y:auto;-webkit-overflow-scrolling:touch">
-    <div style="max-width:430px;margin:0 auto;padding:max(env(safe-area-inset-top,0px),20px) 16px 100px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-        <button onclick="closeRecoveryCoach()" style="background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.1);border-radius:12px;width:36px;height:36px;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">←</button>
-        <div style="text-align:center">
-          <div style="font-size:16px;font-weight:800;color:#fff">🌱 Coach de Recuperação</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:1px">✨ Premium · Estado mental em tempo real</div>
-        </div>
-        <button id="recovery-btn" onclick="generateRecoveryPlan()" style="background:rgba(16,185,129,.1);border:1.5px solid rgba(16,185,129,.3);border-radius:12px;padding:7px 12px;color:#10B981;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Analisar ↻</button>
-      </div>
-      <div id="recovery-mood-card" style="background:linear-gradient(135deg,#0d1a12,#111);border:1px solid rgba(16,185,129,.2);border-radius:16px;padding:16px;margin-bottom:16px">
-        <div style="font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Estado actual</div>
-        <div style="display:flex;align-items:center;gap:14px">
-          <div id="rec-mood-emoji" style="font-size:44px;line-height:1">😐</div>
-          <div style="flex:1">
-            <div id="rec-mood-label" style="font-size:16px;font-weight:800;color:#fff;margin-bottom:4px">—</div>
-            <div id="rec-mood-score" style="font-size:12px;color:rgba(255,255,255,.4)"></div>
-            <div id="rec-days-trained" style="font-size:11px;color:rgba(255,255,255,.35);margin-top:4px"></div>
-          </div>
-        </div>
-        <div style="margin-top:12px">
-          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-            <span style="font-size:10px;color:rgba(255,255,255,.35)">Tendência 7 dias</span>
-            <span id="rec-trend-txt" style="font-size:10px;color:#10B981;font-weight:600"></span>
-          </div>
-          <div style="height:6px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden">
-            <div id="rec-trend-bar" style="height:100%;background:linear-gradient(90deg,#059669,#10B981);border-radius:100px;width:50%;transition:width .6s ease"></div>
-          </div>
-          <div id="rec-mini-scores" style="display:flex;gap:3px;margin-top:6px;justify-content:space-between"></div>
-        </div>
-      </div>
-      <div id="recovery-empty" style="text-align:center;padding:30px 20px">
-        <div style="font-size:48px;margin-bottom:14px">🌱</div>
-        <div style="font-size:15px;font-weight:800;color:#fff;margin-bottom:8px">Treino adaptado ao teu estado mental</div>
-        <div style="font-size:13px;color:rgba(255,255,255,.4);line-height:1.6;margin-bottom:24px">A IA analisa o teu humor, frequência de treino e fadiga para recomendar o treino mais adequado ao teu momento.</div>
-        <button onclick="generateRecoveryPlan()" style="padding:14px 28px;border-radius:14px;background:linear-gradient(135deg,#059669,#10B981);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">🌱 Gerar plano de recuperação</button>
-      </div>
-      <div id="recovery-tabs" style="display:none;gap:6px;margin-bottom:16px;background:rgba(255,255,255,.05);border-radius:14px;padding:4px">
-        <button id="rt-today"  onclick="showRecoveryTab('today',this)"  style="flex:1;padding:8px 4px;border-radius:10px;background:#fff;border:none;color:#000;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">🧘 Hoje</button>
-        <button id="rt-weekly" onclick="showRecoveryTab('weekly',this)" style="flex:1;padding:8px 4px;border-radius:10px;background:none;border:none;color:rgba(255,255,255,.5);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">📅 Semana</button>
-        <button id="rt-mental" onclick="showRecoveryTab('mental',this)" style="flex:1;padding:8px 4px;border-radius:10px;background:none;border:none;color:rgba(255,255,255,.5);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">🧠 Mental</button>
-        <button id="rt-tips"   onclick="showRecoveryTab('tips',this)"   style="flex:1;padding:8px 4px;border-radius:10px;background:none;border:none;color:rgba(255,255,255,.5);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">💡 Dicas</button>
-      </div>
-      <div id="recovery-panel-today"><div id="recovery-content-today"></div></div>
-      <div id="recovery-panel-weekly" style="display:none"><div id="recovery-content-weekly"></div></div>
-      <div id="recovery-panel-mental" style="display:none"><div id="recovery-content-mental"></div></div>
-      <div id="recovery-panel-tips"   style="display:none"><div id="recovery-content-tips"></div></div>
-    </div>
-  </div>
-
 </body>
-</html    <!-- ═══ PERFORMANCE AVANÇADA PAGE ═══ -->
-    <div class="app-page" id="page-perf-adv" style="overflow-y:auto;height:100%;background:#000;padding-top:max(env(safe-area-inset-top,0px),0px)">
-      <div style="max-width:430px;margin:0 auto;padding:20px 16px 100px">
-
-        <!-- Header -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-          <button onclick="navTo('perf')" style="width:36px;height:36px;border-radius:12px;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.13);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">←</button>
-          <div>
-            <div style="font-size:20px;font-weight:800;letter-spacing:-.3px;color:#fff">Performance Avançada</div>
-            <div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:1px">Análise completa dos teus treinos</div>
-          </div>
-          <div style="width:36px"></div>
-        </div>
-
-        <!-- Period tabs -->
-        <div style="display:flex;gap:5px;background:rgba(255,255,255,.04);border-radius:12px;padding:4px;margin:16px 0">
-          <button id="padv-tab-week"   onclick="setPerfAdvPeriod('week')"   style="flex:1;padding:7px 4px;border-radius:9px;border:none;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;background:#fff;color:#000">Semana</button>
-          <button id="padv-tab-month"  onclick="setPerfAdvPeriod('month')"  style="flex:1;padding:7px 4px;border-radius:9px;border:none;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;color:rgba(255,255,255,.45);background:none">Mês</button>
-          <button id="padv-tab-3month" onclick="setPerfAdvPeriod('3month')" style="flex:1;padding:7px 4px;border-radius:9px;border:none;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;color:rgba(255,255,255,.45);background:none">3 Meses</button>
-          <button id="padv-tab-year"   onclick="setPerfAdvPeriod('year')"   style="flex:1;padding:7px 4px;border-radius:9px;border:none;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;color:rgba(255,255,255,.45);background:none">Ano</button>
-        </div>
-
-<!-- ── HERO STATS ── -->
-  <div class="hero-stats fade-up">
-    <div class="hero-stat" style="background:linear-gradient(135deg,#0a1a0a,#0f0f0f);border:1px solid rgba(34,197,94,.2)">
-      <div class="glow" style="background:radial-gradient(circle,rgba(34,197,94,.15),transparent 70%)"></div>
-      <div class="hero-stat-val" style="color:var(--green2)" id="stat-km">47.3</div>
-      <div class="hero-stat-lbl" style="color:var(--green)">km totais</div>
-      <div class="hero-stat-delta" style="color:var(--green2)">↑ +12% vs período anterior</div>
-    </div>
-    <div class="hero-stat" style="background:linear-gradient(135deg,#0d1117,#0f0f0f);border:1px solid rgba(96,165,250,.2)">
-      <div class="glow" style="background:radial-gradient(circle,rgba(96,165,250,.12),transparent 70%)"></div>
-      <div class="hero-stat-val" style="color:var(--blue2)" id="stat-acts">8</div>
-      <div class="hero-stat-lbl" style="color:var(--blue2)">atividades</div>
-      <div class="hero-stat-delta" style="color:var(--blue2)">↑ +2 vs anterior</div>
-    </div>
-    <div class="hero-stat" style="background:linear-gradient(135deg,#1a1000,#0f0f0f);border:1px solid rgba(250,204,21,.15)">
-      <div class="glow" style="background:radial-gradient(circle,rgba(250,204,21,.1),transparent 70%)"></div>
-      <div class="hero-stat-val" style="color:var(--yellow)" id="stat-time">6h 42m</div>
-      <div class="hero-stat-lbl" style="color:var(--yellow)">tempo total</div>
-      <div class="hero-stat-delta" style="color:var(--yellow)">↑ +48min</div>
-    </div>
-    <div class="hero-stat" style="background:linear-gradient(135deg,#1a0d00,#0f0f0f);border:1px solid rgba(249,115,22,.15)">
-      <div class="glow" style="background:radial-gradient(circle,rgba(249,115,22,.1),transparent 70%)"></div>
-      <div class="hero-stat-val" style="color:var(--orange)" id="stat-kcal">3,847</div>
-      <div class="hero-stat-lbl" style="color:var(--orange)">kcal</div>
-      <div class="hero-stat-delta" style="color:var(--orange)">↑ +8% eficiência</div>
-    </div>
-  </div>
-
-  <!-- ── FITNESS SCORE ── -->
-  <div class="sec">Fitness Score</div>
-  <div class="chart-card fade-up" style="border-color:rgba(167,139,250,.2)">
-    <div class="chart-card-hdr">
-      <div>
-        <div class="chart-title">VO₂ Máx estimado</div>
-        <div class="chart-sub">Calculado com base no pace e FC dos teus treinos</div>
-      </div>
-      <span class="chart-badge" style="background:rgba(167,139,250,.15);color:var(--purple2)">BRILHANTE</span>
-    </div>
-    <div style="display:flex;align-items:center;gap:20px">
-      <div class="fitness-ring">
-        <svg width="110" height="110" viewBox="0 0 110 110">
-          <circle cx="55" cy="55" r="46" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="8"/>
-          <circle cx="55" cy="55" r="46" fill="none"
-            stroke="url(#vo2grad)" stroke-width="8"
-            stroke-linecap="round" stroke-dasharray="289"
-            style="stroke-dashoffset:72;transform:rotate(-90deg);transform-origin:55px 55px;transition:stroke-dashoffset 1s ease"/>
-          <defs>
-            <linearGradient id="vo2grad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#7C3AED"/>
-              <stop offset="100%" stop-color="#A78BFA"/>
-            </linearGradient>
-          </defs>
-        </svg>
-        <div class="fitness-score">
-          <div class="fitness-score-val" style="color:var(--purple2)">51</div>
-          <div class="fitness-score-lbl">ml/kg/min</div>
-        </div>
-      </div>
-      <div style="flex:1">
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <div>
-            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-              <span style="font-size:10px;color:var(--muted)">Resistência</span>
-              <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--green2)">84%</span>
-            </div>
-            <div style="height:5px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden">
-              <div style="width:84%;height:100%;background:var(--green);border-radius:100px"></div>
-            </div>
-          </div>
-          <div>
-            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-              <span style="font-size:10px;color:var(--muted)">Velocidade</span>
-              <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--blue2)">72%</span>
-            </div>
-            <div style="height:5px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden">
-              <div style="width:72%;height:100%;background:var(--blue);border-radius:100px"></div>
-            </div>
-          </div>
-          <div>
-            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-              <span style="font-size:10px;color:var(--muted)">Força</span>
-              <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--yellow)">61%</span>
-            </div>
-            <div style="height:5px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden">
-              <div style="width:61%;height:100%;background:var(--yellow);border-radius:100px"></div>
-            </div>
-          </div>
-          <div>
-            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-              <span style="font-size:10px;color:var(--muted)">Recuperação</span>
-              <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--teal)">78%</span>
-            </div>
-            <div style="height:5px;background:rgba(255,255,255,.06);border-radius:100px;overflow:hidden">
-              <div style="width:78%;height:100%;background:var(--teal);border-radius:100px"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── DISTANCE TREND ── -->
-  <div class="sec">Evolução da Distância</div>
-  <div class="chart-card fade-up">
-    <div class="chart-card-hdr">
-      <div>
-        <div class="chart-title">Distância semanal (km)</div>
-        <div class="chart-sub">Evolução ao longo do tempo</div>
-      </div>
-      <span class="chart-badge" style="background:rgba(34,197,94,.1);color:var(--green2)">+18% mês</span>
-    </div>
-    <canvas id="dist-chart" height="100"></canvas>
-    <div id="dist-labels" style="display:flex;justify-content:space-between;margin-top:6px"></div>
-  </div>
-
-  <!-- ── PACE ANALYSIS ── -->
-  <div class="sec">Análise de Pace</div>
-  <div class="chart-card fade-up">
-    <div class="chart-card-hdr">
-      <div>
-        <div class="chart-title">Distribuição de zonas de pace</div>
-        <div class="chart-sub">% do tempo em cada zona</div>
-      </div>
-    </div>
-    <!-- Zone bars -->
-    <div style="display:flex;flex-direction:column;gap:10px">
-      <div class="pace-row">
-        <div class="pace-zone" style="color:#60A5FA">Z1 Fácil</div>
-        <div class="pace-bar-wrap"><div class="pace-bar" style="width:28%;background:linear-gradient(90deg,#1D4ED8,#60A5FA)"></div></div>
-        <div class="pace-pct">28%</div>
-      </div>
-      <div class="pace-row">
-        <div class="pace-zone" style="color:#4ADE80">Z2 Aeróbio</div>
-        <div class="pace-bar-wrap"><div class="pace-bar" style="width:42%;background:linear-gradient(90deg,#16A34A,#4ADE80)"></div></div>
-        <div class="pace-pct">42%</div>
-      </div>
-      <div class="pace-row">
-        <div class="pace-zone" style="color:#FACC15">Z3 Tempo</div>
-        <div class="pace-bar-wrap"><div class="pace-bar" style="width:18%;background:linear-gradient(90deg,#D97706,#FACC15)"></div></div>
-        <div class="pace-pct">18%</div>
-      </div>
-      <div class="pace-row">
-        <div class="pace-zone" style="color:#F97316">Z4 Limiar</div>
-        <div class="pace-bar-wrap"><div class="pace-bar" style="width:9%;background:linear-gradient(90deg,#C2410C,#F97316)"></div></div>
-        <div class="pace-pct">9%</div>
-      </div>
-      <div class="pace-row">
-        <div class="pace-zone" style="color:#EF4444">Z5 Máximo</div>
-        <div class="pace-bar-wrap"><div class="pace-bar" style="width:3%;background:linear-gradient(90deg,#991B1B,#EF4444)"></div></div>
-        <div class="pace-pct">3%</div>
-      </div>
-    </div>
-    <!-- Pace stats -->
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:14px">
-      <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px;text-align:center">
-        <div style="font-size:16px;font-weight:700;color:#fff;font-family:'DM Mono',monospace">5:08</div>
-        <div style="font-size:9px;color:var(--muted);margin-top:2px">Pace médio</div>
-      </div>
-      <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px;text-align:center">
-        <div style="font-size:16px;font-weight:700;color:var(--green2);font-family:'DM Mono',monospace">4:31</div>
-        <div style="font-size:9px;color:var(--muted);margin-top:2px">Pace melhor</div>
-      </div>
-      <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px;text-align:center">
-        <div style="font-size:16px;font-weight:700;color:var(--blue2);font-family:'DM Mono',monospace">↓0:12</div>
-        <div style="font-size:9px;color:var(--muted);margin-top:2px">Melhoria/mês</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── WEEKLY HEATMAP ── -->
-  <div class="sec">Mapa de Consistência</div>
-  <div class="chart-card fade-up">
-    <div class="chart-card-hdr">
-      <div>
-        <div class="chart-title">Atividade por dia — últimas 8 semanas</div>
-        <div class="chart-sub">Intensidade relativa de cada treino</div>
-      </div>
-    </div>
-    <div style="display:flex;gap:4px;margin-bottom:6px">
-      <div style="width:28px"></div>
-      <div style="flex:1;display:grid;grid-template-columns:repeat(7,1fr);gap:4px">
-        <div class="hm-label">S</div><div class="hm-label">T</div><div class="hm-label">Q</div>
-        <div class="hm-label">Q</div><div class="hm-label">S</div><div class="hm-label">S</div><div class="hm-label">D</div>
-      </div>
-    </div>
-    <div id="heatmap-grid" style="display:flex;flex-direction:column;gap:4px"></div>
-    <div style="display:flex;align-items:center;gap:6px;margin-top:10px;justify-content:flex-end">
-      <span style="font-size:9px;color:var(--muted)">Menos</span>
-      <div style="width:10px;height:10px;border-radius:3px;background:rgba(255,255,255,.06)"></div>
-      <div style="width:10px;height:10px;border-radius:3px;background:rgba(34,197,94,.2)"></div>
-      <div style="width:10px;height:10px;border-radius:3px;background:rgba(34,197,94,.5)"></div>
-      <div style="width:10px;height:10px;border-radius:3px;background:#22C55E"></div>
-      <span style="font-size:9px;color:var(--muted)">Mais</span>
-    </div>
-  </div>
-
-  <!-- ── HEART RATE ── -->
-  <div class="sec">Frequência Cardíaca</div>
-  <div class="chart-card fade-up" style="border-color:rgba(239,68,68,.15)">
-    <div class="chart-card-hdr">
-      <div>
-        <div class="chart-title">FC média por treino</div>
-        <div class="chart-sub">Últimas 8 atividades</div>
-      </div>
-      <span class="chart-badge" style="background:rgba(239,68,68,.1);color:#F87171">❤️ BPM</span>
-    </div>
-    <canvas id="hr-chart" height="80"></canvas>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-top:12px">
-      <div style="text-align:center">
-        <div style="font-size:16px;font-weight:700;color:#F87171;font-family:'DM Mono',monospace">142</div>
-        <div style="font-size:9px;color:var(--muted)">FC Média</div>
-      </div>
-      <div style="text-align:center">
-        <div style="font-size:16px;font-weight:700;color:var(--red);font-family:'DM Mono',monospace">178</div>
-        <div style="font-size:9px;color:var(--muted)">FC Máx</div>
-      </div>
-      <div style="text-align:center">
-        <div style="font-size:16px;font-weight:700;color:var(--green2);font-family:'DM Mono',monospace">58</div>
-        <div style="font-size:9px;color:var(--muted)">FC Repouso</div>
-      </div>
-      <div style="text-align:center">
-        <div style="font-size:16px;font-weight:700;color:var(--yellow);font-family:'DM Mono',monospace">76%</div>
-        <div style="font-size:9px;color:var(--muted)">FC Máx uso</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── PERSONAL RECORDS ── -->
-  <div class="sec">Recordes Pessoais</div>
-  <div class="records-grid fade-up">
-    <div class="record-card" style="border-color:rgba(250,204,21,.15)">
-      <div class="record-emoji">🏃</div>
-      <div class="record-val" style="color:var(--yellow)">4:31</div>
-      <div class="record-lbl">Melhor pace/km</div>
-      <div class="record-date">📅 12/03/2026</div>
-    </div>
-    <div class="record-card" style="border-color:rgba(34,197,94,.15)">
-      <div class="record-emoji">📏</div>
-      <div class="record-val" style="color:var(--green2)">21.4km</div>
-      <div class="record-lbl">Distância máx</div>
-      <div class="record-date">📅 05/03/2026</div>
-    </div>
-    <div class="record-card" style="border-color:rgba(96,165,250,.15)">
-      <div class="record-emoji">⏱️</div>
-      <div class="record-val" style="color:var(--blue2)">2h 18m</div>
-      <div class="record-lbl">Treino mais longo</div>
-      <div class="record-date">📅 05/03/2026</div>
-    </div>
-    <div class="record-card" style="border-color:rgba(249,115,22,.15)">
-      <div class="record-emoji">🔥</div>
-      <div class="record-val" style="color:var(--orange)">1,247</div>
-      <div class="record-lbl">Kcal num treino</div>
-      <div class="record-date">📅 05/03/2026</div>
-    </div>
-    <div class="record-card" style="border-color:rgba(167,139,250,.15)">
-      <div class="record-emoji">🔥</div>
-      <div class="record-val" style="color:var(--purple2)">14🔥</div>
-      <div class="record-lbl">Streak de treinos</div>
-      <div class="record-date">📅 Fev–Mar 2026</div>
-    </div>
-    <div class="record-card" style="border-color:rgba(45,212,191,.15)">
-      <div class="record-emoji">❤️</div>
-      <div class="record-val" style="color:var(--teal)">178</div>
-      <div class="record-lbl">FC máxima</div>
-      <div class="record-date">📅 15/02/2026</div>
-    </div>
-  </div>
-
-  <!-- ── SPORT BREAKDOWN ── -->
-  <div class="sec">Por Desporto</div>
-  <div class="chart-card fade-up">
-    <div class="chart-card-hdr">
-      <div class="chart-title">Distribuição de atividades</div>
-      <div class="chart-sub">Este mês · 8 treinos</div>
-    </div>
-    <div>
-      <div class="sport-row">
-        <div class="sport-icon" style="background:rgba(34,197,94,.1)">🏃</div>
-        <div>
-          <div class="sport-name">Corrida</div>
-          <div style="font-size:10px;color:var(--muted)">5 treinos · 31.2km</div>
-        </div>
-        <div style="flex:1;padding:0 10px">
-          <div class="sport-bar-wrap" style="width:100%"><div class="sport-bar" style="width:63%;background:var(--green)"></div></div>
-        </div>
-        <div class="sport-pct">63%</div>
-      </div>
-      <div class="sport-row">
-        <div class="sport-icon" style="background:rgba(96,165,250,.1)">🚴</div>
-        <div>
-          <div class="sport-name">Ciclismo</div>
-          <div style="font-size:10px;color:var(--muted)">2 treinos · 42.1km</div>
-        </div>
-        <div style="flex:1;padding:0 10px">
-          <div class="sport-bar-wrap" style="width:100%"><div class="sport-bar" style="width:25%;background:var(--blue)"></div></div>
-        </div>
-        <div class="sport-pct">25%</div>
-      </div>
-      <div class="sport-row">
-        <div class="sport-icon" style="background:rgba(167,139,250,.1)">🧘</div>
-        <div>
-          <div class="sport-name">Yoga</div>
-          <div style="font-size:10px;color:var(--muted)">1 treino · 60min</div>
-        </div>
-        <div style="flex:1;padding:0 10px">
-          <div class="sport-bar-wrap" style="width:100%"><div class="sport-bar" style="width:12%;background:var(--purple2)"></div></div>
-        </div>
-        <div class="sport-pct">12%</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── VS PERÍODO ANTERIOR ── -->
-  <div class="sec">Comparação</div>
-  <div class="chart-card fade-up">
-    <div class="chart-card-hdr">
-      <div class="chart-title">Este mês vs mês anterior</div>
-    </div>
-    <div>
-      <div class="compare-row header">
-        <div class="compare-col label">Métrica</div>
-        <div class="compare-col">Anterior</div>
-        <div class="compare-col">Atual</div>
-      </div>
-      <div class="compare-row">
-        <div class="compare-col label">Distância</div>
-        <div class="compare-col">39.1 km</div>
-        <div class="compare-col better">47.3 km</div>
-      </div>
-      <div class="compare-row">
-        <div class="compare-col label">Treinos</div>
-        <div class="compare-col">6</div>
-        <div class="compare-col better">8</div>
-      </div>
-      <div class="compare-row">
-        <div class="compare-col label">Pace médio</div>
-        <div class="compare-col">5:20/km</div>
-        <div class="compare-col better">5:08/km</div>
-      </div>
-      <div class="compare-row">
-        <div class="compare-col label">FC média</div>
-        <div class="compare-col">148 bpm</div>
-        <div class="compare-col better">142 bpm</div>
-      </div>
-      <div class="compare-row">
-        <div class="compare-col label">Calorias</div>
-        <div class="compare-col">3,560</div>
-        <div class="compare-col better">3,847</div>
-      </div>
-      <div class="compare-row">
-        <div class="compare-col label">Tempo total</div>
-        <div class="compare-col">5h 54m</div>
-        <div class="compare-col better">6h 42m</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Export -->
-  <button class="export-btn fade-up" onclick="exportPDF()">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-    Exportar Relatório de Performance PDF
-  </button>
-
-</div>
-      </div>
-    </div>>
+</html>
