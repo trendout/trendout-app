@@ -424,18 +424,27 @@ async function loadData() {
     ]);
 
     if (actsRes.data) {
+      console.log('[perf-adv] Actividades carregadas:', actsRes.data.length);
+      if (actsRes.data.length > 0) {
+        console.log('[perf-adv] Campos de exemplo:', Object.keys(actsRes.data[0]).join(', '));
+        console.log('[perf-adv] Exemplo actividade:', JSON.stringify(actsRes.data[0]).substring(0,200));
+      }
       _allActivities = actsRes.data.map(function(a) {
         // Parse JSON strings back to arrays
         if (a.route  && typeof a.route  === 'string') { try { a.route  = JSON.parse(a.route);  } catch(e) { a.route  = []; } }
         if (a.splits && typeof a.splits === 'string') { try { a.splits = JSON.parse(a.splits); } catch(e) { a.splits = []; } }
-        // Map snake_case DB columns to local fields (same mapping as main app)
-        if (a.total_seconds) a.totalSeconds = a.total_seconds;
-        if (a.dist_km)       a.distKm       = a.dist_km;
-        if (a.has_gps !== undefined) a.hasGps = a.has_gps;
-        if (a.start_street)  a.startStreet  = a.start_street;
-        if (a.end_street)    a.endStreet    = a.end_street;
-        if (a.center_lat)    a.centerLat    = a.center_lat;
-        if (a.center_lng)    a.centerLng    = a.center_lng;
+        // Map ALL possible snake_case variants → local fields
+        if (a.total_seconds)              a.totalSeconds = a.total_seconds;
+        if (a.dist_km !== undefined)      a.distKm       = parseFloat(a.dist_km) || 0;
+        if (a.distance_km !== undefined)  a.distKm       = parseFloat(a.distance_km) || 0;
+        if (a.has_gps !== undefined)      a.hasGps       = a.has_gps;
+        if (a.start_street)               a.startStreet  = a.start_street;
+        if (a.end_street)                 a.endStreet    = a.end_street;
+        if (a.center_lat)                 a.centerLat    = a.center_lat;
+        if (a.center_lng)                 a.centerLng    = a.center_lng;
+        if (a.duration_min !== undefined) a.totalSeconds = (parseFloat(a.duration_min) || 0) * 60;
+        if (a.calories_kcal !== undefined) a.calNum      = parseFloat(a.calories_kcal) || 0;
+        if (a.pace_min_km)                a.pace         = a.pace || a.pace_min_km;
         return a;
       });
     }
@@ -520,21 +529,34 @@ function actPaceSecs(a) {
 }
 function secsToMinKm(s) { if (!s) return '—'; return Math.floor(s/60) + ':' + (s%60<10?'0':'') + Math.floor(s%60); }
 function distKm(a) {
-  // Main app stores as 'dist' string e.g. "5.23 km", fallback to dist_km number
-  if (a.dist) return parseFloat(a.dist.replace(/[^0-9.]/g,'')) || 0;
-  return parseFloat(a.distKm || a.dist_km || 0);
+  // Try all possible field names/formats
+  if (a.dist && typeof a.dist === 'string') return parseFloat(a.dist.replace(/[^0-9.]/g,'')) || 0;
+  if (a.dist && typeof a.dist === 'number') return a.dist;
+  if (a.distKm)      return parseFloat(a.distKm) || 0;
+  if (a.dist_km)     return parseFloat(a.dist_km) || 0;
+  if (a.distance_km) return parseFloat(a.distance_km) || 0;
+  return 0;
 }
 function calNum(a) {
-  // Main app stores as 'cal' string e.g. "350 kcal", fallback to calories_kcal number
-  if (a.cal) return parseFloat(a.cal.replace(/[^0-9.]/g,'')) || 0;
-  return parseFloat(a.calories_kcal || 0);
+  // Try all possible field names/formats
+  if (a.calNum) return a.calNum; // pre-mapped
+  if (a.cal && typeof a.cal === 'string') return parseFloat(a.cal.replace(/[^0-9.]/g,'')) || 0;
+  if (a.cal && typeof a.cal === 'number') return a.cal;
+  if (a.calories_kcal) return parseFloat(a.calories_kcal) || 0;
+  if (a.calories)      return parseFloat(a.calories) || 0;
+  return 0;
 }
 function durMins(a) {
-  // Main app stores as 'dur' string e.g. "32:15", fallback to total_seconds
-  if (a.totalSeconds) return a.totalSeconds / 60;
+  // Try all possible formats
+  if (a.totalSeconds)  return a.totalSeconds / 60;
   if (a.total_seconds) return a.total_seconds / 60;
-  var p = (a.dur || '0:00').split(':');
-  return parseInt(p[0]||0)*60 + parseInt(p[1]||0);
+  if (a.duration_min)  return parseFloat(a.duration_min) || 0;
+  if (a.dur && typeof a.dur === 'string') {
+    var p = a.dur.replace(/[^0-9:]/g,'').split(':');
+    return parseInt(p[0]||0)*60 + parseInt(p[1]||0);
+  }
+  if (a.dur && typeof a.dur === 'number') return a.dur;
+  return 0;
 }
 
 function calcVO2(paceSecs, wt) {
@@ -569,6 +591,7 @@ function set(id, txt, color) {
 // ── RENDER ──
 function render() {
   var acts = getEntries(_period);
+  console.log('[perf-adv] render() período:', _period, '→', acts.length, 'actividades', '| total:', _allActivities.length, '| pesos:', _weightLog.length);
   var prev = getPrevEntries(_period);
 
   var totalKm   = acts.reduce(function(s,a) { return s + distKm(a); }, 0);
