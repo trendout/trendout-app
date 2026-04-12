@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Trendout PWA v1.0-beta | app.trendout.pt | 18/03/2026 -->
+<!-- Trendout PWA v1.0-beta | app.trendout.pt | Built with Claude AI | 18/03/2026 -->
 <html lang="pt">
 <head>
 <meta charset="UTF-8"/>
@@ -6709,9 +6709,26 @@ function actCard(a, compact) {
     + '</div></div>'
     + '</div>'
     + (function(){
-      var km = parseFloat(a.dist) || 0;
-      var durParts = (a.dur||'').split(':');
-      var mins = durParts.length>=2 ? parseInt(durParts[0])*60+parseInt(durParts[1]) : parseInt(durParts[0])||0;
+      // km: dist is a string like "8.5 km" — strip non-numeric chars
+      var km = parseFloat((a.dist||'0').replace(/[^0-9.]/g,'')) || 0;
+      // mins: dur is "mm:ss" format — parts[0]=minutes, parts[1]=seconds
+      var mins = 0;
+      if (a.totalSeconds) {
+        mins = a.totalSeconds / 60;
+      } else if (a.total_seconds) {
+        mins = a.total_seconds / 60;
+      } else if (a.dur) {
+        var dur = (a.dur||'').trim();
+        if (dur.indexOf('h') >= 0) {
+          var hM = dur.match(/(\d+)h/), mM = dur.match(/(\d+)\s*m/);
+          mins = (hM?parseInt(hM[1])*60:0) + (mM?parseInt(mM[1]):0);
+        } else if (dur.indexOf(':') >= 0) {
+          var dp = dur.split(':');
+          mins = parseInt(dp[0]||0) + (parseInt(dp[1]||0) / 60);
+        } else {
+          mins = parseFloat(dur) || 0;
+        }
+      }
       var earns = km >= 5 || mins >= 60;
       if (earns) return '<div style="background:rgba(250,204,21,.12);border:1px solid rgba(250,204,21,.25);border-radius:8px;padding:3px 9px;font-size:11px;font-weight:700;color:#FACC15">⭐ +5 pts</div>';
       return '<div style="background:rgba(255,255,255,.06);border-radius:8px;padding:3px 9px;font-size:11px;color:rgba(255,255,255,.3)" title="Mínimo 5km ou 1h para ganhar pontos">0 pts</div>';
