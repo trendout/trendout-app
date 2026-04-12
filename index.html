@@ -56,14 +56,23 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
 
 /* ── TOAST ── */
 #toast{
-  position:fixed;top:calc(env(safe-area-inset-top,0) + 16px);
-  left:50%;transform:translateX(-50%) translateY(-80px);
+  position:fixed;
+  top:calc(env(safe-area-inset-top,0px) + 12px);
+  left:50%;
+  transform:translateX(-50%) translateY(calc(-100% - 20px));
   background:#fff;color:#000;
-  padding:11px 22px;border-radius:100px;
-  font-size:13px;font-weight:600;
+  padding:11px 20px;
+  border-radius:16px;
+  font-size:13px;font-weight:600;line-height:1.4;
+  text-align:center;
+  max-width:calc(100vw - 40px);
+  width:max-content;
+  white-space:normal;
+  word-break:break-word;
   z-index:9999;
+  box-shadow:0 4px 20px rgba(0,0,0,.25);
   transition:transform .35s cubic-bezier(.34,1.56,.64,1);
-  white-space:nowrap;pointer-events:none;
+  pointer-events:none;
 }
 #toast.show{transform:translateX(-50%) translateY(0)}
 
@@ -4529,15 +4538,22 @@ function renderActSplits(a) {
   var splits = a.splits || [];
 
   // If no real splits, generate from total pace
-  if (!splits.length && a.distKm > 0 && a.totalSeconds > 0) {
-    var totalKm = Math.floor(a.distKm);
-    var pacePerKm = a.totalSeconds / a.distKm;
+  // Resolve dist and duration from all possible field formats
+  var _distKm = a.distKm || parseFloat((a.dist||'0').replace(/[^0-9.]/g,'')) || 0;
+  var _totalSecs = a.totalSeconds || a.total_seconds || 0;
+  if (!_totalSecs && a.dur) {
+    var _dp = (a.dur||'0:00').replace(/[^0-9:]/g,'').split(':');
+    _totalSecs = (parseInt(_dp[0]||0)*60 + parseInt(_dp[1]||0)) * 60;
+  }
+  if (!splits.length && _distKm > 0 && _totalSecs > 0) {
+    var totalKm = Math.floor(_distKm);
+    var pacePerKm = _totalSecs / _distKm;
     for (var i = 0; i < totalKm; i++) {
       var variation = (Math.random() - 0.5) * 20;
       splits.push({ km: i+1, seconds: Math.round(pacePerKm + variation) });
     }
     // Partial last km
-    var remainder = a.distKm - totalKm;
+    var remainder = _distKm - totalKm;
     if (remainder > 0.05) {
       splits.push({ km: totalKm + parseFloat(remainder.toFixed(2)), seconds: Math.round(pacePerKm * remainder), partial: true });
     }
@@ -6455,29 +6471,37 @@ var _origAddActivity = addActivity;
 addActivity = function(act) {
   _origAddActivity(act);
 
-  // ── EnjoyPoints: only for REAL data ──
-  // GPS activities: use distKm (real GPS metres) and totalSeconds (real elapsed time)
-  // Manual activities: use entered values but flag as unverified
+  // ── EnjoyPoints: 5pts por >= 5km OU >= 60min ──
   var isGps = act.source === 'gps' || act.hasGps === true;
+  var km = 0, totalMins = 0;
 
-  var km, totalMins;
-  if (isGps) {
-    // GPS: use precise tracked values
-    km        = act.distKm || parseFloat((act.dist||'0').replace(/[^0-9.]/g,'')) || 0;
-    totalMins = act.totalSeconds ? act.totalSeconds / 60 : 0;
-  } else {
-    // Manual entry: parse from display strings (cannot verify)
-    km = parseFloat((act.dist||'0').replace(/[^0-9.]/g,'')) || 0;
-    var durParts = (act.dur||'').split(':');
-    // Handle formats: "42:30" (mm:ss), "1h 30m", "45m"
-    if (act.dur && act.dur.indexOf('h') >= 0) {
-      var hMatch = act.dur.match(/(\d+)h/);
-      var mMatch = act.dur.match(/(\d+)m/);
-      totalMins = (hMatch ? parseInt(hMatch[1])*60 : 0) + (mMatch ? parseInt(mMatch[1]) : 0);
-    } else if (durParts.length >= 2) {
-      totalMins = parseInt(durParts[0]||0)*60 + parseInt(durParts[1]||0);
-    } else {
-      totalMins = parseInt(durParts[0]||0);
+  // ── Distância ──
+  km = parseFloat((act.dist||'0').replace(/[^0-9.]/g,'')) || 0;
+  if (!km && act.distKm) km = parseFloat(act.distKm) || 0;
+
+  // ── Duração ──
+  // GPS: totalSeconds é sempre preciso
+  if (act.totalSeconds && act.totalSeconds > 0) {
+    totalMins = act.totalSeconds / 60;
+  } else if (act.total_seconds && act.total_seconds > 0) {
+    totalMins = act.total_seconds / 60;
+  } else if (act.dur) {
+    var dur = (act.dur || '').trim();
+    // Format "1h 30m" or "1h30m"
+    if (dur.indexOf('h') >= 0) {
+      var hM = dur.match(/(\d+)h/);
+      var mM = dur.match(/(\d+)\s*m/);
+      totalMins = (hM ? parseInt(hM[1]) * 60 : 0) + (mM ? parseInt(mM[1]) : 0);
+    }
+    // Format "mm:ss" — "32:15" = 32 min 15 sec
+    else if (dur.indexOf(':') >= 0) {
+      var parts = dur.split(':');
+      // parts[0] = minutes, parts[1] = seconds
+      totalMins = parseInt(parts[0] || 0) + (parseInt(parts[1] || 0) / 60);
+    }
+    // Format plain number = minutes
+    else if (!isNaN(parseFloat(dur))) {
+      totalMins = parseFloat(dur);
     }
   }
 
@@ -6486,17 +6510,16 @@ addActivity = function(act) {
 
   if (qualifiesKm || qualifiesMins) {
     var reason = qualifiesKm
-      ? km.toFixed(1) + 'km reais'
-      : Math.floor(totalMins) + ' min de atividade';
+      ? km.toFixed(1) + 'km'
+      : Math.floor(totalMins) + ' min';
     addEnjoyPts(5, (act.type||'Atividade') + ' — ' + reason);
-    var badge = isGps ? '⭐' : '⭐';
-    toast(badge + ' +5 EnjoyLife Points! (' + reason + ')');
+    toast('⭐ +5 EnjoyLife Points! (' + reason + ')');
     checkCouponUnlock();
   } else {
     var needed = [];
     if (km < 5)         needed.push((5 - km).toFixed(1) + 'km em falta');
     if (totalMins < 60) needed.push(Math.ceil(60 - totalMins) + 'min em falta');
-    toast('🏃 Atividade guardada — ' + needed.join(' ou ') + ' para ⭐ pts');
+    toast('🏃 Guardado — ' + needed.join(' ou ') + ' para ⭐ pts');
   }
 };
 
