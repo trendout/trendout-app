@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Coach de Alimentação · Trendout</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:#050505;color:#fff;font-family:'DM Sans',system-ui,sans-serif;min-height:100dvh;overscroll-behavior:none}
+
+/* Loading */
+#loading{position:fixed;inset:0;background:#050505;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999}
+.logo{font-size:28px;font-weight:900;color:#fff;letter-spacing:-1px;margin-bottom:8px}
+.logo-sub{font-size:12px;color:rgba(255,255,255,.35);letter-spacing:1px;text-transform:uppercase}
+.spinner{width:28px;height:28px;border:2.5px solid rgba(255,255,255,.1);border-top-color:#22C55E;border-radius:50%;animation:spin .8s linear infinite;margin-top:24px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Auth wall */
+#auth-wall{display:none;position:fixed;inset:0;background:#050505;flex-direction:column;align-items:center;justify-content:center;z-index:998;padding:32px}
+#auth-wall h2{font-size:22px;font-weight:900;margin-bottom:8px;text-align:center}
+#auth-wall p{font-size:14px;color:rgba(255,255,255,.45);text-align:center;margin-bottom:28px;line-height:1.6}
+#auth-wall a{display:block;padding:15px;border-radius:14px;background:linear-gradient(135deg,#16A34A,#22C55E);color:#000;font-size:15px;font-weight:800;text-decoration:none;text-align:center;width:100%;max-width:300px}
+
+/* App */
+#app{display:none;max-width:430px;margin:0 auto;padding:max(env(safe-area-inset-top,0px),20px) 16px max(env(safe-area-inset-bottom,0px),100px)}
+
+/* Header */
+.hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.back-btn{width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;transition:background .15s}
+.back-btn:hover{background:rgba(255,255,255,.1)}
+.hdr-center{text-align:center}
+.hdr-title{font-size:17px;font-weight:900;color:#fff;letter-spacing:-.4px}
+.hdr-sub{font-size:10px;color:rgba(255,255,255,.35);letter-spacing:1.2px;text-transform:uppercase;margin-top:1px}
+.hdr-icon{width:38px;height:38px;border-radius:12px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);display:flex;align-items:center;justify-content:center;font-size:16px}
+
+/* Context banner */
+.context-banner{background:linear-gradient(135deg,#1a1500,#111);border:1.5px solid rgba(250,204,21,.25);border-radius:18px;padding:14px 16px;margin-bottom:16px}
+.context-label{font-size:12px;font-weight:700;color:#FACC15;margin-bottom:4px}
+.context-title{font-size:13px;font-weight:800;color:#fff;margin-bottom:4px}
+.context-stats{font-size:11px;color:rgba(255,255,255,.5)}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;background:rgba(255,255,255,.04);border-radius:12px;padding:4px;margin-bottom:16px}
+.tab{flex:1;padding:8px 4px;border-radius:9px;border:none;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;color:rgba(255,255,255,.4);background:none;letter-spacing:.2px}
+.tab.active{background:#fff;color:#000}
+.panel{display:none}.panel.active{display:block}
+
+/* Section title */
+.sec-title{font-size:14px;font-weight:800;color:#fff;margin-bottom:10px}
+.sec-sub{font-size:11px;color:rgba(255,255,255,.35);margin-bottom:14px}
+
+/* Meal cards */
+.meal-card{border-radius:18px;padding:16px;margin-bottom:10px}
+.meal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.meal-info{display:flex;align-items:center;gap:8px}
+.meal-emoji{font-size:22px}
+.meal-name{font-size:13px;font-weight:700;color:#fff}
+.meal-time{font-size:10px;color:rgba(255,255,255,.4);margin-top:1px}
+.meal-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px}
+.foods{margin-bottom:8px;display:flex;flex-wrap:wrap;gap:4px}
+.food-tag{display:inline-block;border-radius:8px;padding:4px 9px;font-size:11px;font-weight:600}
+.meal-tip{font-size:11px;color:rgba(255,255,255,.45);font-style:italic;line-height:1.5}
+
+/* Nutrient cards */
+.nutrient-card{background:rgba(255,255,255,.04);border-radius:14px;padding:14px;margin-bottom:8px;display:flex;align-items:flex-start;gap:12px}
+.nutrient-icon{font-size:28px;flex-shrink:0;line-height:1;margin-top:2px}
+.nutrient-name{font-size:13px;font-weight:700;color:#fff;margin-bottom:3px}
+.nutrient-benefit{font-size:11px;font-weight:600;margin-bottom:6px}
+.nutrient-desc{font-size:11px;color:rgba(255,255,255,.5);margin-bottom:8px;line-height:1.5}
+.sources{display:flex;flex-wrap:wrap;gap:3px}
+.source-tag{display:inline-block;border-radius:7px;padding:3px 8px;font-size:10px;font-weight:700}
+
+/* Shopping list */
+.shop-item{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:11px;padding:11px 14px;cursor:pointer;transition:all .2s;margin-bottom:6px}
+.shop-item.done{background:rgba(34,197,94,.05);border-color:rgba(34,197,94,.2)}
+.shop-check{width:20px;height:20px;border-radius:6px;border:1.5px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;transition:all .2s}
+.shop-item.done .shop-check{border-color:#4ADE80;background:rgba(34,197,94,.2);color:#4ADE80}
+.shop-text{font-size:13px;color:rgba(255,255,255,.85);font-weight:500;transition:all .2s}
+.shop-item.done .shop-text{color:rgba(255,255,255,.35);text-decoration:line-through}
+
+/* Weekly plan */
+.week-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;margin-bottom:6px}
+.week-day{font-size:11px;font-weight:800;width:32px;flex-shrink:0}
+.week-meal{font-size:12px;font-weight:700;color:#fff;margin-bottom:2px}
+.week-detail{font-size:10px;color:rgba(255,255,255,.4)}
+.week-today{font-size:9px;font-weight:700;background:#4ADE80;color:#000;border-radius:5px;padding:2px 7px;flex-shrink:0}
+
+/* Athlete stats bar */
+.stats-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.stat-box{background:#0c0c0c;border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:12px;text-align:center}
+.stat-val{font-size:18px;font-weight:900;color:#fff;letter-spacing:-.5px;font-family:'DM Mono',monospace}
+.stat-lbl{font-size:9px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.8px;margin-top:3px}
+
+/* Generate button */
+.gen-btn{width:100%;padding:15px;border-radius:16px;background:linear-gradient(135deg,#16A34A,#22C55E);border:none;color:#000;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:16px;transition:opacity .2s}
+.gen-btn:disabled{opacity:.6;cursor:not-allowed}
+
+/* Export btn */
+.pdf-btn{display:flex;align-items:center;gap:6px;background:rgba(34,197,94,.1);border:1.5px solid rgba(34,197,94,.25);border-radius:12px;padding:12px 16px;color:#4ADE80;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;width:100%;justify-content:center;margin-top:16px;transition:background .2s}
+.pdf-btn:hover{background:rgba(34,197,94,.18)}
+
+/* Bottom nav */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(5,5,5,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.07);padding:10px 16px max(env(safe-area-inset-bottom,0px),10px);display:flex;justify-content:center}
+.back-to-app{display:flex;align-items:center;gap:8px;padding:12px 24px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);font-size:13px;font-weight:700;text-decoration:none;font-family:inherit;cursor:pointer;transition:all .2s}
+.back-to-app:hover{background:rgba(255,255,255,.1);color:#fff}
+
+/* Loading state for AI */
+.ai-loading{text-align:center;padding:40px 20px}
+.ai-loading-emoji{font-size:44px;margin-bottom:14px;animation:pulse 1.5s infinite}
+.ai-loading-text{font-size:14px;font-weight:700;color:#fff;margin-bottom:6px}
+.ai-loading-sub{font-size:12px;color:rgba(255,255,255,.4)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp .4s ease both}
+.fade-up:nth-child(1){animation-delay:.05s}
+.fade-up:nth-child(2){animation-delay:.1s}
+.fade-up:nth-child(3){animation-delay:.15s}
+.fade-up:nth-child(4){animation-delay:.2s}
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="logo">trendout</div>
+  <div class="logo-sub">Coach de Alimentação</div>
+  <div class="spinner"></div>
+</div>
+
+<div id="auth-wall">
+  <div style="font-size:48px;margin-bottom:20px">🥗</div>
+  <h2>Inicia sessão para continuar</h2>
+  <p>O Coach de Alimentação é exclusivo para membros Trendout Premium.</p>
+  <a href="/">← Voltar à app</a>
+</div>
+
+<div id="app">
+
+  <!-- Header -->
+  <div class="hdr fade-up">
+    <a href="/" class="back-btn">←</a>
+    <div class="hdr-center">
+      <div class="hdr-title">Coach de Alimentação</div>
+      <div class="hdr-sub">Nutrição personalizada</div>
+    </div>
+    <div class="hdr-icon">🥗</div>
+  </div>
+
+  <!-- Athlete stats bar -->
+  <div class="stats-bar fade-up">
+    <div class="stat-box">
+      <div class="stat-val" id="s-acts">—</div>
+      <div class="stat-lbl">Treinos</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" id="s-km">—</div>
+      <div class="stat-lbl">km semana</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" id="s-mood">—</div>
+      <div class="stat-lbl">Humor</div>
+    </div>
+  </div>
+
+  <!-- Context banner (populated after load) -->
+  <div class="context-banner fade-up">
+    <div class="context-label">🎯 Foco desta semana</div>
+    <div class="context-title" id="ctx-title">A analisar os teus dados...</div>
+    <div class="context-stats" id="ctx-stats"></div>
+  </div>
+
+  <!-- Generate button -->
+  <button class="gen-btn fade-up" id="gen-btn" onclick="generatePlan()">
+    <span id="gen-icon">✨</span>
+    <span id="gen-text">Gerar plano nutricional com IA</span>
+  </button>
+
+  <!-- Tabs -->
+  <div class="tabs fade-up">
+    <button class="tab active" id="tab-meals"     onclick="showTab('meals',this)">🍽️ Hoje</button>
+    <button class="tab"        id="tab-nutrients"  onclick="showTab('nutrients',this)">🧪 Nutrientes</button>
+    <button class="tab"        id="tab-shopping"   onclick="showTab('shopping',this)">🛒 Compras</button>
+    <button class="tab"        id="tab-weekly"     onclick="showTab('weekly',this)">📅 Semana</button>
+  </div>
+
+  <!-- PANEL: Meals -->
+  <div class="panel active" id="panel-meals">
+    <div id="meals-content">
+      <div style="text-align:center;padding:40px 20px;color:rgba(255,255,255,.3)">
+        <div style="font-size:44px;margin-bottom:14px">🥗</div>
+        <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:6px">Pronto para o teu plano?</div>
+        <div style="font-size:12px;line-height:1.6">Clica em <strong style="color:#22C55E">Gerar plano</strong> e a IA cria um plano personalizado com base nos teus treinos e humor desta semana.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL: Nutrients -->
+  <div class="panel" id="panel-nutrients">
+    <div id="nutrients-content">
+      <div style="text-align:center;padding:40px 20px;color:rgba(255,255,255,.3)">
+        <div style="font-size:44px;margin-bottom:14px">🧪</div>
+        <div style="font-size:12px">Gera o plano para ver os nutrientes recomendados.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL: Shopping -->
+  <div class="panel" id="panel-shopping">
+    <div class="sec-title">Lista de compras</div>
+    <div class="sec-sub">Toca para marcar como comprado</div>
+    <div id="shopping-list"></div>
+  </div>
+
+  <!-- PANEL: Weekly -->
+  <div class="panel" id="panel-weekly">
+    <div id="weekly-content">
+      <div style="text-align:center;padding:40px 20px;color:rgba(255,255,255,.3)">
+        <div style="font-size:44px;margin-bottom:14px">📅</div>
+        <div style="font-size:12px">Gera o plano para ver a semana completa.</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- Bottom nav -->
+<div class="bottom-nav">
+  <a href="/" class="back-to-app">← Voltar à app</a>
+</div>
+
+<script>
+var SUPA_URL = 'https://btzcyvksxlmkosluytaz.supabase.co';
+var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ0emN5dmtzeGxta29zbHV5dGF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NDU3NzYsImV4cCI6MjA4OTQyMTc3Nn0.f9pjtUyp7SlJ8dal5xJ180TD9TWvVWDj86u9ZLmyUs0';
+var PROXY_URL = 'https://btzcyvksxlmkosluytaz.supabase.co/functions/v1/claude-proxy';
+
+var _db, _user, _profile = {};
+var _allActivities = [], _weightLog = [], _happinessLog = [];
+var _shoppingChecked = {};
+var _planData = null;
+var _generating = false;
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', function() {
+  try {
+    _db = supabase.createClient(SUPA_URL, SUPA_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true }
+    });
+  } catch(e) { showAuthWall(); return; }
+
+  _db.auth.getSession().then(function(res) {
+    if (res.data && res.data.session) {
+      _user = res.data.session.user;
+      loadData();
+    } else {
+      showAuthWall();
+    }
+  }).catch(function() { showAuthWall(); });
+});
+
+function showAuthWall() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('auth-wall').style.display = 'flex';
+}
+
+// ── LOAD DATA ──
+async function loadData() {
+  try {
+    var [actsRes, moodsRes, weightsRes, profileRes] = await Promise.all([
+      _db.from('activities').select('*').eq('user_id', _user.id).order('created_at', { ascending: false }),
+      _db.from('moods').select('*').eq('user_id', _user.id).order('created_at', { ascending: true }),
+      _db.from('weights').select('*').eq('user_id', _user.id).order('created_at', { ascending: true }),
+      _db.from('profiles').select('*').eq('id', _user.id).single()
+    ]);
+
+    if (actsRes.data) {
+      _allActivities = actsRes.data.map(function(a) {
+        if (a.route  && typeof a.route  === 'string') { try { a.route  = JSON.parse(a.route);  } catch(e) { a.route  = []; } }
+        if (a.splits && typeof a.splits === 'string') { try { a.splits = JSON.parse(a.splits); } catch(e) { a.splits = []; } }
+        if (a.total_seconds) a.totalSeconds = a.total_seconds;
+        if (a.dist_km) a.distKm = a.dist_km;
+        return a;
+      });
+    }
+
+    if (moodsRes.data) {
+      _happinessLog = moodsRes.data.slice().sort(function(a, b) {
+        var pa = (a.date||'').split('/'), pb = (b.date||'').split('/');
+        return new Date(parseInt(pa[2]), parseInt(pa[1])-1, parseInt(pa[0]))
+             - new Date(parseInt(pb[2]), parseInt(pb[1])-1, parseInt(pb[0]));
+      });
+    }
+
+    if (weightsRes.data) {
+      _weightLog = weightsRes.data
+        .filter(function(w) { return w.weight || w.weight_kg; })
+        .map(function(w) {
+          return {
+            date: w.date || new Date(w.created_at || Date.now()).toLocaleDateString('pt-PT'),
+            weight: parseFloat(w.weight || w.weight_kg) || 0
+          };
+        })
+        .sort(function(a, b) {
+          var pa = a.date.split('/'), pb = b.date.split('/');
+          return new Date(parseInt(pa[2]), parseInt(pa[1])-1, parseInt(pa[0]))
+               - new Date(parseInt(pb[2]), parseInt(pb[1])-1, parseInt(pb[0]));
+        });
+    }
+
+    if (profileRes.data) {
+      _profile = profileRes.data;
+    }
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    updateContextBanner();
+
+  } catch(e) {
+    console.error('loadData error:', e);
+    showAuthWall();
+  }
+}
+
+// ── HELPERS ──
+function distKm(a) {
+  if (a.dist && typeof a.dist === 'string') return parseFloat(a.dist.replace(/[^0-9.]/g, '')) || 0;
+  if (a.distKm) return parseFloat(a.distKm) || 0;
+  if (a.dist_km) return parseFloat(a.dist_km) || 0;
+  return 0;
+}
+
+function getWeekActs() {
+  var now = new Date(); now.setHours(0,0,0,0);
+  var cut = new Date(now); cut.setDate(now.getDate() - 7);
+  return _allActivities.filter(function(a) {
+    var p = (a.date||'').split('/'); if (p.length < 3) return false;
+    return new Date(parseInt(p[2]), parseInt(p[1])-1, parseInt(p[0])) >= cut;
+  });
+}
+
+function avgMood7() {
+  var w7 = _happinessLog.slice(-7);
+  return w7.length ? (w7.reduce(function(s, e) { return s + e.score; }, 0) / w7.length) : null;
+}
+
+function lastWeight() {
+  return _weightLog.length ? _weightLog[_weightLog.length-1].weight : null;
+}
+
+function athleteName() {
+  var n = ((_profile.name || '') + ' ' + (_profile.last || '')).trim();
+  return n || _user.email;
+}
+
+// ── CONTEXT BANNER ──
+function updateContextBanner() {
+  var weekActs = getWeekActs();
+  var totalKm  = weekActs.reduce(function(s, a) { return s + distKm(a); }, 0);
+  var mood     = avgMood7();
+  var wt       = lastWeight();
+
+  // Stats bar
+  var el;
+  el = document.getElementById('s-acts'); if (el) el.textContent = weekActs.length;
+  el = document.getElementById('s-km');   if (el) el.textContent = totalKm.toFixed(1);
+  el = document.getElementById('s-mood'); if (el) {
+    el.textContent = mood ? mood.toFixed(1) + '/10' : '—';
+    el.style.color  = !mood ? '#fff' : mood >= 7 ? '#22C55E' : mood >= 5 ? '#FACC15' : '#EF4444';
+  }
+
+  // Determine focus
+  var focus, detail;
+  var moodLabel = !mood ? '' : mood >= 7 ? 'Humor elevado' : mood >= 5 ? 'Humor estável' : 'Humor baixo';
+  var loadLabel = weekActs.length >= 5 ? 'Carga alta' : weekActs.length >= 3 ? 'Carga moderada' : 'Carga leve';
+
+  if (mood && mood < 6) {
+    focus  = 'Elevar humor + recuperação';
+    detail = 'Nutrição anti-inflamatória e alimentos que estimulam a serotonina';
+  } else if (weekActs.length >= 4) {
+    focus  = 'Recuperação muscular + energia';
+    detail = 'Proteína elevada e carboidratos de qualidade para suportar a carga de treino';
+  } else if (totalKm >= 20) {
+    focus  = 'Reposição energética + hidratação';
+    detail = 'Carboidratos complexos e electrólitos para compensar o volume de km';
+  } else {
+    focus  = 'Manutenção + bem-estar geral';
+    detail = 'Alimentação equilibrada mediterrânea adaptada ao teu ritmo';
+  }
+
+  el = document.getElementById('ctx-title'); if (el) el.textContent = focus;
+  el = document.getElementById('ctx-stats');
+  if (el) {
+    var parts = [];
+    if (mood) parts.push('Humor: ' + mood.toFixed(1) + '/10');
+    parts.push(weekActs.length + ' treinos esta semana');
+    if (totalKm > 0) parts.push(totalKm.toFixed(1) + ' km');
+    if (wt) parts.push(wt + 'kg');
+    parts.push(loadLabel);
+    el.textContent = parts.join(' · ');
+  }
+}
+
+// ── TABS ──
+function showTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+  document.querySelectorAll('.panel').forEach(function(p) { p.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+}
+
+// ── GENERATE PLAN (Claude API via proxy) ──
+function generatePlan() {
+  if (_generating) return;
+  _generating = true;
+
+  var btn  = document.getElementById('gen-btn');
+  var icon = document.getElementById('gen-icon');
+  var text = document.getElementById('gen-text');
+  if (btn)  btn.disabled  = true;
+  if (icon) icon.textContent = '⏳';
+  if (text) text.textContent = 'A gerar plano...';
+
+  // Show loading in meals panel
+  document.getElementById('meals-content').innerHTML = '<div class="ai-loading"><div class="ai-loading-emoji">🥗</div><div class="ai-loading-text">A personalizar o teu plano...</div><div class="ai-loading-sub">A analisar treinos, humor e objectivos</div></div>';
+  showTab('meals', document.getElementById('tab-meals'));
+
+  // Build context
+  var weekActs = getWeekActs();
+  var totalKm  = weekActs.reduce(function(s, a) { return s + distKm(a); }, 0);
+  var mood     = avgMood7();
+  var wt       = lastWeight();
+  var today    = new Date().toLocaleDateString('pt-PT');
+  var todayActs = weekActs.filter(function(a) { return a.date === today; });
+  var lastMood = _happinessLog.length ? _happinessLog[_happinessLog.length-1] : null;
+
+  var athleteCtx = {
+    nome: athleteName(),
+    email: _user.email,
+    peso: wt,
+    hoje: today,
+    humor: { ultimo: lastMood, media7dias: mood ? parseFloat(mood.toFixed(1)) : null, registos: _happinessLog.slice(-7) },
+    treino: {
+      totalAtividades: _allActivities.length,
+      semana: { atividades: weekActs.length, km: parseFloat(totalKm.toFixed(1)), hoje: todayActs.length > 0 },
+      ultimas: _allActivities.slice(0, 5).map(function(a) { return { tipo: a.type, dist: a.dist, dur: a.dur, pace: a.pace, data: a.date }; })
+    }
+  };
+
+  var systemPrompt = 'És um nutricionista desportivo e coach de bem-estar da app Trendout. '
+    + 'Crias planos alimentares personalizados em português de Portugal, baseados em dados reais de treino e humor. '
+    + 'Usas alimentos acessíveis em Portugal/Espanha. '
+    + 'RESPONDE APENAS EM JSON VÁLIDO, sem markdown, sem texto extra.';
+
+  var schema = '{'
+    + '"meals":{'
+      + '"context":"Frase curta a explicar o foco nutricional de hoje",'
+      + '"breakfast":{"emoji":"🌅","name":"Nome da refeição","badge":"PRÉ-TREINO|PÓS-TREINO|MANHÃ","badgeColor":"#FACC15","time":"07:30","kcal":"450","foods":["alimento 1","alimento 2","alimento 3","alimento 4"],"tip":"Porquê esta refeição (1 frase)"},'
+      + '"lunch":{"emoji":"☀️","name":"Nome","badge":"PÓS-TREINO|ALMOÇO","badgeColor":"#F97316","time":"13:00","kcal":"700","foods":["alimento 1","alimento 2","alimento 3","alimento 4"],"tip":"Porquê"},'
+      + '"snack":{"emoji":"🍎","name":"Nome","badge":"SNACK","badgeColor":"#4ADE80","time":"16:30","kcal":"300","foods":["alimento 1","alimento 2"],"tip":"Porquê"},'
+      + '"dinner":{"emoji":"🌙","name":"Nome","badge":"SONO+HUMOR","badgeColor":"#60A5FA","time":"20:00","kcal":"550","foods":["alimento 1","alimento 2","alimento 3","alimento 4"],"tip":"Porquê"}'
+    + '},'
+    + '"nutrients":['
+      + '{"emoji":"🧠","name":"Nome nutriente","benefit":"Benefício específico","benefitColor":"#4ADE80","desc":"Porquê é importante para este atleta agora (2 frases)","borderColor":"rgba(34,197,94,.15)","sources":["fonte1","fonte2","fonte3","fonte4"],"sourceColor":"rgba(250,204,21,.1)","sourceText":"#FACC15"},'
+      + '{"emoji":"⚡","name":"Nome","benefit":"Benefício","benefitColor":"#A78BFA","desc":"Descrição","borderColor":"rgba(167,139,250,.15)","sources":["fonte1","fonte2","fonte3"],"sourceColor":"rgba(167,139,250,.1)","sourceText":"#A78BFA"},'
+      + '{"emoji":"💪","name":"Nome","benefit":"Benefício","benefitColor":"#F97316","desc":"Descrição","borderColor":"rgba(249,115,22,.15)","sources":["fonte1","fonte2","fonte3"],"sourceColor":"rgba(249,115,22,.1)","sourceText":"#F97316"},'
+      + '{"emoji":"🔋","name":"Nome","benefit":"Benefício","benefitColor":"#60A5FA","desc":"Descrição","borderColor":"rgba(96,165,250,.15)","sources":["fonte1","fonte2","fonte3"],"sourceColor":"rgba(96,165,250,.1)","sourceText":"#60A5FA"}'
+    + '],'
+    + '"shopping":["item 1","item 2","item 3","item 4","item 5","item 6","item 7","item 8","item 9","item 10","item 11","item 12"],'
+    + '"weekly":['
+      + '{"day":"SEG","label":"Segunda","meal":"Refeição principal + snack","detail":"Foco do dia · ~kcal kcal","isToday":false},'
+      + '{"day":"TER","label":"Terça","meal":"Refeição principal","detail":"Tipo de treino · ~kcal kcal","isToday":false},'
+      + '{"day":"QUA","label":"Quarta","meal":"Refeição principal","detail":"Foco · ~kcal kcal","isToday":false},'
+      + '{"day":"QUI","label":"Quinta","meal":"Refeição principal","detail":"Descanso · ~kcal kcal","isToday":false},'
+      + '{"day":"SEX","label":"Sexta","meal":"Refeição principal","detail":"Foco · ~kcal kcal","isToday":false},'
+      + '{"day":"SÁB","label":"Sábado","meal":"Refeição principal","detail":"Foco · ~kcal kcal","isToday":false},'
+      + '{"day":"DOM","label":"Domingo","meal":"Refeição principal","detail":"Recuperação · ~kcal kcal","isToday":false}'
+    + ']'
+    + '}';
+
+  var userPrompt = 'Cria um plano alimentar completo e personalizado para este atleta. '
+    + 'Marca o dia da semana correcto como isToday:true no weekly. '
+    + 'Devolve APENAS este JSON (sem markdown):\n\n' + schema
+    + '\n\nDados reais do atleta:\n' + JSON.stringify(athleteCtx, null, 2)
+    + '\n\nRegras: alimentos portugueses/mediterrâneos; porções realistas; adapta ao humor e carga de treino; sê específico com os dados reais.';
+
+  // Call Claude via Supabase Edge Function proxy
+  _db.auth.getSession().then(function(res) {
+    var token = res.data && res.data.session ? res.data.session.access_token : null;
+    var headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+
+    return fetch(PROXY_URL, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5',
+        max_tokens: 2500,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }]
+      })
+    });
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(resp) {
+    _generating = false;
+    if (btn)  btn.disabled  = false;
+    if (icon) icon.textContent = '↻';
+    if (text) text.textContent = 'Gerar novo plano';
+
+    console.log('[nutricao] API response:', JSON.stringify(resp).substring(0, 200));
+
+    if (resp.error) {
+      showPlanError('Erro API: ' + resp.error.message);
+      return;
+    }
+
+    var raw = (resp.content || []).map(function(b) { return b.text || ''; }).join('');
+    var clean = raw.replace(/```json|```/g, '').trim();
+
+    try {
+      _planData = JSON.parse(clean);
+      renderPlan(_planData);
+    } catch(e) {
+      console.error('[nutricao] JSON parse error:', e, clean.substring(0, 300));
+      showPlanError('Erro ao processar resposta. Tenta de novo.');
+    }
+  })
+  .catch(function(err) {
+    _generating = false;
+    if (btn)  btn.disabled  = false;
+    if (icon) icon.textContent = '✨';
+    if (text) text.textContent = 'Gerar plano nutricional com IA';
+    console.error('[nutricao] fetch error:', err);
+    showPlanError('Sem ligação. Verifica a internet.');
+  });
+}
+
+function showPlanError(msg) {
+  document.getElementById('meals-content').innerHTML =
+    '<div style="text-align:center;padding:30px;color:#EF4444;font-size:13px;line-height:1.6">⚠️ ' + msg + '</div>';
+}
+
+// ── RENDER PLAN ──
+function renderPlan(plan) {
+  if (plan.meals)     renderMeals(plan.meals);
+  if (plan.nutrients) renderNutrients(plan.nutrients);
+  if (plan.shopping)  renderShopping(plan.shopping);
+  if (plan.weekly)    renderWeekly(plan.weekly);
+
+  // Update context banner with AI context
+  if (plan.meals && plan.meals.context) {
+    var el = document.getElementById('ctx-title');
+    if (el) el.textContent = plan.meals.context;
+  }
+}
+
+function mealColor(badge) {
+  badge = (badge || '').toUpperCase();
+  if (badge.indexOf('PRÉ') >= 0)    return { bg: 'linear-gradient(135deg,#1a1500,#111)', border: 'rgba(250,204,21,.2)',  tagBg: 'rgba(250,204,21,.1)',  tagColor: '#FACC15', foodBg: 'rgba(250,204,21,.1)',  foodColor: '#FACC15' };
+  if (badge.indexOf('PÓS') >= 0)    return { bg: 'linear-gradient(135deg,#1a0f00,#111)', border: 'rgba(249,115,22,.2)',  tagBg: 'rgba(249,115,22,.1)',  tagColor: '#F97316', foodBg: 'rgba(249,115,22,.1)',  foodColor: '#F97316' };
+  if (badge.indexOf('SONO') >= 0)   return { bg: 'linear-gradient(135deg,#0d1520,#111)', border: 'rgba(96,165,250,.2)',  tagBg: 'rgba(96,165,250,.1)',  tagColor: '#60A5FA', foodBg: 'rgba(96,165,250,.1)',  foodColor: '#60A5FA' };
+  return                                    { bg: 'linear-gradient(135deg,#0a1a0a,#111)', border: 'rgba(34,197,94,.2)',   tagBg: 'rgba(34,197,94,.1)',   tagColor: '#4ADE80', foodBg: 'rgba(34,197,94,.1)',   foodColor: '#4ADE80' };
+}
+
+function renderMeals(meals) {
+  var today = new Date().toLocaleDateString('pt-PT', { weekday: 'long', day: '2-digit', month: '2-digit' });
+  var html = '<div class="sec-title">Refeições de hoje — ' + today + '</div>';
+  if (meals.context) html += '<div class="sec-sub">' + meals.context + '</div>';
+
+  ['breakfast','lunch','snack','dinner'].forEach(function(key) {
+    var m = meals[key]; if (!m) return;
+    var c = mealColor(m.badge || '');
+    html += '<div class="meal-card" style="background:' + c.bg + ';border:1px solid ' + c.border + '">'
+      + '<div class="meal-hdr">'
+      + '<div class="meal-info">'
+      + '<span class="meal-emoji">' + (m.emoji || '🍽️') + '</span>'
+      + '<div><div class="meal-name">' + (m.name || key) + '</div>'
+      + '<div class="meal-time">' + (m.time || '') + (m.kcal ? ' · ~' + m.kcal + ' kcal' : '') + '</div></div>'
+      + '</div>'
+      + (m.badge ? '<span class="meal-badge" style="background:' + c.tagBg + ';color:' + c.tagColor + '">' + m.badge + '</span>' : '')
+      + '</div>'
+      + '<div class="foods">'
+      + (m.foods || []).map(function(f) { return '<span class="food-tag" style="background:' + c.foodBg + ';color:' + c.foodColor + '">' + f + '</span>'; }).join('')
+      + '</div>'
+      + (m.tip ? '<div class="meal-tip">💡 ' + m.tip + '</div>' : '')
+      + '</div>';
+  });
+
+  document.getElementById('meals-content').innerHTML = html;
+}
+
+function renderNutrients(nutrients) {
+  var html = '<div class="sec-title">Nutrientes-chave para ti esta semana</div>';
+  nutrients.forEach(function(n) {
+    html += '<div class="nutrient-card" style="border:1px solid ' + (n.borderColor || 'rgba(255,255,255,.1)') + '">'
+      + '<div class="nutrient-icon">' + (n.emoji || '💊') + '</div>'
+      + '<div style="flex:1">'
+      + '<div class="nutrient-name">' + n.name + '</div>'
+      + '<div class="nutrient-benefit" style="color:' + (n.benefitColor || '#fff') + '">→ ' + n.benefit + '</div>'
+      + '<div class="nutrient-desc">' + (n.desc || '') + '</div>'
+      + '<div class="sources">'
+      + (n.sources || []).map(function(s) { return '<span class="source-tag" style="background:' + (n.sourceColor || 'rgba(255,255,255,.1)') + ';color:' + (n.sourceText || '#fff') + '">' + s + '</span>'; }).join('')
+      + '</div>'
+      + '</div>'
+      + '</div>';
+  });
+  document.getElementById('nutrients-content').innerHTML = html;
+}
+
+function renderShopping(items) {
+  _shoppingChecked = {};
+  var html = items.map(function(item, i) {
+    return '<div class="shop-item" id="si-' + i + '" onclick="toggleShop(' + i + ',\'' + item.replace(/'/g, '') + '\')">'
+      + '<div class="shop-check" id="sc-' + i + '"></div>'
+      + '<span class="shop-text" id="st-' + i + '">' + item + '</span>'
+      + '</div>';
+  }).join('');
+  document.getElementById('shopping-list').innerHTML = html;
+}
+
+function toggleShop(i, item) {
+  _shoppingChecked[i] = !_shoppingChecked[i];
+  var done = _shoppingChecked[i];
+  var el = document.getElementById('si-' + i);
+  var ch = document.getElementById('sc-' + i);
+  var tx = document.getElementById('st-' + i);
+  if (el) { el.classList.toggle('done', done); }
+  if (ch) ch.textContent = done ? '✓' : '';
+  if (tx) { tx.style.textDecoration = done ? 'line-through' : ''; tx.style.color = done ? 'rgba(255,255,255,.35)' : 'rgba(255,255,255,.85)'; }
+}
+
+function renderWeekly(weekly) {
+  var todayIdx = new Date().getDay(); // 0=Sun
+  var dayMap = { 0: 'DOM', 1: 'SEG', 2: 'TER', 3: 'QUA', 4: 'QUI', 5: 'SEX', 6: 'SÁB' };
+  var todayDay = dayMap[todayIdx];
+
+  var html = '<div class="sec-title">Plano semanal</div>';
+  weekly.forEach(function(d) {
+    var isToday = d.day === todayDay || d.isToday;
+    html += '<div class="week-row" style="background:' + (isToday ? 'rgba(34,197,94,.08)' : 'rgba(255,255,255,.04)') + ';border:1px solid ' + (isToday ? 'rgba(34,197,94,.2)' : 'rgba(255,255,255,.07)') + '">'
+      + '<div class="week-day" style="color:' + (isToday ? '#4ADE80' : 'rgba(255,255,255,.5)') + '">' + d.day + '</div>'
+      + '<div style="flex:1">'
+      + '<div class="week-meal">' + d.meal + '</div>'
+      + '<div class="week-detail">' + (d.detail || '') + '</div>'
+      + '</div>'
+      + (isToday ? '<div class="week-today">HOJE</div>' : '')
+      + '</div>';
+  });
+  document.getElementById('weekly-content').innerHTML = html;
+}
+</script>
+</body>
+</html>
