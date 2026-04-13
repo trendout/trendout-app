@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Insights IA · Trendout</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:#050505;color:#fff;font-family:'DM Sans',system-ui,sans-serif;min-height:100dvh;overscroll-behavior:none}
+
+/* Loading */
+#loading{position:fixed;inset:0;background:#050505;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999}
+.logo{font-size:28px;font-weight:900;color:#fff;letter-spacing:-1px;margin-bottom:8px}
+.logo-sub{font-size:12px;color:rgba(255,255,255,.35);letter-spacing:1px;text-transform:uppercase}
+.spinner{width:28px;height:28px;border:2.5px solid rgba(255,255,255,.1);border-top-color:#A78BFA;border-radius:50%;animation:spin .8s linear infinite;margin-top:24px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Auth wall */
+#auth-wall{display:none;position:fixed;inset:0;background:#050505;flex-direction:column;align-items:center;justify-content:center;z-index:998;padding:32px}
+#auth-wall h2{font-size:22px;font-weight:900;margin-bottom:8px;text-align:center}
+#auth-wall p{font-size:14px;color:rgba(255,255,255,.45);text-align:center;margin-bottom:28px;line-height:1.6}
+#auth-wall a{display:block;padding:15px;border-radius:14px;background:linear-gradient(135deg,#7C3AED,#3B82F6);color:#fff;font-size:15px;font-weight:800;text-decoration:none;text-align:center;width:100%;max-width:300px}
+
+/* App */
+#app{display:none;max-width:430px;margin:0 auto;padding:max(env(safe-area-inset-top,0px),20px) 16px max(env(safe-area-inset-bottom,0px),100px)}
+
+/* Header */
+.hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.back-btn{width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;transition:background .15s}
+.back-btn:hover{background:rgba(255,255,255,.1)}
+.hdr-center{text-align:center}
+.hdr-title{font-size:17px;font-weight:900;color:#fff;letter-spacing:-.4px}
+.hdr-sub{font-size:10px;color:rgba(255,255,255,.35);letter-spacing:1.2px;text-transform:uppercase;margin-top:1px}
+.analyze-btn{background:linear-gradient(135deg,#7C3AED,#3B82F6);border:none;border-radius:12px;padding:9px 14px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;transition:all .2s;white-space:nowrap}
+.analyze-btn:hover{opacity:.85}
+.analyze-btn:disabled{opacity:.6;cursor:not-allowed}
+
+/* Period tabs */
+.tabs{display:flex;gap:5px;background:rgba(255,255,255,.04);border-radius:12px;padding:3px;margin-bottom:16px}
+.tab{flex:1;padding:8px 4px;border-radius:9px;border:none;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;color:rgba(255,255,255,.4);background:none}
+.tab.active{background:#fff;color:#000}
+
+/* Chart card */
+.chart-card{background:linear-gradient(135deg,#0d1117,#111);border:1px solid rgba(139,92,246,.2);border-radius:20px;padding:18px;margin-bottom:14px}
+.chart-title{font-size:13px;font-weight:700;color:#fff;margin-bottom:4px}
+.chart-sub{font-size:11px;color:rgba(255,255,255,.35);margin-bottom:12px}
+.legend{display:flex;gap:14px;margin-top:10px;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:10px;color:rgba(255,255,255,.4)}
+
+/* Stats grid */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stat-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px}
+.stat-label{font-size:10px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.stat-value{font-size:24px;font-weight:900;margin-bottom:3px;font-family:'DM Mono',monospace}
+.stat-sub{font-size:10px;color:rgba(255,255,255,.35)}
+
+/* Insight cards */
+.section-title{font-size:14px;font-weight:800;color:#fff;margin-bottom:10px}
+.card{background:linear-gradient(135deg,#0d1117,#111);border:1px solid rgba(139,92,246,.2);border-radius:20px;padding:18px;margin-bottom:14px;position:relative;overflow:hidden;animation:slideUp .4s ease both}
+.card:nth-child(2){animation-delay:.05s}
+.card:nth-child(3){animation-delay:.1s}
+.card:nth-child(4){animation-delay:.15s}
+.card:nth-child(5){animation-delay:.2s}
+.card:nth-child(6){animation-delay:.25s}
+.card.warn{border-color:rgba(251,191,36,.25)}
+.card-glow{position:absolute;top:-20px;right:-20px;width:80px;height:80px;background:radial-gradient(circle,rgba(139,92,246,.08),transparent 70%);pointer-events:none}
+.card-glow.warn{background:radial-gradient(circle,rgba(251,191,36,.07),transparent 70%)}
+.badge{display:inline-block;background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.25);border-radius:7px;padding:3px 9px;font-size:10px;font-weight:700;color:#A78BFA}
+.badge.warn{background:rgba(251,191,36,.12);border-color:rgba(251,191,36,.25);color:#FBB024}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.card-title{font-size:15px;font-weight:800;color:#fff;margin-bottom:8px;line-height:1.3}
+.card-text{font-size:13px;color:rgba(255,255,255,.65);line-height:1.6;margin-bottom:10px}
+.highlight{background:rgba(34,197,94,.1);border-radius:10px;padding:9px 12px;font-size:12px;font-weight:700;color:#4ADE80;margin-bottom:10px}
+.highlight.warn{background:rgba(251,191,36,.1);color:#FBB024}
+.card-footer{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid rgba(255,255,255,.06)}
+.pdf-btn{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:5px 10px;color:rgba(255,255,255,.6);font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px;transition:all .2s}
+.pdf-btn:hover{background:rgba(255,255,255,.14);color:#fff}
+
+/* Loading skeleton */
+.skeleton{background:linear-gradient(135deg,#0d1117,#111);border:1px solid rgba(255,255,255,.06);border-radius:20px;padding:18px;margin-bottom:14px}
+.skel-line{height:12px;background:rgba(255,255,255,.07);border-radius:6px;margin-bottom:8px;animation:pulse 1.4s infinite}
+.skel-line.w60{width:60%}.skel-line.w80{width:80%}.skel-line.w40{width:40%}
+@keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
+
+/* Empty / error state */
+.empty-state{text-align:center;padding:40px 20px}
+.empty-emoji{font-size:44px;margin-bottom:14px}
+.empty-title{font-size:15px;font-weight:800;color:#fff;margin-bottom:8px}
+.empty-body{font-size:13px;color:rgba(255,255,255,.4);line-height:1.6}
+
+/* Bottom nav */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(5,5,5,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.07);padding:10px 16px max(env(safe-area-inset-bottom,0px),10px);display:flex;justify-content:center}
+.back-to-app{display:flex;align-items:center;gap:8px;padding:12px 24px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);font-size:13px;font-weight:700;text-decoration:none;font-family:inherit;transition:all .2s}
+.back-to-app:hover{background:rgba(255,255,255,.1);color:#fff}
+
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp .4s ease both}
+.fade-up:nth-child(2){animation-delay:.05s}
+.fade-up:nth-child(3){animation-delay:.1s}
+.fade-up:nth-child(4){animation-delay:.15s}
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="logo">trendout</div>
+  <div class="logo-sub">Insights IA</div>
+  <div class="spinner"></div>
+</div>
+
+<div id="auth-wall">
+  <div style="font-size:48px;margin-bottom:20px">✨</div>
+  <h2>Inicia sessão para continuar</h2>
+  <p>Os Insights IA são exclusivos para membros Trendout Premium.</p>
+  <a href="/">← Voltar à app</a>
+</div>
+
+<div id="app">
+
+  <!-- Header -->
+  <div class="hdr fade-up">
+    <a href="/" class="back-btn">←</a>
+    <div class="hdr-center">
+      <div class="hdr-title">Insights IA</div>
+      <div class="hdr-sub">Correlação humor × treino</div>
+    </div>
+    <button class="analyze-btn" id="analyze-btn" onclick="runAnalysis()">
+      <span id="btn-icon">✨</span> <span id="btn-text">Analisar</span>
+    </button>
+  </div>
+
+  <!-- Period tabs -->
+  <div class="tabs fade-up">
+    <button class="tab active" id="tab-month"  onclick="setPeriod('month',this)">Mês</button>
+    <button class="tab"        id="tab-3month" onclick="setPeriod('3month',this)">3 Meses</button>
+    <button class="tab"        id="tab-year"   onclick="setPeriod('year',this)">Ano</button>
+    <button class="tab"        id="tab-all"    onclick="setPeriod('all',this)">Tudo</button>
+  </div>
+
+  <!-- Chart -->
+  <div class="chart-card fade-up">
+    <div class="chart-title">Humor ao longo do tempo</div>
+    <div class="chart-sub">com marcadores de atividade ●</div>
+    <canvas id="main-chart" style="width:100%;display:block"></canvas>
+    <div id="chart-x-labels" style="display:flex;justify-content:space-between;margin-top:4px"></div>
+    <div class="legend">
+      <div class="legend-item"><div style="width:10px;height:10px;border-radius:50%;background:#FACC15"></div>Humor</div>
+      <div class="legend-item"><div style="width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid #A78BFA"></div>Dia com treino</div>
+      <div class="legend-item"><div style="width:10px;height:3px;background:rgba(167,139,250,.3);border-radius:2px"></div>Banda de treino</div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid fade-up">
+    <div class="stat-card">
+      <div class="stat-label">Humor médio</div>
+      <div class="stat-value" id="stat-train" style="color:#22C55E">—</div>
+      <div class="stat-sub">dias com treino</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Humor médio</div>
+      <div class="stat-value" id="stat-rest" style="color:#F97316">—</div>
+      <div class="stat-sub">dias sem treino</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Streak máx. humor</div>
+      <div class="stat-value" id="stat-streak" style="color:#FACC15">—</div>
+      <div class="stat-sub">dias acima de 7</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Correlação</div>
+      <div class="stat-value" id="stat-corr" style="color:#A78BFA;font-size:16px">—</div>
+      <div class="stat-sub" id="stat-corr-label">treino → humor</div>
+    </div>
+  </div>
+
+  <!-- Insights -->
+  <div class="section-title fade-up">Insights personalizados</div>
+  <div id="insights-list">
+    <div class="empty-state">
+      <div class="empty-emoji">✨</div>
+      <div class="empty-title">Pronto para descobrir padrões?</div>
+      <div class="empty-body">Clica em <strong style="color:#A78BFA">Analisar</strong> e a IA estuda a correlação entre os teus treinos e o teu humor com base nos dados reais.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Bottom nav -->
+<div class="bottom-nav">
+  <a href="/" class="back-to-app">← Voltar à app</a>
+</div>
+
+<script>
+var SUPA_URL  = 'https://btzcyvksxlmkosluytaz.supabase.co';
+var SUPA_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ0emN5dmtzeGxta29zbHV5dGF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NDU3NzYsImV4cCI6MjA4OTQyMTc3Nn0.f9pjtUyp7SlJ8dal5xJ180TD9TWvVWDj86u9ZLmyUs0';
+var PROXY_URL = 'https://btzcyvksxlmkosluytaz.supabase.co/functions/v1/claude-proxy';
+
+var _db, _user, _profile = {};
+var _allActivities = [], _happinessLog = [], _weightLog = [];
+var _period = 'month';
+var _analyzing = false;
+var _insightsData = null;
+
+var hapColors = ['','#EF4444','#F97316','#F97316','#FACC15','#FACC15','#84CC16','#22C55E','#22C55E','#10B981','#10B981'];
+var hapEmojis  = ['','😔','😞','😕','😐','🙂','😊','😄','😁','🤩','🥳'];
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', function() {
+  try {
+    _db = supabase.createClient(SUPA_URL, SUPA_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true }
+    });
+  } catch(e) { showAuthWall(); return; }
+
+  _db.auth.getSession().then(function(res) {
+    if (res.data && res.data.session) {
+      _user = res.data.session.user;
+      loadData();
+    } else {
+      showAuthWall();
+    }
+  }).catch(function() { showAuthWall(); });
+});
+
+function showAuthWall() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('auth-wall').style.display = 'flex';
+}
+
+// ── LOAD DATA ──
+async function loadData() {
+  try {
+    var [actsRes, moodsRes, weightsRes, profileRes] = await Promise.all([
+      _db.from('activities').select('*').eq('user_id', _user.id).order('created_at', { ascending: false }),
+      _db.from('moods').select('*').eq('user_id', _user.id).order('created_at', { ascending: true }),
+      _db.from('weights').select('*').eq('user_id', _user.id).order('created_at', { ascending: true }),
+      _db.from('profiles').select('*').eq('id', _user.id).single()
+    ]);
+
+    if (actsRes.data) {
+      _allActivities = actsRes.data.map(function(a) {
+        if (a.total_seconds) a.totalSeconds = a.total_seconds;
+        if (a.dist_km)       a.distKm       = a.dist_km;
+        return a;
+      });
+    }
+
+    if (moodsRes.data) {
+      _happinessLog = moodsRes.data.slice().sort(function(a, b) {
+        var pa = (a.date||'').split('/'), pb = (b.date||'').split('/');
+        return new Date(parseInt(pa[2]),parseInt(pa[1])-1,parseInt(pa[0]))
+             - new Date(parseInt(pb[2]),parseInt(pb[1])-1,parseInt(pb[0]));
+      });
+    }
+
+    if (weightsRes.data) {
+      _weightLog = weightsRes.data
+        .filter(function(w) { return w.weight || w.weight_kg; })
+        .map(function(w) { return { date: w.date || '', weight: parseFloat(w.weight || w.weight_kg) || 0 }; });
+    }
+
+    if (profileRes.data) _profile = profileRes.data;
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    computeStats();
+    drawChart();
+
+  } catch(e) {
+    console.error('[insights] loadData error:', e);
+    showAuthWall();
+  }
+}
+
+// ── PERIOD FILTER ──
+function getEntries() {
+  var now = new Date(); now.setHours(0,0,0,0);
+  var cut = new Date(now);
+  if      (_period === 'month')  cut.setMonth(now.getMonth()-1);
+  else if (_period === '3month') cut.setMonth(now.getMonth()-3);
+  else if (_period === 'year')   cut.setFullYear(now.getFullYear()-1);
+  else cut = new Date(0);
+
+  function inRange(dateStr) {
+    var p = (dateStr||'').split('/'); if (p.length < 3) return false;
+    return new Date(parseInt(p[2]), parseInt(p[1])-1, parseInt(p[0])) >= cut;
+  }
+  return {
+    moods: _happinessLog.filter(function(e) { return inRange(e.date); }),
+    acts:  _allActivities.filter(function(a) { return inRange(a.date); })
+  };
+}
+
+function setPeriod(p, btn) {
+  _period = p;
+  document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  computeStats();
+  drawChart();
+}
+
+// ── PEARSON CORRELATION ──
+function pearsonCorr(xs, ys) {
+  if (xs.length < 3) return null;
+  var n = xs.length;
+  var mx = xs.reduce(function(a,b){return a+b;},0)/n;
+  var my = ys.reduce(function(a,b){return a+b;},0)/n;
+  var num=0, dx2=0, dy2=0;
+  for (var i=0; i<n; i++) {
+    var dx=xs[i]-mx, dy=ys[i]-my;
+    num+=dx*dy; dx2+=dx*dx; dy2+=dy*dy;
+  }
+  return dx2&&dy2 ? num/Math.sqrt(dx2*dy2) : null;
+}
+
+// ── COMPUTE STATS ──
+function computeStats() {
+  var data = getEntries();
+  var moods = data.moods, acts = data.acts;
+  var actDates = {};
+  acts.forEach(function(a) { actDates[a.date] = true; });
+
+  var withTrain=[], withRest=[];
+  moods.forEach(function(e) {
+    actDates[e.date] ? withTrain.push(e.score) : withRest.push(e.score);
+  });
+
+  var avg = function(arr) {
+    return arr.length ? (arr.reduce(function(a,b){return a+b;},0)/arr.length).toFixed(1) : '—';
+  };
+
+  var mTrain = avg(withTrain), mRest = avg(withRest);
+  setEl('stat-train', mTrain, parseFloat(mTrain)>=7?'#22C55E':parseFloat(mTrain)>=5?'#FACC15':'#EF4444');
+  setEl('stat-rest',  mRest,  parseFloat(mRest) >=7?'#22C55E':parseFloat(mRest) >=5?'#FACC15':'#EF4444');
+
+  // Streak above 7
+  var cur=0, maxS=0;
+  moods.forEach(function(e) { if(e.score>=7){cur++;maxS=Math.max(maxS,cur);}else cur=0; });
+  setEl('stat-streak', maxS ? maxS+'d' : '—');
+
+  // Pearson
+  var xs = moods.map(function(e){return actDates[e.date]?1:0;});
+  var ys = moods.map(function(e){return e.score;});
+  var r  = pearsonCorr(xs, ys);
+  if (r !== null) {
+    var rLabel = r>0.5?'↑ Forte':r>0.3?'↑ Moderada':r>0.1?'↑ Fraca':r<-0.3?'↓ Inversa':'→ Neutra';
+    setEl('stat-corr', (r>0?'+':'')+r.toFixed(2));
+    setEl('stat-corr-label', rLabel);
+    var corrEl = document.getElementById('stat-corr');
+    if (corrEl) corrEl.style.color = r>0.3?'#A78BFA':r<-0.1?'#F97316':'rgba(255,255,255,.5)';
+  }
+}
+
+function setEl(id, val, color) {
+  var el = document.getElementById(id); if (!el) return;
+  el.textContent = val;
+  if (color) el.style.color = color;
+}
+
+// ── DRAW CHART ──
+function drawChart() {
+  var canvas = document.getElementById('main-chart'); if (!canvas) return;
+  var data   = getEntries();
+  var moods  = data.moods;
+  var actDates = {};
+  data.acts.forEach(function(a) { actDates[a.date] = true; });
+
+  if (!moods.length) {
+    var W2 = canvas.parentElement.offsetWidth-36, H2 = 120;
+    canvas.width=W2; canvas.height=H2; canvas.style.width=W2+'px'; canvas.style.height=H2+'px';
+    var ctx0=canvas.getContext('2d'); ctx0.clearRect(0,0,W2,H2);
+    ctx0.fillStyle='rgba(255,255,255,.2)'; ctx0.font='12px sans-serif'; ctx0.textAlign='center';
+    ctx0.fillText('Sem registos de humor no período', W2/2, H2/2);
+    return;
+  }
+
+  var dpr=window.devicePixelRatio||1, W=canvas.parentElement.offsetWidth-36, H=160;
+  canvas.width=W*dpr; canvas.height=H*dpr; canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  var ctx=canvas.getContext('2d'); ctx.scale(dpr,dpr);
+  var pL=28,pR=8,pT=10,pB=4, cw=W-pL-pR, ch=H-pT-pB;
+  ctx.clearRect(0,0,W,H);
+
+  // Grid lines
+  [1,3,5,7,10].forEach(function(v){
+    var y=pT+ch-(v-1)/9*ch;
+    ctx.beginPath(); ctx.strokeStyle=v===5?'rgba(255,255,255,.1)':'rgba(255,255,255,.04)';
+    ctx.lineWidth=0.5; ctx.setLineDash([3,4]);
+    ctx.moveTo(pL,y); ctx.lineTo(pL+cw,y); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='rgba(255,255,255,.3)'; ctx.font='bold 8px sans-serif'; ctx.textAlign='right';
+    ctx.fillText(v,pL-4,y+3);
+  });
+
+  function px(i){ return pL+i*(cw/Math.max(moods.length-1,1)); }
+  function py(v){ return pT+ch-(v-1)/9*ch; }
+
+  // Activity bands
+  moods.forEach(function(e,i){
+    if(actDates[e.date]){
+      var bw=Math.max(cw/moods.length,6);
+      ctx.fillStyle='rgba(167,139,250,.07)';
+      ctx.fillRect(px(i)-bw/2,pT,bw,ch);
+    }
+  });
+
+  // Area fill under mood line
+  if (moods.length > 1) {
+    var ag=ctx.createLinearGradient(0,pT,0,pT+ch);
+    ag.addColorStop(0,'rgba(250,204,21,.18)'); ag.addColorStop(1,'rgba(250,204,21,0)');
+    ctx.beginPath();
+    ctx.moveTo(px(0),pT+ch); ctx.lineTo(px(0),py(moods[0].score));
+    for(var i=1;i<moods.length;i++){
+      var cp=(px(i-1)+px(i))/2;
+      ctx.bezierCurveTo(cp,py(moods[i-1].score),cp,py(moods[i].score),px(i),py(moods[i].score));
+    }
+    ctx.lineTo(px(moods.length-1),pT+ch); ctx.closePath();
+    ctx.fillStyle=ag; ctx.fill();
+
+    // Coloured line segments
+    for(var j=1;j<moods.length;j++){
+      var col=hapColors[Math.round((moods[j-1].score+moods[j].score)/2)]||'#FACC15';
+      ctx.beginPath(); ctx.strokeStyle=col; ctx.lineWidth=2.5; ctx.lineCap='round';
+      ctx.shadowColor=col; ctx.shadowBlur=4;
+      var cp2=(px(j-1)+px(j))/2;
+      ctx.moveTo(px(j-1),py(moods[j-1].score));
+      ctx.bezierCurveTo(cp2,py(moods[j-1].score),cp2,py(moods[j].score),px(j),py(moods[j].score));
+      ctx.stroke(); ctx.shadowBlur=0;
+    }
+  }
+
+  // Dots with emoji labels
+  moods.forEach(function(e,i){
+    var isAct=!!actDates[e.date];
+    ctx.beginPath(); ctx.fillStyle=hapColors[e.score]||'#FACC15';
+    ctx.shadowColor=hapColors[e.score]; ctx.shadowBlur=isAct?12:5;
+    ctx.arc(px(i),py(e.score),isAct?6:3.5,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=0;
+    if(isAct){ ctx.beginPath(); ctx.fillStyle='#fff'; ctx.arc(px(i),py(e.score),2,0,Math.PI*2); ctx.fill(); }
+    if(moods.length<=20){
+      ctx.font=(isAct?'12px':'10px')+' sans-serif'; ctx.textAlign='center';
+      ctx.fillText(hapEmojis[e.score]||'',px(i),py(e.score)-(isAct?12:9));
+    }
+  });
+
+  // X axis labels
+  var labEl=document.getElementById('chart-x-labels');
+  if(labEl){
+    var step=moods.length>10?Math.ceil(moods.length/8):1;
+    labEl.innerHTML=moods.map(function(e,i){
+      if(i%step!==0&&i!==moods.length-1) return '<span></span>';
+      var p=e.date.split('/');
+      return '<span style="font-size:9px;color:rgba(255,255,255,.4);font-weight:600">'+p[0]+'/'+p[1]+'</span>';
+    }).join('');
+  }
+}
+
+// ── RUN ANALYSIS (Claude via proxy) ──
+function runAnalysis() {
+  if (_analyzing) return;
+  _analyzing = true;
+
+  var btn  = document.getElementById('analyze-btn');
+  var icon = document.getElementById('btn-icon');
+  var text = document.getElementById('btn-text');
+  if (btn)  btn.disabled   = true;
+  if (icon) icon.textContent = '⏳';
+  if (text) text.textContent = 'A analisar...';
+
+  // Show skeletons
+  document.getElementById('insights-list').innerHTML =
+    [1,2,3,4,5].map(function() {
+      return '<div class="skeleton">'
+        +'<div class="skel-line w40" style="margin-bottom:12px;height:16px"></div>'
+        +'<div class="skel-line w80" style="margin-bottom:6px;height:14px"></div>'
+        +'<div class="skel-line w60" style="margin-bottom:14px;height:12px"></div>'
+        +'<div class="skel-line w80" style="height:28px;border-radius:10px"></div>'
+        +'</div>';
+    }).join('');
+
+  // Build rich context for Claude
+  var data = getEntries();
+  var moods = data.moods, acts = data.acts;
+  var actDates = {};
+  acts.forEach(function(a) { actDates[a.date] = true; });
+
+  var withTrain = moods.filter(function(e){return actDates[e.date];});
+  var withRest  = moods.filter(function(e){return !actDates[e.date];});
+  var avg = function(arr){ return arr.length?(arr.reduce(function(a,b){return a+b;},0)/arr.length).toFixed(1):null; };
+  var xs = moods.map(function(e){return actDates[e.date]?1:0;});
+  var ys = moods.map(function(e){return e.score;});
+  var r  = pearsonCorr(xs, ys);
+
+  // Best/worst days
+  var sorted = moods.slice().sort(function(a,b){return b.score-a.score;});
+  var topDays   = sorted.slice(0,3).map(function(e){return{data:e.date,score:e.score,treinou:!!actDates[e.date]};});
+  var worstDays = sorted.slice(-3).map(function(e){return{data:e.date,score:e.score,treinou:!!actDates[e.date]};});
+
+  // Weekday patterns
+  var byWD={};
+  moods.forEach(function(e){
+    var p=e.date.split('/'); if(p.length<3)return;
+    var wd=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0])).getDay();
+    if(!byWD[wd]){byWD[wd]={sum:0,count:0};}
+    byWD[wd].sum+=e.score; byWD[wd].count++;
+  });
+  var wdNames=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'], wdAvgs={};
+  Object.keys(byWD).forEach(function(wd){ wdAvgs[wdNames[wd]]=(byWD[wd].sum/byWD[wd].count).toFixed(1); });
+
+  // Max streak without training
+  var maxNoTrain=0, curNoTrain=0;
+  moods.forEach(function(e){ if(!actDates[e.date]){curNoTrain++;maxNoTrain=Math.max(maxNoTrain,curNoTrain);}else curNoTrain=0; });
+
+  var lastWt = _weightLog.length ? _weightLog[_weightLog.length-1].weight : null;
+  var athleteName = ((_profile.name||'')+' '+(_profile.last||'')).trim() || _user.email;
+  var periodLabel = {month:'último mês','3month':'últimos 3 meses',year:'último ano',all:'todo o período'}[_period];
+
+  var athleteCtx = {
+    nome: athleteName,
+    periodo: periodLabel,
+    registosHumor: moods.length,
+    atividades: acts.length,
+    correlacaoPearson: r!==null?parseFloat(r.toFixed(3)):null,
+    humorMedioDiasTreino: avg(withTrain.map(function(e){return e.score;})),
+    humorMedioDiasDescanso: avg(withRest.map(function(e){return e.score;})),
+    melhoresDias: topDays,
+    pioresDias: worstDays,
+    humoresPorDiaSemana: wdAvgs,
+    maxDiasSemTreinar: maxNoTrain,
+    peso: lastWt,
+    ultimosHumores: moods.slice(-21).map(function(e){return{data:e.date,score:e.score,treinou:!!actDates[e.date],nota:e.note||null};}),
+    ultimasAtividades: acts.slice(0,8).map(function(a){return{data:a.date,tipo:a.type,dist:a.dist,dur:a.dur,pace:a.pace};})
+  };
+
+  var systemPrompt = 'És um psicólogo do desporto e coach de alta performance da app Trendout, especializado em correlações humor-performance e padrões comportamentais de atletas. '
+    + 'Produces insights PROFUNDOS, ESPECÍFICOS e ACCIONÁVEIS em português de Portugal. '
+    + 'Baseias TUDO nos números reais fornecidos. Nunca produces insights genéricos. '
+    + 'DEVOLVES APENAS JSON VÁLIDO, sem markdown, sem texto extra.';
+
+  var schema = '{"insights":['
+    + '{"category":"Categoria com emoji","title":"Título impactante e específico","text":"Análise detalhada com números reais (2-3 frases)","highlight":"Descoberta ou acção concreta em 1 frase","warn":false},'
+    + '{"category":"...","title":"...","text":"...","highlight":"...","warn":false},'
+    + '{"category":"...","title":"...","text":"...","highlight":"...","warn":false},'
+    + '{"category":"⚠️ Atenção","title":"...","text":"...","highlight":"...","warn":true},'
+    + '{"category":"💡 Recomendação","title":"...","text":"...","highlight":"...","warn":false}'
+    + ']}';
+
+  var userPrompt = 'Analisa os dados deste atleta e gera 5 insights únicos sobre a correlação humor × treino. '
+    + 'Devolve APENAS: ' + schema + '\n\n'
+    + 'Regras: 1) Usa os números reais (pearson='+( r!==null?r.toFixed(2):'N/A')+', médias='+avg(withTrain.map(function(e){return e.score;}))+'/'+avg(withRest.map(function(e){return e.score;}))+') '
+    + '2) Cada insight deve ser ÚNICO e accionável '
+    + '3) O insight de Atenção identifica um risco ou padrão negativo real '
+    + '4) A Recomendação é específica e prática para este atleta '
+    + '5) Descobre padrões entre dias da semana, streaks e efeito do descanso\n\n'
+    + 'Dados reais:\n' + JSON.stringify(athleteCtx, null, 2);
+
+  _db.auth.getSession().then(function(res) {
+    var token = res.data && res.data.session ? res.data.session.access_token : null;
+    var headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+
+    return fetch(PROXY_URL, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5',
+        max_tokens: 2000,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }]
+      })
+    });
+  })
+  .then(function(r2) { return r2.json(); })
+  .then(function(resp) {
+    _analyzing = false;
+    if (btn)  btn.disabled   = false;
+    if (icon) icon.textContent = '↻';
+    if (text) text.textContent = 'Analisar';
+
+    console.log('[insights] API resp:', JSON.stringify(resp).substring(0, 200));
+
+    if (resp.error) { showInsightsError('Erro API: ' + resp.error.message); return; }
+
+    var raw   = (resp.content||[]).map(function(b){return b.text||'';}).join('');
+    var clean = raw.replace(/```json|```/g,'').trim();
+
+    try {
+      _insightsData = JSON.parse(clean);
+      renderInsights(_insightsData.insights||[]);
+    } catch(e) {
+      console.error('[insights] parse error:', e, clean.substring(0, 300));
+      showInsightsError('Erro ao processar. Tenta de novo.');
+    }
+  })
+  .catch(function(err) {
+    _analyzing = false;
+    if (btn)  btn.disabled   = false;
+    if (icon) icon.textContent = '✨';
+    if (text) text.textContent = 'Analisar';
+    console.error('[insights] fetch error:', err);
+    showInsightsError('Sem ligação. Verifica a internet.');
+  });
+}
+
+function showInsightsError(msg) {
+  document.getElementById('insights-list').innerHTML =
+    '<div style="text-align:center;padding:30px;color:#EF4444;font-size:13px;line-height:1.6">⚠️ ' + msg + '</div>';
+}
+
+// ── RENDER INSIGHTS ──
+function renderInsights(insights) {
+  if (!insights || !insights.length) { showInsightsError('Sem insights gerados. Tenta de novo.'); return; }
+
+  var today = new Date().toLocaleDateString('pt-PT');
+  var athleteName = ((_profile.name||'')+' '+(_profile.last||'')).trim() || _user.email;
+
+  var html = insights.map(function(ins, i) {
+    var warn = ins.warn === true;
+    return '<div class="card' + (warn?' warn':'') + '" style="animation-delay:'+(i*0.05)+'s">'
+      + '<div class="card-glow' + (warn?' warn':'') + '"></div>'
+      + '<div class="card-header">'
+      + '<span class="badge' + (warn?' warn':'') + '">' + (ins.category||'Insight') + '</span>'
+      + '<button class="pdf-btn" onclick="exportInsight('+i+')"><span>↓</span> PDF</button>'
+      + '</div>'
+      + '<div class="card-title">' + ins.title + '</div>'
+      + '<div class="card-text">' + ins.text + '</div>'
+      + '<div class="highlight' + (warn?' warn':'') + '">' + ins.highlight + '</div>'
+      + '<div class="card-footer">'
+      + '<span style="font-size:10px;color:rgba(255,255,255,.25)">' + athleteName + ' · ' + today + '</span>'
+      + '<span style="font-size:10px;color:rgba(255,255,255,.2)">Trendout IA</span>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+
+  document.getElementById('insights-list').innerHTML = html;
+}
+
+// ── EXPORT INSIGHT PDF ──
+function exportInsight(idx) {
+  if (!_insightsData || !_insightsData.insights) return;
+  var ins = _insightsData.insights[idx];
+  if (!ins) return;
+
+  var data  = getEntries();
+  var moods = data.moods, acts = data.acts;
+  var actDates = {};
+  acts.forEach(function(a){actDates[a.date]=true;});
+  var withTrain=moods.filter(function(e){return actDates[e.date];});
+  var withRest=moods.filter(function(e){return !actDates[e.date];});
+  var avg=function(arr){return arr.length?(arr.reduce(function(a,b){return a+b;},0)/arr.length).toFixed(1):'—';};
+  var xs=moods.map(function(e){return actDates[e.date]?1:0;});
+  var ys=moods.map(function(e){return e.score;});
+  var r=pearsonCorr(xs,ys);
+
+  var athleteName=((_profile.name||'')+' '+(_profile.last||'')).trim()||_user.email;
+  var today=new Date().toLocaleDateString('pt-PT');
+  var periodLabel={month:'Último mês','3month':'Últimos 3 meses',year:'Último ano',all:'Todo o período'}[_period];
+  var warn=ins.warn===true;
+  var accentColor=warn?'#FBB024':'#A78BFA';
+  var accentBg=warn?'rgba(251,191,36,.1)':'rgba(139,92,246,.15)';
+  var hlColor=warn?'#FBB024':'#4ADE80';
+  var hlBg=warn?'rgba(251,191,36,.1)':'rgba(34,197,94,.1)';
+
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Insight Trendout</title>'
+    +'<style>*{box-sizing:border-box;margin:0;padding:0}body{background:#000;color:#fff;font-family:-apple-system,"Helvetica Neue",Arial,sans-serif}'
+    +'.page{max-width:700px;margin:0 auto;padding:48px 40px}'
+    +'.hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:40px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,.1)}'
+    +'.logo{font-size:22px;font-weight:900}.logo small{display:block;font-size:13px;font-weight:400;color:rgba(255,255,255,.4);margin-top:2px}'
+    +'.meta{text-align:right;font-size:12px;color:rgba(255,255,255,.4);line-height:1.8}'
+    +'.badge{display:inline-block;background:'+accentBg+';border:1px solid '+accentColor.replace(')',', .4)')+'rgba;border-radius:8px;padding:4px 12px;font-size:11px;font-weight:700;color:'+accentColor+';margin-bottom:16px}'
+    +'.title{font-size:28px;font-weight:900;line-height:1.25;margin-bottom:16px}'
+    +'.body{font-size:15px;color:rgba(255,255,255,.7);line-height:1.8;margin-bottom:24px}'
+    +'.hl{background:'+hlBg+';border-left:3px solid '+hlColor+';border-radius:0 12px 12px 0;padding:14px 18px;font-size:14px;font-weight:700;color:'+hlColor+';margin-bottom:32px}'
+    +'.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:32px}'
+    +'.sc{background:rgba(255,255,255,.05);border-radius:12px;padding:14px}'
+    +'.sv{font-size:24px;font-weight:900;margin-bottom:4px}.sl{font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px}'
+    +'.ftr{border-top:1px solid rgba(255,255,255,.08);padding-top:20px;display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.25)}'
+    +'@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}'
+    +'</style></head><body><div class="page">'
+    +'<div class="hdr"><div><div class="logo">Trendout<small>Relatório de Insight IA</small></div></div>'
+    +'<div class="meta">'+athleteName+'<br>'+today+'<br>'+periodLabel+'</div></div>'
+    +'<div class="badge">'+ins.category+'</div>'
+    +'<div class="title">'+ins.title+'</div>'
+    +'<div class="body">'+ins.text+'</div>'
+    +'<div class="hl">'+ins.highlight+'</div>'
+    +'<div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Resumo do período</div>'
+    +'<div class="stats">'
+    +'<div class="sc"><div class="sv" style="color:#FACC15">'+moods.length+'</div><div class="sl">Registos de humor</div></div>'
+    +'<div class="sc"><div class="sv" style="color:#60A5FA">'+acts.length+'</div><div class="sl">Atividades</div></div>'
+    +'<div class="sc"><div class="sv" style="color:#A78BFA">'+(r!==null?(r>0?'+':'')+r.toFixed(2):'—')+'</div><div class="sl">Correlação</div></div>'
+    +'</div>'
+    +'<div class="ftr"><span>Gerado por Trendout IA · trendout.pt</span><span>Confidencial — uso pessoal</span></div>'
+    +'</div></body></html>';
+
+  var w=window.open('','_blank','width=800,height=900');
+  if(!w){alert('Permite pop-ups para exportar PDF');return;}
+  w.document.write(html); w.document.close();
+  w.onload=function(){setTimeout(function(){w.focus();w.print();},400);};
+}
+
+// ── RESIZE CHART ──
+window.addEventListener('resize', function() { if (_happinessLog.length) drawChart(); });
+</script>
+</body>
+</html>
