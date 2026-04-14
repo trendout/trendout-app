@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Insights IA · Trendout</title>
@@ -557,10 +558,8 @@ function runAnalysis() {
     + '5) Descobre padrões entre dias da semana, streaks e efeito do descanso\n\n'
     + 'Dados reais:\n' + JSON.stringify(athleteCtx, null, 2);
 
-  _db.auth.getSession().then(function(res) {
-    var token = res.data && res.data.session ? res.data.session.access_token : null;
+  Promise.resolve().then(function() {
     var headers = { 'Content-Type': 'application/json' };
-    if (token) headers['Authorization'] = 'Bearer ' + token;
 
     return fetch(PROXY_URL, {
       method: 'POST',

@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Coach de Alimentação · Trendout</title>
@@ -487,10 +488,8 @@ function generatePlan() {
     + '\n\nRegras: alimentos portugueses/mediterrâneos; porções realistas; adapta ao humor e carga de treino; sê específico com os dados reais.';
 
   // Call Claude via Supabase Edge Function proxy
-  _db.auth.getSession().then(function(res) {
-    var token = res.data && res.data.session ? res.data.session.access_token : null;
+  Promise.resolve().then(function() {
     var headers = { 'Content-Type': 'application/json' };
-    if (token) headers['Authorization'] = 'Bearer ' + token;
 
     return fetch(PROXY_URL, {
       method: 'POST',
