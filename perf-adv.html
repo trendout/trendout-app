@@ -396,7 +396,7 @@ var _period = 'week';
 document.addEventListener('DOMContentLoaded', function() {
   try {
     _db = supabase.createClient(SUPA_URL, SUPA_KEY, {
-      auth: { persistSession: true, autoRefreshToken: true }
+      auth: { persistSession: true, autoRefreshToken: true, storageKey: 'trendout_auth' }
     });
   } catch(e) { showAuthWall(); return; }
 
