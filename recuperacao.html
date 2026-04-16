@@ -220,7 +220,7 @@ var hapLabels  = ['','Muito mal','Mal','Razoável','Neutro','Ok','Bom','Muito bo
 document.addEventListener('DOMContentLoaded', function() {
   try {
     _db = supabase.createClient(SUPA_URL, SUPA_KEY, {
-      auth: { persistSession: true, autoRefreshToken: true }
+      auth: { persistSession: true, autoRefreshToken: true, storageKey: 'trendout_auth' }
     });
   } catch(e) { showAuthWall(); return; }
 
@@ -280,6 +280,24 @@ async function loadData() {
     document.getElementById('app').style.display = 'block';
     updateStatusBanner();
     updateStats();
+    try {
+      var cacheKey = 'trendout_plan_recuperacao_' + (_user ? _user.id : 'anon');
+      var cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        var obj = JSON.parse(cached);
+        var age = (Date.now() - obj.ts) / (1000 * 60 * 60 * 24);
+        if (age < 7 && obj.plan) {
+          _planData = obj.plan;
+          renderPlan(_planData);
+          var btn = document.getElementById('gen-btn');
+          var icon = document.getElementById('gen-icon');
+          var text = document.getElementById('gen-text');
+          if(btn) btn.disabled = false;
+          if(icon) icon.textContent = '↻';
+          if(text) text.textContent = 'Gerar novo plano';
+        }
+      }
+    } catch(e) {}
 
   } catch(e) {
     console.error('[recuperacao] loadData error:', e);
@@ -551,6 +569,10 @@ function generatePlan() {
     try {
       _planData = JSON.parse(clean);
       renderPlan(_planData);
+      try {
+        var cacheKey = 'trendout_plan_recuperacao_' + (_user ? _user.id : 'anon');
+        localStorage.setItem(cacheKey, JSON.stringify({ plan: _planData, ts: Date.now() }));
+      } catch(e) {}
     } catch(e) {
       console.error('[recuperacao] parse error:', e, clean.substring(0,300));
       showError('Erro ao processar. Tenta de novo.');

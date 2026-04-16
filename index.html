@@ -1093,7 +1093,7 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
       <div id="upgrade-cta" style="margin:0 0 16px;background:rgba(250,204,21,.06);border:1.5px solid rgba(250,204,21,.2);border-radius:16px;padding:16px 18px">
         <div style="font-size:13px;font-weight:700;color:#FACC15;margin-bottom:4px">✨ Trendout Premium</div>
         <div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:12px;line-height:1.5">Insights IA · Coach de recuperação · Nutrição · Performance avançada</div>
-        <button onclick="openUpgrade()" style="width:100%;padding:11px;border-radius:12px;background:rgba(250,204,21,.1);border:1.5px solid rgba(250,204,21,.3);color:#FACC15;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">✨ Fazer Upgrade — a partir de 4,99€/mês</button>
+        <button onclick="window.location.href='/insights'" style="width:100%;padding:11px;border-radius:12px;background:rgba(250,204,21,.1);border:1.5px solid rgba(250,204,21,.3);color:#FACC15;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">✨ Fazer Upgrade — a partir de 4,99€/mês</button>
       </div>
 
       <div style="background:linear-gradient(135deg,#0d1117,#111);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:20px;margin-bottom:12px;overflow:hidden;position:relative">
@@ -1330,7 +1330,7 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
 
 
       <!-- AI Insights: Correlação Humor × Treino -->
-      <div onclick="navToInsights()" style="background:linear-gradient(135deg,#0d1117,#111);border:1px solid rgba(139,92,246,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div onclick="window.location.href='/insights'" style="background:linear-gradient(135deg,#0d1117,#111);border:1px solid rgba(139,92,246,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
         <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
           <div style="width:40px;height:40px;background:linear-gradient(135deg,#7C3AED,#3B82F6);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">✨</div>
           <div>
@@ -1348,7 +1348,7 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
       </div>
 
       <!-- AI Coach: Recuperação Emocional -->
-      <div onclick="openUpgrade()" style="background:linear-gradient(135deg,#0d1a12,#111);border:1px solid rgba(16,185,129,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div onclick="window.location.href='/recuperacao'" style="background:linear-gradient(135deg,#0d1a12,#111);border:1px solid rgba(16,185,129,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
         <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
           <div style="width:40px;height:40px;background:linear-gradient(135deg,#059669,#10B981);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🌱</div>
           <div>
@@ -1366,7 +1366,7 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
       </div>
 
       <!-- Coach de Alimentação -->
-      <div onclick="openUpgrade()" style="background:linear-gradient(135deg,#0d1a0f,#111);border:1px solid rgba(34,197,94,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div onclick="window.location.href='/nutricao'" style="background:linear-gradient(135deg,#0d1a0f,#111);border:1px solid rgba(34,197,94,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
         <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
           <div style="width:40px;height:40px;background:linear-gradient(135deg,#15803D,#22C55E);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🥗</div>
           <div>
@@ -2133,7 +2133,8 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
         auth: {
           detectSessionInUrl: true,
           persistSession: true,
-          autoRefreshToken: true
+          autoRefreshToken: true,
+          storageKey: 'trendout_auth'
         }
       });
       console.log('✅ Supabase connected');
@@ -2247,6 +2248,8 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
   async function supaLoadData(user) {
     if (!_db || !user) return;
     try {
+      // Load any queued activities that failed to sync before
+      loadPendingSync();
       var [actsRes, moodsRes, weightsRes, profileRes] = await Promise.all([
         _db.from('activities').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
         _db.from('moods').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
@@ -2324,17 +2327,46 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
         // Restore stats
         renderStatsCard();
         renderHomeActs();
+        // Flush activities queued while offline or session was expired
+        setTimeout(flushPendingSync, 2000);
       }, 300);
     } catch(e) { console.error('supaLoadData error:', e); }
   }
 
   // ── SYNC HELPERS ──
-  async function dbSyncActivity(act) {
-    if (!_db) return;
+  // ── OFFLINE QUEUE ──
+  var _pendingSync = [];
+
+  function loadPendingSync() {
     try {
-      var userRes = await _db.auth.getUser();
-      if (!userRes.data || !userRes.data.user) return;
-      var uid = userRes.data.user.id;
+      var raw = localStorage.getItem('trendout_pending_sync');
+      if (raw) _pendingSync = JSON.parse(raw);
+    } catch(e) { _pendingSync = []; }
+  }
+
+  function savePendingSync() {
+    try {
+      // Strip large route arrays before storing to save space
+      var slim = _pendingSync.map(function(a) {
+        var copy = Object.assign({}, a);
+        if (copy.route && copy.route.length > 50) copy.route = copy.route.slice(0, 50);
+        return copy;
+      });
+      localStorage.setItem('trendout_pending_sync', JSON.stringify(slim));
+    } catch(e) {}
+  }
+
+  async function dbSyncActivity(act) {
+    if (!_db) { _pendingSync.push(act); savePendingSync(); return; }
+    try {
+      // Try to refresh session first if needed
+      var sessionRes = await _db.auth.getSession();
+      if (!sessionRes.data || !sessionRes.data.session) {
+        // No session — queue for later
+        console.warn('[sync] No session, queuing activity:', act.date, act.type);
+        _pendingSync.push(act); savePendingSync(); return;
+      }
+      var uid = sessionRes.data.session.user.id;
       var res = await _db.from('activities').insert({
         type:        act.type,
         title:       act.title,
@@ -2357,9 +2389,50 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
         end_street:  act.endStreet || null,
         city:        act.city || null
       }).select('id').single();
-      // Save Supabase ID back to local activity
       if (res.data && res.data.id) act.id = res.data.id;
-    } catch(e) { console.error('dbSyncActivity:', e); }
+      console.log('[sync] Activity saved:', act.date, act.type);
+    } catch(e) {
+      console.error('[sync] Failed, queuing:', e.message);
+      _pendingSync.push(act); savePendingSync();
+    }
+  }
+
+  async function flushPendingSync() {
+    if (!_pendingSync.length || !_db) return;
+    var sessionRes = await _db.auth.getSession().catch(function(){return null;});
+    if (!sessionRes || !sessionRes.data || !sessionRes.data.session) return;
+    var uid = sessionRes.data.session.user.id;
+    var toSync = _pendingSync.slice();
+    _pendingSync = [];
+    savePendingSync();
+    var synced = 0;
+    for (var i = 0; i < toSync.length; i++) {
+      var act = toSync[i];
+      if (act.id) continue; // already has Supabase ID, skip
+      try {
+        var res = await _db.from('activities').insert({
+          type: act.type, title: act.title, dist: act.dist, dur: act.dur,
+          pace: act.pace, cal: act.cal ? String(act.cal) : null, date: act.date,
+          startTime: act.startTime || null, source: act.source || 'manual', user_id: uid,
+          route: act.route && act.route.length > 0 ? JSON.stringify(act.route) : null,
+          splits: act.splits && act.splits.length > 0 ? JSON.stringify(act.splits) : null,
+          total_seconds: act.totalSeconds || null, dist_km: act.distKm || null,
+          center_lat: act.centerLat || null, center_lng: act.centerLng || null,
+          has_gps: act.hasGps || false, city: act.city || null
+        }).select('id').single();
+        if (res.data && res.data.id) act.id = res.data.id;
+        synced++;
+      } catch(e) {
+        // Put back in queue
+        _pendingSync.push(act);
+      }
+    }
+    savePendingSync();
+    if (synced > 0) {
+      console.log('[sync] Flushed ' + synced + ' pending activities');
+      toast('✅ ' + synced + ' actividade' + (synced > 1 ? 's' : '') + ' sincronizada' + (synced > 1 ? 's' : ''));
+      renderHomeActs(); renderStatsCard();
+    }
   }
 
   async function dbSyncMood(m) {
@@ -3725,10 +3798,7 @@ var _insightsPageData = null;
 var _insightsPageLoading = false;
 
 function navToInsights() {
-  if (!_isPremium) { openUpgrade(); return; }
-  navTo('insights');
-  renderInsightsChart();
-  computeInsightsStats();
+  window.location.href = '/insights';
 }
 
 function setInsightsPeriod(period, btn) {
@@ -7392,13 +7462,16 @@ function initPerfAdv() {
 
 // Re-acquire wake lock if released by system (e.g. screen dimmed briefly)
 document.addEventListener('visibilitychange', function() {
-  if (document.visibilityState === 'visible' && _gps.active && !GPS_WAKELOCK) {
-    if ('wakeLock' in navigator) {
+  if (document.visibilityState === 'visible') {
+    // Re-acquire Wake Lock if GPS active
+    if (_gps.active && !GPS_WAKELOCK && 'wakeLock' in navigator) {
       navigator.wakeLock.request('screen').then(function(lock) {
         GPS_WAKELOCK = lock;
         lock.addEventListener('release', function() { GPS_WAKELOCK = null; });
       }).catch(function(){});
     }
+    // Flush any activities that failed to sync while in background
+    setTimeout(flushPendingSync, 1500);
   }
 });
 
@@ -8320,7 +8393,7 @@ document.addEventListener('visibilitychange', function() {
 
 
       <!-- AI Insights: Correlação Humor × Treino -->
-      <div onclick="navToInsights()" style="background:linear-gradient(135deg,#0d1117,#111);border:1px solid rgba(139,92,246,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div onclick="window.location.href='/insights'" style="background:linear-gradient(135deg,#0d1117,#111);border:1px solid rgba(139,92,246,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
         <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
           <div style="width:40px;height:40px;background:linear-gradient(135deg,#7C3AED,#3B82F6);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">✨</div>
           <div>
@@ -8338,7 +8411,7 @@ document.addEventListener('visibilitychange', function() {
       </div>
 
       <!-- AI Coach: Recuperação Emocional -->
-      <div onclick="openUpgrade()" style="background:linear-gradient(135deg,#0d1a12,#111);border:1px solid rgba(16,185,129,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div onclick="window.location.href='/recuperacao'" style="background:linear-gradient(135deg,#0d1a12,#111);border:1px solid rgba(16,185,129,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
         <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
           <div style="width:40px;height:40px;background:linear-gradient(135deg,#059669,#10B981);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🌱</div>
           <div>
@@ -8356,7 +8429,7 @@ document.addEventListener('visibilitychange', function() {
       </div>
 
       <!-- Coach de Alimentação -->
-      <div onclick="openUpgrade()" style="background:linear-gradient(135deg,#0d1a0f,#111);border:1px solid rgba(34,197,94,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div onclick="window.location.href='/nutricao'" style="background:linear-gradient(135deg,#0d1a0f,#111);border:1px solid rgba(34,197,94,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
         <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
           <div style="width:40px;height:40px;background:linear-gradient(135deg,#15803D,#22C55E);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🥗</div>
           <div>
@@ -9442,7 +9515,7 @@ document.addEventListener('visibilitychange', function() {
 
 
       <!-- AI Insights: Correlação Humor × Treino -->
-      <div onclick="navToInsights()" style="background:linear-gradient(135deg,#0d1117,#111);border:1px solid rgba(139,92,246,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div onclick="window.location.href='/insights'" style="background:linear-gradient(135deg,#0d1117,#111);border:1px solid rgba(139,92,246,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
         <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
           <div style="width:40px;height:40px;background:linear-gradient(135deg,#7C3AED,#3B82F6);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">✨</div>
           <div>
@@ -9460,7 +9533,7 @@ document.addEventListener('visibilitychange', function() {
       </div>
 
       <!-- AI Coach: Recuperação Emocional -->
-      <div onclick="openUpgrade()" style="background:linear-gradient(135deg,#0d1a12,#111);border:1px solid rgba(16,185,129,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div onclick="window.location.href='/recuperacao'" style="background:linear-gradient(135deg,#0d1a12,#111);border:1px solid rgba(16,185,129,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
         <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
           <div style="width:40px;height:40px;background:linear-gradient(135deg,#059669,#10B981);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🌱</div>
           <div>
@@ -9478,7 +9551,7 @@ document.addEventListener('visibilitychange', function() {
       </div>
 
       <!-- Coach de Alimentação -->
-      <div onclick="openUpgrade()" style="background:linear-gradient(135deg,#0d1a0f,#111);border:1px solid rgba(34,197,94,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div onclick="window.location.href='/nutricao'" style="background:linear-gradient(135deg,#0d1a0f,#111);border:1px solid rgba(34,197,94,.2);border-radius:20px;padding:18px 20px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px">
         <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
           <div style="width:40px;height:40px;background:linear-gradient(135deg,#15803D,#22C55E);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🥗</div>
           <div>

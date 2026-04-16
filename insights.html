@@ -215,7 +215,7 @@ var hapEmojis  = ['','😔','😞','😕','😐','🙂','😊','😄','😁','�
 document.addEventListener('DOMContentLoaded', function() {
   try {
     _db = supabase.createClient(SUPA_URL, SUPA_KEY, {
-      auth: { persistSession: true, autoRefreshToken: true }
+      auth: { persistSession: true, autoRefreshToken: true, storageKey: 'trendout_auth' }
     });
   } catch(e) { showAuthWall(); return; }
 
@@ -272,6 +272,24 @@ async function loadData() {
     document.getElementById('app').style.display = 'block';
     computeStats();
     drawChart();
+    try {
+      var cacheKey = 'trendout_plan_insights_' + (_user ? _user.id : 'anon');
+      var cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        var obj = JSON.parse(cached);
+        var age = (Date.now() - obj.ts) / (1000 * 60 * 60 * 24);
+        if (age < 7 && obj.plan) {
+          _insightsData = obj.plan;
+          renderInsights(_insightsData.insights||[]);
+          var btn = document.getElementById('analyze-btn');
+          var icon = document.getElementById('btn-icon');
+          var text = document.getElementById('btn-text');
+          if(btn) btn.disabled = false;
+          if(icon) icon.textContent = '↻';
+          if(text) text.textContent = 'Analisar';
+        }
+      }
+    } catch(e) {}
 
   } catch(e) {
     console.error('[insights] loadData error:', e);
@@ -589,6 +607,10 @@ function runAnalysis() {
     try {
       _insightsData = JSON.parse(clean);
       renderInsights(_insightsData.insights||[]);
+      try {
+        var cacheKey = 'trendout_plan_insights_' + (_user ? _user.id : 'anon');
+        localStorage.setItem(cacheKey, JSON.stringify({ plan: _insightsData, ts: Date.now() }));
+      } catch(e) {}
     } catch(e) {
       console.error('[insights] parse error:', e, clean.substring(0, 300));
       showInsightsError('Erro ao processar. Tenta de novo.');
