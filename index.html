@@ -2329,12 +2329,6 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
         renderHomeActs();
         // Flush activities queued while offline or session was expired
         setTimeout(flushPendingSync, 2000);
-        // If redirected from a coach with ?upgrade=1 — open upgrade screen
-        if (window.location.search.indexOf('premium=activated') >= 0) {
-          // Show premium activated confirmation
-          setTimeout(function() { toast('🎉 Premium activado! Bem-vindo ao Trendout Premium!'); }, 600);
-          history.replaceState(null, '', window.location.pathname);
-        }
       }, 300);
     } catch(e) { console.error('supaLoadData error:', e); }
   }
