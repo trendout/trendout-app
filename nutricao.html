@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Coach de Alimentação · Trendout</title>
@@ -133,8 +134,8 @@ html,body{background:#050505;color:#fff;font-family:'DM Sans',system-ui,sans-ser
 
 <div id="auth-wall">
   <div style="font-size:48px;margin-bottom:20px">🥗</div>
-  <h2 id="wall-title">Inicia sessão para continuar</h2>
-  <p id="wall-msg">Inicia sessão na app Trendout para aceder ao Coach de Alimentação.</p>
+  <h2>Inicia sessão para continuar</h2>
+  <p>O Coach de Alimentação é exclusivo para membros Trendout Premium.</p>
   <a href="/">← Voltar à app</a>
 </div>
 
@@ -254,7 +255,7 @@ document.addEventListener('DOMContentLoaded', function() {
   _db.auth.getSession().then(function(res) {
     if (res.data && res.data.session) {
       _user = res.data.session.user;
-      checkAccessAndLoad();
+      loadData();
     } else {
       showAuthWall();
     }
@@ -265,41 +266,6 @@ function showAuthWall() {
   document.getElementById('loading').style.display = 'none';
   document.getElementById('auth-wall').style.display = 'flex';
 }
-// ── ACCESS CONTROL ──
-// Free emails: always have access
-// Others: must have premium subscription
-var FREE_EMAILS = ['hitrendout@gmail.com'];
-
-function checkAccessAndLoad() {
-  var email = _user.email || '';
-  if (FREE_EMAILS.indexOf(email) >= 0) {
-    // Free access — load directly
-    loadData();
-    return;
-  }
-  // Check premium status in profiles table
-  _db.from('profiles').select('is_premium, subscription_status').eq('id', _user.id).single()
-    .then(function(res) {
-      var p = res.data;
-      var hasPremium = p && (p.is_premium === true || p.subscription_status === 'active');
-      if (hasPremium) {
-        loadData();
-      } else {
-        showPremiumWall();
-      }
-    })
-    .catch(function() {
-      // If profiles check fails, fall back to loading (fail open)
-      loadData();
-    });
-}
-
-function showPremiumWall() {
-  document.getElementById('loading').style.display = 'none';
-  document.getElementById('auth-wall').style.display = 'flex';
-}
-
-
 
 // ── LOAD DATA ──
 async function loadData() {
@@ -352,7 +318,25 @@ async function loadData() {
     document.getElementById('loading').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     updateContextBanner();
-    try{var ck='trendout_plan_nutricao_'+(_user?_user.id:'anon');var cv=localStorage.getItem(ck);if(cv){var obj=JSON.parse(cv);if((Date.now()-obj.ts)<7*864e5&&obj.plan){_planData=obj.plan;renderPlan(_planData);var b=document.getElementById('gen-btn');if(b){b.disabled=false;document.getElementById('gen-icon').textContent='↻';document.getElementById('gen-text').textContent='Gerar novo plano';}}}}catch(e){}
+    // Restore cached plan if available (< 7 days old)
+    try {
+      var cacheKey = 'trendout_plan_nutricao_' + (_user ? _user.id : 'anon');
+      var cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        var obj = JSON.parse(cached);
+        var age = (Date.now() - obj.ts) / (1000 * 60 * 60 * 24); // days
+        if (age < 7 && obj.plan) {
+          _planData = obj.plan;
+          renderPlan(_planData);
+          var btn = document.getElementById('gen-btn');
+          var icon = document.getElementById('gen-icon');
+          var text = document.getElementById('gen-text');
+          if(btn) btn.disabled = false;
+          if(icon) icon.textContent = '↻';
+          if(text) text.textContent = 'Gerar novo plano';
+        }
+      }
+    } catch(e) {}
 
   } catch(e) {
     console.error('loadData error:', e);
@@ -490,8 +474,6 @@ function generatePlan() {
     + 'Usas alimentos acessíveis em Portugal/Espanha. '
     + 'RESPONDE APENAS EM JSON VÁLIDO, sem markdown, sem texto extra.';
 
-  var _wd=(function(){var dn=['DOM','SEG','TER','QUA','QUI','SEX','SÁB'];var now=new Date(),dow=now.getDay(),mon=new Date(now);mon.setDate(now.getDate()-(dow===0?6:dow-1));mon.setHours(0,0,0,0);return[0,1,2,3,4,5,6].map(function(d){var dt=new Date(mon.getTime()+d*864e5);return{day:dn[dt.getDay()],date:String(dt.getDate()).padStart(2,'0')+'/'+String(dt.getMonth()+1).padStart(2,'0'),isToday:dt.toDateString()===now.toDateString()};});})();
-
   var schema = '{'
     + '"meals":{'
       + '"context":"Frase curta a explicar o foco nutricional de hoje",'
@@ -508,18 +490,24 @@ function generatePlan() {
     + '],'
     + '"shopping":["item 1","item 2","item 3","item 4","item 5","item 6","item 7","item 8","item 9","item 10","item 11","item 12"],'
     + '"weekly":['
-      + _wd.map(function(w){return JSON.stringify({day:w.day,date:w.date,isToday:w.isToday,meal:'Refeição principal do dia',detail:'Foco do dia · ~kcal kcal'});}).join(',')
+      + '{"day":"SEG","label":"Segunda","meal":"Refeição principal + snack","detail":"Foco do dia · ~kcal kcal","isToday":false},'
+      + '{"day":"TER","label":"Terça","meal":"Refeição principal","detail":"Tipo de treino · ~kcal kcal","isToday":false},'
+      + '{"day":"QUA","label":"Quarta","meal":"Refeição principal","detail":"Foco · ~kcal kcal","isToday":false},'
+      + '{"day":"QUI","label":"Quinta","meal":"Refeição principal","detail":"Descanso · ~kcal kcal","isToday":false},'
+      + '{"day":"SEX","label":"Sexta","meal":"Refeição principal","detail":"Foco · ~kcal kcal","isToday":false},'
+      + '{"day":"SÁB","label":"Sábado","meal":"Refeição principal","detail":"Foco · ~kcal kcal","isToday":false},'
+      + '{"day":"DOM","label":"Domingo","meal":"Refeição principal","detail":"Recuperação · ~kcal kcal","isToday":false}'
     + ']'
     + '}';
 
   var userPrompt = 'Cria um plano alimentar completo e personalizado para este atleta. '
-    + 'IMPORTANTE: os campos day, date e isToday já estão correctos — NÃO os alteres. Preenche apenas meal e detail para cada dia. '
+    + 'Marca o dia da semana correcto como isToday:true no weekly. '
     + 'Devolve APENAS este JSON (sem markdown):\n\n' + schema
     + '\n\nDados reais do atleta:\n' + JSON.stringify(athleteCtx, null, 2)
     + '\n\nRegras: alimentos portugueses/mediterrâneos; porções realistas; adapta ao humor e carga de treino; sê específico com os dados reais.';
 
   // Call Claude via Supabase Edge Function proxy
-  _db.auth.getSession().then(function(res) {
+  Promise.resolve().then(function() {
     var headers = { 'Content-Type': 'application/json' };
 
     return fetch(PROXY_URL, {
@@ -553,7 +541,11 @@ function generatePlan() {
     try {
       _planData = JSON.parse(clean);
       renderPlan(_planData);
-      try{var ck='trendout_plan_nutricao_'+(_user?_user.id:'anon');localStorage.setItem(ck,JSON.stringify({plan:_planData,ts:Date.now()}));}catch(e){}
+      // Persist plan to localStorage keyed by user
+      try {
+        var cacheKey = 'trendout_plan_nutricao_' + (_user ? _user.id : 'anon');
+        localStorage.setItem(cacheKey, JSON.stringify({ plan: _planData, ts: Date.now() }));
+      } catch(e) {}
     } catch(e) {
       console.error('[nutricao] JSON parse error:', e, clean.substring(0, 300));
       showPlanError('Erro ao processar resposta. Tenta de novo.');
@@ -642,13 +634,11 @@ function renderNutrients(nutrients) {
 }
 
 function renderShopping(items) {
-  try{var sk='trendout_shopping_'+(_user?_user.id:'anon');var sv=localStorage.getItem(sk);if(sv)_shoppingChecked=JSON.parse(sv);}catch(e){_shoppingChecked={};}
+  _shoppingChecked = {};
   var html = items.map(function(item, i) {
-    var done = !!_shoppingChecked[i];
-    var safe = item.replace(/'/g, '');
-    return '<div class="shop-item' + (done?' done':'') + '" id="si-' + i + '" onclick="toggleShop(' + i + ',\'' + safe + '\')">'
-      + '<div class="shop-check" id="sc-' + i + '">' + (done?'✓':'') + '</div>'
-      + '<span class="shop-text" id="st-' + i + '" style="' + (done?'text-decoration:line-through;color:rgba(255,255,255,.35)':'') + '">' + item + '</span>'
+    return '<div class="shop-item" id="si-' + i + '" onclick="toggleShop(' + i + ',\'' + item.replace(/'/g, '') + '\')">'
+      + '<div class="shop-check" id="sc-' + i + '"></div>'
+      + '<span class="shop-text" id="st-' + i + '">' + item + '</span>'
       + '</div>';
   }).join('');
   document.getElementById('shopping-list').innerHTML = html;
@@ -660,20 +650,26 @@ function toggleShop(i, item) {
   var el = document.getElementById('si-' + i);
   var ch = document.getElementById('sc-' + i);
   var tx = document.getElementById('st-' + i);
-  if (el) el.classList.toggle('done', done);
+  if (el) { el.classList.toggle('done', done); }
   if (ch) ch.textContent = done ? '✓' : '';
   if (tx) { tx.style.textDecoration = done ? 'line-through' : ''; tx.style.color = done ? 'rgba(255,255,255,.35)' : 'rgba(255,255,255,.85)'; }
-  try{var sk='trendout_shopping_'+(_user?_user.id:'anon');localStorage.setItem(sk,JSON.stringify(_shoppingChecked));}catch(e){}
 }
 
 function renderWeekly(weekly) {
+  var todayIdx = new Date().getDay(); // 0=Sun
+  var dayMap = { 0: 'DOM', 1: 'SEG', 2: 'TER', 3: 'QUA', 4: 'QUI', 5: 'SEX', 6: 'SÁB' };
+  var todayDay = dayMap[todayIdx];
+
   var html = '<div class="sec-title">Plano semanal</div>';
   weekly.forEach(function(d) {
-    var isToday = d.isToday === true;
-    html += '<div class="week-row" style="background:' + (isToday?'rgba(34,197,94,.08)':'rgba(255,255,255,.04)') + ';border:1px solid ' + (isToday?'rgba(34,197,94,.2)':'rgba(255,255,255,.07)') + '">'
-      + '<div class="week-day" style="color:' + (isToday?'#4ADE80':'rgba(255,255,255,.5)') + '">' + (d.day||'') + '</div>'
-      + '<div style="flex:1"><div class="week-meal">' + (d.meal||'') + '</div><div class="week-detail">' + (d.detail||'') + '</div></div>'
-      + (isToday?'<div class="week-today">HOJE</div>':'')
+    var isToday = d.day === todayDay || d.isToday;
+    html += '<div class="week-row" style="background:' + (isToday ? 'rgba(34,197,94,.08)' : 'rgba(255,255,255,.04)') + ';border:1px solid ' + (isToday ? 'rgba(34,197,94,.2)' : 'rgba(255,255,255,.07)') + '">'
+      + '<div class="week-day" style="color:' + (isToday ? '#4ADE80' : 'rgba(255,255,255,.5)') + '">' + d.day + '</div>'
+      + '<div style="flex:1">'
+      + '<div class="week-meal">' + d.meal + '</div>'
+      + '<div class="week-detail">' + (d.detail || '') + '</div>'
+      + '</div>'
+      + (isToday ? '<div class="week-today">HOJE</div>' : '')
       + '</div>';
   });
   document.getElementById('weekly-content').innerHTML = html;
