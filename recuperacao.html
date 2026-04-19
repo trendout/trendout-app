@@ -118,12 +118,14 @@ html,body{background:#050505;color:#fff;font-family:'DM Sans',system-ui,sans-ser
 </div>
 
 <div id="auth-wall">
-  <div style="font-size:48px;margin-bottom:20px">🌱</div>
-  <h2 id="wall-title">Inicia sessão para continuar</h2>
-  <p id="wall-msg">Inicia sessão na app Trendout para aceder ao Coach de Recuperação.</p>
-  <a href="/">← Voltar à app</a>
+  <div style="font-size:52px;margin-bottom:20px">🌱</div>
+  <h2 style="font-size:22px;font-weight:900;margin-bottom:10px;text-align:center">Coach de Recuperação</h2>
+  <p style="font-size:13px;color:rgba(255,255,255,.45);text-align:center;margin-bottom:28px;line-height:1.6;max-width:280px">Esta funcionalidade é exclusiva para membros <strong style="color:#fff">Trendout Premium</strong>. Subscreve para aceder.</p>
+  <div style="width:100%;max-width:300px;display:flex;flex-direction:column;gap:10px">
+    <a href="/" style="display:block;padding:15px;border-radius:14px;background:linear-gradient(135deg,#059669,#10B981);color:#000;font-size:15px;font-weight:800;text-decoration:none;text-align:center">Subscrever Premium</a>
+    <a href="/" style="font-size:12px;color:rgba(255,255,255,.3);text-align:center;text-decoration:none;padding:8px">← Voltar à app</a>
+  </div>
 </div>
-
 <div id="app">
 
   <!-- Header -->
@@ -227,15 +229,40 @@ document.addEventListener('DOMContentLoaded', function() {
   _db.auth.getSession().then(function(res) {
     if (res.data && res.data.session) {
       _user = res.data.session.user;
+      console.log('[auth] Session found via getSession:', _user.email);
       checkAccessAndLoad();
-    } else { showAuthWall(); }
-  }).catch(function() { showAuthWall(); });
+      return;
+    }
+    var session = null;
+    try {
+      var keys = Object.keys(localStorage);
+      for (var i = 0; i < keys.length; i++) {
+        var k = keys[i];
+        if (k.indexOf('supabase') >= 0 || k.indexOf('trendout_auth') >= 0 || k.indexOf('sb-') >= 0) {
+          var raw = localStorage.getItem(k);
+          if (!raw) continue;
+          var obj = JSON.parse(raw);
+          var s = obj && obj.access_token ? obj : (obj && obj.session ? obj.session : null);
+          if (s && s.access_token && s.user) { session = s; break; }
+        }
+      }
+    } catch(e) {}
+    if (session) {
+      _user = session.user;
+      console.log('[auth] Session found via localStorage fallback:', _user.email);
+      checkAccessAndLoad();
+    } else {
+      console.log('[auth] No session — showing auth wall');
+      showAuthWall();
+    }
+  }).catch(function(e) { console.error('[auth] error:', e); showAuthWall(); });
 });
 
 function showAuthWall() {
   document.getElementById('loading').style.display = 'none';
   document.getElementById('auth-wall').style.display = 'flex';
 }
+
 // ── ACCESS CONTROL ──
 // Free emails: always have access
 // Others: must have premium subscription
