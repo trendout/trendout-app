@@ -133,8 +133,8 @@ html,body{background:#050505;color:#fff;font-family:'DM Sans',system-ui,sans-ser
 
 <div id="auth-wall">
   <div style="font-size:48px;margin-bottom:20px">🥗</div>
-  <h2>Inicia sessão para continuar</h2>
-  <p>O Coach de Alimentação é exclusivo para membros Trendout Premium.</p>
+  <h2 id="wall-title">Inicia sessão para continuar</h2>
+  <p id="wall-msg">Inicia sessão na app Trendout para aceder ao Coach de Alimentação.</p>
   <a href="/">← Voltar à app</a>
 </div>
 
@@ -251,10 +251,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   } catch(e) { showAuthWall(); return; }
 
-  Promise.resolve().then(function(res) { res = {};
+  _db.auth.getSession().then(function(res) {
     if (res.data && res.data.session) {
       _user = res.data.session.user;
-      loadData();
+      checkAccessAndLoad();
     } else {
       showAuthWall();
     }
@@ -265,6 +265,41 @@ function showAuthWall() {
   document.getElementById('loading').style.display = 'none';
   document.getElementById('auth-wall').style.display = 'flex';
 }
+// ── ACCESS CONTROL ──
+// Free emails: always have access
+// Others: must have premium subscription
+var FREE_EMAILS = ['hitrendout@gmail.com'];
+
+function checkAccessAndLoad() {
+  var email = _user.email || '';
+  if (FREE_EMAILS.indexOf(email) >= 0) {
+    // Free access — load directly
+    loadData();
+    return;
+  }
+  // Check premium status in profiles table
+  _db.from('profiles').select('is_premium, subscription_status').eq('id', _user.id).single()
+    .then(function(res) {
+      var p = res.data;
+      var hasPremium = p && (p.is_premium === true || p.subscription_status === 'active');
+      if (hasPremium) {
+        loadData();
+      } else {
+        showPremiumWall();
+      }
+    })
+    .catch(function() {
+      // If profiles check fails, fall back to loading (fail open)
+      loadData();
+    });
+}
+
+function showPremiumWall() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('auth-wall').style.display = 'flex';
+}
+
+
 
 // ── LOAD DATA ──
 async function loadData() {
