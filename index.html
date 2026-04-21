@@ -1619,6 +1619,87 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
       </div>
     </div>
   </div>
+
+<!-- ═══ GPX/FIT IMPORT OVERLAY ═══ -->
+<div id="gpx-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:1000;overflow-y:auto;-webkit-overflow-scrolling:touch" onclick="if(event.target===this)closeGpxImport()">
+  <div style="max-width:430px;margin:0 auto;padding:max(env(safe-area-inset-top,0px),20px) 20px max(env(safe-area-inset-bottom,0px),40px)">
+
+    <!-- Header -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
+      <button onclick="closeGpxImport()" style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:#fff;font-size:16px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center">←</button>
+      <div>
+        <div style="font-size:18px;font-weight:800;color:#fff">Importar Atividade</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:1px">GPX · FIT · TCX · KML</div>
+      </div>
+    </div>
+
+    <!-- Drop zone -->
+    <div id="gpx-dropzone" onclick="document.getElementById('gpx-file-input').click()"
+      style="border:2px dashed rgba(96,165,250,.4);border-radius:20px;padding:40px 20px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:16px;background:rgba(96,165,250,.04)">
+      <div style="font-size:44px;margin-bottom:12px">📂</div>
+      <div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:6px">Toca para seleccionar ficheiro</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.4);line-height:1.6">Garmin · Polar · COROS · Suunto<br>Apple Watch · Wahoo · Sigma</div>
+      <div style="margin-top:12px;font-size:11px;color:rgba(96,165,250,.6);font-weight:600">.gpx · .fit · .tcx · .kml</div>
+      <input id="gpx-file-input" type="file" accept=".gpx,.fit,.tcx,.kml,.xml" style="display:none" onchange="handleGpxFile(this)">
+    </div>
+
+    <!-- Sport selector for import -->
+    <div style="margin-bottom:16px">
+      <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Desporto</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px" id="gpx-sport-grid">
+        <button onclick="setGpxSport('Corrida','🏃')"    class="gpx-sport-btn" style="padding:8px 14px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">🏃 Corrida</button>
+        <button onclick="setGpxSport('Ciclismo','🚴')"   class="gpx-sport-btn" style="padding:8px 14px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">🚴 Ciclismo</button>
+        <button onclick="setGpxSport('Caminhada','🚶')"  class="gpx-sport-btn" style="padding:8px 14px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">🚶 Caminhada</button>
+        <button onclick="setGpxSport('Natação','🏊')"    class="gpx-sport-btn" style="padding:8px 14px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">🏊 Natação</button>
+        <button onclick="setGpxSport('Hike','🧗')"       class="gpx-sport-btn" style="padding:8px 14px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">🧗 Hike</button>
+        <button onclick="setGpxSport('Outro','🏅')"      class="gpx-sport-btn" style="padding:8px 14px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">🏅 Outro</button>
+      </div>
+    </div>
+
+    <!-- Preview (hidden until file parsed) -->
+    <div id="gpx-preview" style="display:none;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px;margin-bottom:16px">
+      <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Resumo da atividade</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">
+        <div style="text-align:center">
+          <div id="gpx-prev-dist" style="font-size:18px;font-weight:800;color:#fff">—</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.4)">Distância</div>
+        </div>
+        <div style="text-align:center">
+          <div id="gpx-prev-dur" style="font-size:18px;font-weight:800;color:#fff">—</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.4)">Duração</div>
+        </div>
+        <div style="text-align:center">
+          <div id="gpx-prev-pace" style="font-size:18px;font-weight:800;color:#22C55E">—</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.4)">Pace</div>
+        </div>
+      </div>
+      <div id="gpx-prev-date" style="font-size:11px;color:rgba(255,255,255,.4);text-align:center"></div>
+    </div>
+
+    <!-- Error message -->
+    <div id="gpx-error" style="display:none;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:12px;padding:12px 16px;color:#F87171;font-size:13px;margin-bottom:16px"></div>
+
+    <!-- Import button -->
+    <button id="gpx-import-btn" onclick="importGpxActivity()" disabled
+      style="width:100%;padding:15px;border-radius:14px;background:rgba(34,197,94,.3);border:none;color:rgba(255,255,255,.4);font-size:15px;font-weight:700;cursor:not-allowed;font-family:inherit;transition:all .2s">
+      Selecciona um ficheiro para importar
+    </button>
+
+    <!-- Help -->
+    <div style="margin-top:20px;padding:14px 16px;background:rgba(255,255,255,.03);border-radius:12px;border:1px solid rgba(255,255,255,.06)">
+      <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.5);margin-bottom:8px">Como exportar do teu relógio:</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.35);line-height:1.8">
+        <b style="color:rgba(255,255,255,.5)">Garmin:</b> Garmin Connect → Atividade → ··· → Exportar GPX<br>
+        <b style="color:rgba(255,255,255,.5)">Polar:</b> Polar Flow → Treino → Exportar → GPX<br>
+        <b style="color:rgba(255,255,255,.5)">COROS:</b> App COROS → Atividade → Partilhar → GPX<br>
+        <b style="color:rgba(255,255,255,.5)">Apple Watch:</b> App Saúde → Exportar dados de saúde (ZIP)<br>
+        <b style="color:rgba(255,255,255,.5)">Suunto:</b> Suunto App → Atividade → Exportar → FIT
+      </div>
+    </div>
+
+  </div>
+</div>
+
 </body>
 </html>
 
@@ -2300,6 +2381,16 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
         if (p.dob)    _profile.dob    = p.dob;
         if (p.sports) _profile.sports = Array.isArray(p.sports) ? p.sports : [];
         if (p.photo)  _profile.photo  = p.photo;
+        // Restore EnjoyPoints from Supabase
+        if (p.enjoy_pts !== undefined && p.enjoy_pts !== null) {
+          _enjoyPts = parseInt(p.enjoy_pts) || 0;
+        }
+        if (p.enjoy_log) {
+          try {
+            var log = typeof p.enjoy_log === 'string' ? JSON.parse(p.enjoy_log) : p.enjoy_log;
+            if (Array.isArray(log) && log.length > 0) _enjoyLog = log;
+          } catch(e) {}
+        }
         userData.name  = ((p.name || '') + (p.last ? ' '+p.last : '')).trim() || user.email;
         userData.email = user.email;
       }
@@ -2461,6 +2552,23 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
     } catch(e) { console.error('dbSyncWeight:', e); }
   }
 
+  async function dbSyncEnjoyPoints() {
+    if (!_db) return;
+    try {
+      var sessionRes = await _db.auth.getSession();
+      if (!sessionRes.data || !sessionRes.data.session) return;
+      var uid = sessionRes.data.session.user.id;
+      // Keep only last 50 log entries to avoid bloat
+      var logToSave = _enjoyLog.slice(0, 50);
+      await _db.from('profiles').upsert({
+        id:         uid,
+        enjoy_pts:  _enjoyPts,
+        enjoy_log:  JSON.stringify(logToSave)
+      }, { onConflict: 'id' });
+      console.log('[enjoy] Saved:', _enjoyPts, 'pts,', logToSave.length, 'log entries');
+    } catch(e) { console.error('[enjoy] dbSyncEnjoyPoints error:', e); }
+  }
+
   async function dbSyncProfile(p) {
     if (!_db) return;
     try {
@@ -2475,7 +2583,9 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
         city:   p.city   || null,
         dob:    p.dob    || null,
         photo:  p.photo  || null,
-        sports: p.sports || []
+        sports: p.sports || [],
+        enjoy_pts: _enjoyPts,
+        enjoy_log: JSON.stringify(_enjoyLog.slice(0, 50))
       }, { onConflict: 'id' });
     } catch(e) { console.error('dbSyncProfile error:', e); }
   }
@@ -6203,8 +6313,8 @@ function selectAct(i) {
   // Enable button
   var btn = document.getElementById('act-continue-btn');
   if (btn) {
-    btn.textContent = _selAct.lb === 'Outro' ? 'Continuar com atividade personalizada →' : 'Continuar com ' + _selAct.lb + ' →';
-    btn.style.background = '#fff';
+    btn.textContent = _selAct.lb === 'Outro' ? '📍 Iniciar GPS →' : '📍 Iniciar ' + _selAct.lb + ' com GPS →';
+    btn.style.background = '#22C55E';
     btn.style.color = '#000';
     btn.style.cursor = 'pointer';
   }
@@ -6224,15 +6334,20 @@ function checkCustomAct() {
   }
 }
 function confirmAct(mode) {
-  if (!_selAct) return;
-  if (_selAct.lb === 'Outro') {
-    var inp = document.getElementById('act-custom-input');
-    var name = inp ? inp.value.trim() : '';
-    if (!name) { toast('✏️ Escreve o nome da atividade'); inp && inp.focus(); return; }
-    _selAct = {ic:'🏅', lb: name};
+  if (mode === 'manual' || mode === 'gps') {
+    if (!_selAct) { toast('Seleciona uma atividade primeiro'); return; }
+    if (_selAct.lb === 'Outro') {
+      var inp = document.getElementById('act-custom-input');
+      var name = inp ? inp.value.trim() : '';
+      if (!name) { toast('✏️ Escreve o nome da atividade'); inp && inp.focus(); return; }
+      _selAct = {ic:'🏅', lb: name};
+    }
+    closeActModal();
+    if (mode === 'manual') { openManualEntry(); } else { openGpsPreview(); }
+  } else {
+    // Legacy call without mode — default to GPS if sport selected
+    if (_selAct) { confirmAct('gps'); }
   }
-  closeActModal();
-  if (mode === 'manual') { openManualEntry(); } else { openGpsPreview(); }
 }
 
 
@@ -6427,6 +6542,8 @@ function addEnjoyPts(pts, label) {
   _enjoyLog.unshift({pts: pts, label: label, date: new Date().toLocaleDateString('pt-PT')});
   renderEnjoyPage();
   notifOnEnjoyPoints(pts, label);
+  // Persist to Supabase
+  dbSyncEnjoyPoints();
 }
 
 function getCurrentLevel() {
@@ -7475,6 +7592,368 @@ document.addEventListener('visibilitychange', function() {
     setTimeout(flushPendingSync, 1500);
   }
 });
+
+// ═══════════════════════════════════════════════
+// GPX / FIT / TCX IMPORT
+// ═══════════════════════════════════════════════
+
+var _gpxParsed   = null; // parsed activity data ready to import
+var _gpxSport    = 'Corrida';
+var _gpxSportIc  = '🏃';
+
+function openGpxImport() {
+  closeActModal();
+  _gpxParsed = null;
+  _gpxSport  = _selAct ? _selAct.lb : 'Corrida';
+  _gpxSportIc = _selAct ? (_selAct.ic || '🏃') : '🏃';
+  // Highlight selected sport
+  document.querySelectorAll('.gpx-sport-btn').forEach(function(b) {
+    var active = b.textContent.trim().indexOf(_gpxSport) >= 0;
+    b.style.background = active ? 'rgba(96,165,250,.2)' : 'rgba(255,255,255,.06)';
+    b.style.borderColor = active ? '#60A5FA' : 'rgba(255,255,255,.1)';
+    b.style.color = active ? '#60A5FA' : '#fff';
+  });
+  document.getElementById('gpx-preview').style.display = 'none';
+  document.getElementById('gpx-error').style.display   = 'none';
+  var btn = document.getElementById('gpx-import-btn');
+  if (btn) { btn.textContent = 'Selecciona um ficheiro para importar'; btn.disabled = true; btn.style.background = 'rgba(34,197,94,.3)'; btn.style.color = 'rgba(255,255,255,.4)'; btn.style.cursor = 'not-allowed'; }
+  document.getElementById('gpx-file-input').value = '';
+  document.getElementById('gpx-overlay').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeGpxImport() {
+  document.getElementById('gpx-overlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function setGpxSport(sport, ic) {
+  _gpxSport   = sport;
+  _gpxSportIc = ic;
+  document.querySelectorAll('.gpx-sport-btn').forEach(function(b) {
+    var active = b.textContent.trim().indexOf(sport) >= 0;
+    b.style.background  = active ? 'rgba(96,165,250,.2)' : 'rgba(255,255,255,.06)';
+    b.style.borderColor = active ? '#60A5FA' : 'rgba(255,255,255,.1)';
+    b.style.color       = active ? '#60A5FA' : '#fff';
+  });
+}
+
+function handleGpxFile(input) {
+  if (!input.files || !input.files[0]) return;
+  var file = input.files[0];
+  var ext  = file.name.split('.').pop().toLowerCase();
+  var dropzone = document.getElementById('gpx-dropzone');
+  var errEl    = document.getElementById('gpx-error');
+  errEl.style.display = 'none';
+
+  // Show loading state
+  if (dropzone) {
+    dropzone.querySelector('div').textContent = '⏳';
+    dropzone.querySelectorAll('div')[1].textContent = 'A processar ' + file.name + '...';
+  }
+
+  var reader = new FileReader();
+
+  reader.onload = function(e) {
+    try {
+      var result;
+      if (ext === 'gpx' || ext === 'kml' || ext === 'tcx' || ext === 'xml') {
+        result = parseGpxFile(e.target.result, ext, file.name);
+      } else if (ext === 'fit') {
+        result = parseFitFile(e.target.result, file.name);
+      } else {
+        throw new Error('Formato não suportado: .' + ext);
+      }
+      _gpxParsed = result;
+      showGpxPreview(result);
+
+      // Reset dropzone
+      if (dropzone) {
+        dropzone.querySelectorAll('div')[0].textContent = '✅';
+        dropzone.querySelectorAll('div')[1].textContent = file.name;
+      }
+    } catch(err) {
+      console.error('[gpx] Parse error:', err);
+      errEl.textContent = '❌ ' + (err.message || 'Erro ao processar ficheiro. Verifica o formato.');
+      errEl.style.display = 'block';
+      if (dropzone) {
+        dropzone.querySelectorAll('div')[0].textContent = '📂';
+        dropzone.querySelectorAll('div')[1].textContent = 'Toca para seleccionar ficheiro';
+      }
+    }
+  };
+
+  reader.onerror = function() {
+    errEl.textContent = '❌ Erro ao ler o ficheiro.';
+    errEl.style.display = 'block';
+  };
+
+  if (ext === 'fit') {
+    reader.readAsArrayBuffer(file);
+  } else {
+    reader.readAsText(file, 'UTF-8');
+  }
+}
+
+// ── GPX PARSER ──
+function parseGpxFile(text, ext, filename) {
+  var parser = new DOMParser();
+  var doc;
+
+  if (ext === 'tcx') {
+    doc = parser.parseFromString(text, 'text/xml');
+    return parseTcxDoc(doc, filename);
+  } else if (ext === 'kml') {
+    doc = parser.parseFromString(text, 'text/xml');
+    return parseKmlDoc(doc, filename);
+  } else {
+    doc = parser.parseFromString(text, 'text/xml');
+    return parseGpxDoc(doc, filename);
+  }
+}
+
+function parseGpxDoc(doc, filename) {
+  // Get track points
+  var trkpts = doc.querySelectorAll('trkpt');
+  if (!trkpts.length) trkpts = doc.querySelectorAll('rtept');
+  if (!trkpts.length) throw new Error('Sem pontos GPS no ficheiro GPX.');
+
+  var route = [], times = [], elevations = [];
+  trkpts.forEach(function(pt) {
+    var lat = parseFloat(pt.getAttribute('lat'));
+    var lon = parseFloat(pt.getAttribute('lon'));
+    if (!isNaN(lat) && !isNaN(lon)) {
+      route.push([lat, lon]);
+      var timeEl = pt.querySelector('time');
+      if (timeEl) times.push(new Date(timeEl.textContent));
+      var eleEl = pt.querySelector('ele');
+      if (eleEl) elevations.push(parseFloat(eleEl.textContent));
+    }
+  });
+
+  if (route.length < 2) throw new Error('GPX com dados insuficientes (mínimo 2 pontos).');
+
+  // Try to get activity name/type
+  var nameEl = doc.querySelector('trk > name') || doc.querySelector('name');
+  var gpxName = nameEl ? nameEl.textContent.trim() : filename.replace(/\.gpx$/i,'');
+
+  return buildActivityFromRoute(route, times, elevations, gpxName);
+}
+
+function parseTcxDoc(doc, filename) {
+  var pts = doc.querySelectorAll('Trackpoint');
+  if (!pts.length) throw new Error('Sem pontos no ficheiro TCX.');
+
+  var route = [], times = [], elevations = [];
+  pts.forEach(function(pt) {
+    var posEl = pt.querySelector('Position');
+    if (!posEl) return;
+    var lat = parseFloat(posEl.querySelector('LatitudeDegrees').textContent);
+    var lon = parseFloat(posEl.querySelector('LongitudeDegrees').textContent);
+    if (!isNaN(lat) && !isNaN(lon)) {
+      route.push([lat, lon]);
+      var timeEl = pt.querySelector('Time');
+      if (timeEl) times.push(new Date(timeEl.textContent));
+      var altEl = pt.querySelector('AltitudeMeters');
+      if (altEl) elevations.push(parseFloat(altEl.textContent));
+    }
+  });
+
+  if (route.length < 2) throw new Error('TCX com dados insuficientes.');
+  var nameEl = doc.querySelector('Activity > Notes') || doc.querySelector('Course > Name');
+  return buildActivityFromRoute(route, times, elevations, nameEl ? nameEl.textContent : filename);
+}
+
+function parseKmlDoc(doc, filename) {
+  var coordsEl = doc.querySelector('coordinates');
+  if (!coordsEl) throw new Error('Sem coordenadas no ficheiro KML.');
+  var coordText = coordsEl.textContent.trim();
+  var route = [];
+  coordText.split(/\s+/).forEach(function(coord) {
+    var parts = coord.split(',');
+    if (parts.length >= 2) {
+      var lon = parseFloat(parts[0]), lat = parseFloat(parts[1]);
+      if (!isNaN(lat) && !isNaN(lon)) route.push([lat, lon]);
+    }
+  });
+  if (route.length < 2) throw new Error('KML com dados insuficientes.');
+  return buildActivityFromRoute(route, [], [], filename.replace(/\.kml$/i,''));
+}
+
+// ── FIT PARSER (binary) ──
+function parseFitFile(buffer, filename) {
+  // FIT is a binary format — we do a simplified parse to extract key metrics
+  // Most useful data: lat/lon records, timestamps, distance
+  var data = new Uint8Array(buffer);
+
+  // FIT file signature check: bytes 8-11 should be '.FIT'
+  var sig = String.fromCharCode(data[8], data[9], data[10], data[11]);
+  if (sig !== '.FIT') throw new Error('Ficheiro FIT inválido ou corrompido.');
+
+  // Simplified extraction: scan for record messages with lat/lon
+  // FIT uses semicircles: 1 semicircle = 180/2^31 degrees
+  var SC_TO_DEG = 180 / Math.pow(2, 31);
+  var route = [], times = [];
+  var offset = 14; // skip FIT header
+
+  // We scan for known field patterns
+  // This is a simplified parser — handles Garmin/COROS/Polar standard exports
+  var totalDist = 0, totalTime = 0, startTime = null;
+  var lat = null, lon = null, ts = null;
+
+  // FIT epoch: Jan 1 1989 00:00:00 UTC
+  var FIT_EPOCH = new Date('1989-01-01T00:00:00Z').getTime();
+
+  // Scan through data looking for coordinate patterns
+  for (var i = offset; i < data.length - 8; i++) {
+    // Look for 4-byte signed int pairs that could be lat/lon in semicircles
+    var v1 = (data[i] | (data[i+1]<<8) | (data[i+2]<<16) | (data[i+3]<<24));
+    var deg1 = v1 * SC_TO_DEG;
+    var v2 = (data[i+4] | (data[i+5]<<8) | (data[i+6]<<16) | (data[i+7]<<24));
+    var deg2 = v2 * SC_TO_DEG;
+    // Valid coordinates check
+    if (deg1 >= -90 && deg1 <= 90 && deg2 >= -180 && deg2 <= 180 && Math.abs(deg1) > 0.001 && Math.abs(deg2) > 0.001) {
+      // Only add if different from last point (avoid duplicates)
+      if (!route.length || Math.abs(route[route.length-1][0] - deg1) > 0.00001 || Math.abs(route[route.length-1][1] - deg2) > 0.00001) {
+        route.push([deg1, deg2]);
+      }
+    }
+  }
+
+  if (route.length < 2) {
+    // FIT parse didn't find GPS - create manual entry prompt
+    throw new Error('FIT sem dados GPS. Tenta exportar como GPX no Garmin Connect.');
+  }
+
+  return buildActivityFromRoute(route, times, [], filename.replace(/\.fit$/i,''));
+}
+
+// ── BUILD ACTIVITY FROM PARSED DATA ──
+function buildActivityFromRoute(route, times, elevations, name) {
+  // Calculate total distance using haversine
+  var distKm = 0;
+  for (var i = 1; i < route.length; i++) {
+    distKm += haversineCoords(route[i-1][0], route[i-1][1], route[i][0], route[i][1]);
+  }
+
+  // Calculate duration from timestamps
+  var totalSecs = 0;
+  if (times.length >= 2) {
+    totalSecs = Math.round((times[times.length-1] - times[0]) / 1000);
+  }
+
+  // Pace
+  var paceStr = '--:--';
+  if (distKm > 0.01 && totalSecs > 0) {
+    var ps = totalSecs / distKm;
+    paceStr = Math.floor(ps/60) + ':' + (Math.floor(ps%60) < 10 ? '0' : '') + Math.floor(ps%60);
+  }
+
+  // Duration string
+  var durStr = '00:00';
+  if (totalSecs > 0) {
+    var h = Math.floor(totalSecs/3600), m = Math.floor((totalSecs%3600)/60), s = totalSecs%60;
+    durStr = (h > 0 ? pad(h)+':' : '') + pad(m) + ':' + pad(s);
+  }
+
+  // Date from first timestamp or today
+  var actDate = times.length ? times[0].toLocaleDateString('pt-PT') : new Date().toLocaleDateString('pt-PT');
+  var startTime = times.length ? times[0].toLocaleTimeString('pt-PT', {hour:'2-digit', minute:'2-digit'}) : '';
+
+  // Calories estimate
+  var cal = Math.round(distKm * 65 + totalSecs * 0.05);
+
+  // Center point
+  var centerLat = route.reduce(function(s, p) { return s+p[0]; }, 0) / route.length;
+  var centerLng = route.reduce(function(s, p) { return s+p[1]; }, 0) / route.length;
+
+  // Generate km splits
+  var splits = [], cumDist = 0, splitStart = 0, splitTime = times.length ? times[0].getTime() : 0;
+  for (var j = 1; j < route.length; j++) {
+    cumDist += haversineCoords(route[j-1][0], route[j-1][1], route[j][0], route[j][1]);
+    if (cumDist >= (splits.length + 1)) {
+      var splitSecs = times.length > j ? (times[j].getTime() - splitTime) / 1000 : (totalSecs / distKm);
+      splits.push({ km: splits.length + 1, seconds: Math.round(splitSecs) });
+      splitTime = times.length > j ? times[j].getTime() : splitTime;
+    }
+  }
+
+  return {
+    name:        name,
+    dist:        distKm.toFixed(2) + ' km',
+    distKm:      distKm,
+    dur:         durStr,
+    totalSeconds: totalSecs,
+    pace:        paceStr + ' /km',
+    cal:         String(cal),
+    date:        actDate,
+    startTime:   startTime,
+    route:       route,
+    splits:      splits,
+    centerLat:   centerLat,
+    centerLng:   centerLng,
+    hasGps:      route.length > 2 && distKm > 0.05
+  };
+}
+
+function haversineCoords(lat1, lng1, lat2, lng2) {
+  var R = 6371, dLat = (lat2-lat1)*Math.PI/180, dLng = (lng2-lng1)*Math.PI/180;
+  var a = Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// ── SHOW PREVIEW ──
+function showGpxPreview(data) {
+  var prev = document.getElementById('gpx-preview');
+  if (!prev) return;
+  prev.style.display = 'block';
+
+  var setEl = function(id, val) { var el = document.getElementById(id); if(el) el.textContent = val; };
+  setEl('gpx-prev-dist',  data.dist);
+  setEl('gpx-prev-dur',   data.dur || '--:--');
+  setEl('gpx-prev-pace',  data.pace || '--:--');
+  setEl('gpx-prev-date',  data.date + (data.startTime ? ' · ' + data.startTime : '') + ' · ' + data.route.length + ' pontos GPS');
+
+  // Enable import button
+  var btn = document.getElementById('gpx-import-btn');
+  if (btn) {
+    btn.textContent  = '✅ Importar ' + data.dist + ' para Trendout';
+    btn.disabled     = false;
+    btn.style.background = '#22C55E';
+    btn.style.color      = '#000';
+    btn.style.cursor     = 'pointer';
+  }
+}
+
+// ── IMPORT ACTIVITY ──
+function importGpxActivity() {
+  if (!_gpxParsed) return;
+  var d = _gpxParsed;
+
+  var act = {
+    type:        _gpxSport,
+    title:       _gpxSportIc + ' ' + _gpxSport + (d.name && d.name !== _gpxSport ? ' — ' + d.name : ''),
+    dist:        d.dist,
+    distKm:      d.distKm,
+    dur:         d.dur,
+    totalSeconds: d.totalSeconds,
+    pace:        d.pace,
+    cal:         d.cal,
+    date:        d.date,
+    startTime:   d.startTime,
+    source:      'gpx_import',
+    route:       d.route,
+    splits:      d.splits,
+    centerLat:   d.centerLat,
+    centerLng:   d.centerLng,
+    hasGps:      d.hasGps
+  };
+
+  closeGpxImport();
+  addActivity(act);
+  navTo('home');
+  toast('✅ ' + d.dist + ' importados do ficheiro!');
+}
 
 </script>
 
@@ -9836,8 +10315,14 @@ document.addEventListener('visibilitychange', function() {
           <input id="act-custom-input" type="text" placeholder="Nome da atividade..." oninput="checkCustomAct()" style="width:100%;background:none;border:none;outline:none;color:#fff;font-size:15px;padding:14px 16px;font-family:inherit"/>
         </div>
       </div>
-      <div style="padding:0 16px">
-        <button id="act-continue-btn" onclick="confirmAct()" style="width:100%;padding:16px;border-radius:16px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.3);border:none;font-size:15px;font-weight:700;cursor:not-allowed;font-family:inherit;transition:all .2s">Seleciona uma atividade</button>
+      <div style="padding:0 16px 4px" id="act-buttons-wrap">
+        <!-- Primary: GPS -->
+        <button id="act-continue-btn" onclick="confirmAct('gps')" style="width:100%;padding:14px;border-radius:14px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.3);border:none;font-size:15px;font-weight:700;cursor:not-allowed;font-family:inherit;transition:all .2s;margin-bottom:8px">Seleciona uma atividade</button>
+        <!-- Row: Manual + GPX import -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <button onclick="confirmAct('manual')" style="padding:12px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s">✏️ Entrada manual</button>
+          <button onclick="openGpxImport()" style="padding:12px;border-radius:12px;background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.2);color:#60A5FA;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s">📂 Importar GPX/FIT</button>
+        </div>
       </div>
     </div>
   </div>
