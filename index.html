@@ -1093,7 +1093,7 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
       <div id="upgrade-cta" style="margin:0 0 16px;background:rgba(250,204,21,.06);border:1.5px solid rgba(250,204,21,.2);border-radius:16px;padding:16px 18px">
         <div style="font-size:13px;font-weight:700;color:#FACC15;margin-bottom:4px">✨ Trendout Premium</div>
         <div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:12px;line-height:1.5">Insights IA · Coach de recuperação · Nutrição · Performance avançada</div>
-        <button onclick="window.location.href='/insights'" style="width:100%;padding:11px;border-radius:12px;background:rgba(250,204,21,.1);border:1.5px solid rgba(250,204,21,.3);color:#FACC15;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">✨ Fazer Upgrade — a partir de 4,99€/mês</button>
+        <button onclick="window.location.href='/premium'" style="width:100%;padding:11px;border-radius:12px;background:rgba(250,204,21,.1);border:1.5px solid rgba(250,204,21,.3);color:#FACC15;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">✨ Fazer Upgrade — a partir de 4,99€/mês</button>
       </div>
 
       <div style="background:linear-gradient(135deg,#0d1117,#111);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:20px;margin-bottom:12px;overflow:hidden;position:relative">
@@ -3329,12 +3329,7 @@ var _selectedPlan = 'annual';
 var _selectedPayment = 'mbway';
 
 function openUpgrade() {
-  var shell = document.getElementById('app-shell');
-  _upgradeFromApp = shell && shell.classList.contains('active');
-  if (shell) shell.classList.remove('active');
-  go('s-upgrade');
-  var el = document.getElementById('s-upgrade');
-  if (el) el.scrollTop = 0;
+  window.location.href = '/premium';
 }
 
 function closeUpgrade() {
