@@ -1139,52 +1139,83 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
         <!-- Brand grid -->
         <div id="watch-brand-grid">
           <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:12px">Escolhe a tua marca</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-            <button onclick="connectWatch('garmin','Garmin','Forerunner 965','⌚')" style="background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.08);border-radius:14px;padding:12px 6px;cursor:pointer;font-family:inherit;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:6px" onmouseover="this.style.borderColor='rgba(0,178,255,.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,.08)'">
-              <span style="font-size:22px">🟦</span>
-              <span style="font-size:11px;font-weight:700;color:#fff">Garmin</span>
-              <span style="font-size:9px;color:rgba(255,255,255,.35)">#1 mercado</span>
-            </button>
-            <button onclick="connectWatch('suunto','Suunto','Race S','🔵')" style="background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.08);border-radius:14px;padding:12px 6px;cursor:pointer;font-family:inherit;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:6px" onmouseover="this.style.borderColor='rgba(0,120,255,.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,.08)'">
-              <span style="font-size:22px">🔵</span>
-              <span style="font-size:11px;font-weight:700;color:#fff">Suunto</span>
-              <span style="font-size:9px;color:rgba(255,255,255,.35)">Finlandês</span>
-            </button>
-            <button onclick="connectWatch('polar','Polar','Vantage V3','🔴')" style="background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.08);border-radius:14px;padding:12px 6px;cursor:pointer;font-family:inherit;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:6px" onmouseover="this.style.borderColor='rgba(220,50,50,.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,.08)'">
-              <span style="font-size:22px">🔴</span>
-              <span style="font-size:11px;font-weight:700;color:#fff">Polar</span>
-              <span style="font-size:9px;color:rgba(255,255,255,.35)">50 anos</span>
-            </button>
-            <button onclick="connectWatch('coros','COROS','Pace 4','⚫')" style="background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.08);border-radius:14px;padding:12px 6px;cursor:pointer;font-family:inherit;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:6px" onmouseover="this.style.borderColor='rgba(200,200,200,.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,.08)'">
-              <span style="font-size:22px">⚫</span>
-              <span style="font-size:11px;font-weight:700;color:#fff">COROS</span>
-              <span style="font-size:9px;color:rgba(255,255,255,.35)">Melhor valor</span>
-            </button>
-            <button onclick="connectWatch('apple','Apple Watch','Ultra 3','⌚')" style="background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.08);border-radius:14px;padding:12px 6px;cursor:pointer;font-family:inherit;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:6px" onmouseover="this.style.borderColor='rgba(255,255,255,.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,.08)'">
-              <span style="font-size:22px">⬜</span>
-              <span style="font-size:11px;font-weight:700;color:#fff">Apple</span>
-              <span style="font-size:9px;color:rgba(255,255,255,.35)">Ultra 3</span>
-            </button>
-            <button onclick="connectWatch('fitbit','Fitbit','Charge 6','🟩')" style="background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.08);border-radius:14px;padding:12px 6px;cursor:pointer;font-family:inherit;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:6px" onmouseover="this.style.borderColor='rgba(0,200,100,.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,.08)'">
-              <span style="font-size:22px">🟩</span>
-              <span style="font-size:11px;font-weight:700;color:#fff">Fitbit</span>
-              <span style="font-size:9px;color:rgba(255,255,255,.35)">Google</span>
-            </button>
+          <!-- Garmin — activo com OAuth real -->
+          <button onclick="startGarminOAuth()" style="width:100%;background:linear-gradient(135deg,rgba(0,178,255,.08),rgba(0,178,255,.04));border:1.5px solid rgba(0,178,255,.3);border-radius:14px;padding:14px 16px;cursor:pointer;font-family:inherit;transition:all .2s;display:flex;align-items:center;gap:14px;margin-bottom:10px" onmouseover="this.style.borderColor='rgba(0,178,255,.6)'" onmouseout="this.style.borderColor='rgba(0,178,255,.3)'">
+            <div style="width:44px;height:44px;background:rgba(0,178,255,.12);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <svg width="24" height="24" viewBox="0 0 64 64" fill="none"><path d="M32 8C18.7 8 8 18.7 8 32s10.7 24 24 24 24-10.7 24-24S45.3 8 32 8zm0 4c11 0 20 9 20 20s-9 20-20 20S12 43 12 32s9-20 20-20zm0 6a14 14 0 000 28V18zm2 2.3l12 9.7H34V20.3z" fill="#00B2FF"/></svg>
+            </div>
+            <div style="flex:1;text-align:left">
+              <div style="font-size:14px;font-weight:800;color:#fff">Garmin Connect</div>
+              <div style="font-size:11px;color:rgba(0,178,255,.7);margin-top:2px">Sincronização automática · OAuth 2.0</div>
+            </div>
+            <div style="background:rgba(0,178,255,.15);border:1px solid rgba(0,178,255,.3);border-radius:8px;padding:4px 10px;font-size:10px;font-weight:700;color:#00B2FF;flex-shrink:0">LIGAR →</div>
+          </button>
+
+          <!-- Outras marcas — inativas com Em breve -->
+          <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Em breve</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:12px;display:flex;align-items:center;gap:10px;opacity:.5;position:relative;overflow:hidden">
+              <div style="width:34px;height:34px;background:rgba(255,255,255,.06);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🔵</div>
+              <div><div style="font-size:12px;font-weight:700;color:#fff">Suunto</div><div style="font-size:9px;color:rgba(255,255,255,.35)">Suunto App</div></div>
+              <div style="position:absolute;top:6px;right:6px;background:rgba(255,255,255,.1);border-radius:5px;padding:2px 6px;font-size:8px;font-weight:700;color:rgba(255,255,255,.5)">EM BREVE</div>
+            </div>
+            <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:12px;display:flex;align-items:center;gap:10px;opacity:.5;position:relative;overflow:hidden">
+              <div style="width:34px;height:34px;background:rgba(255,255,255,.06);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🔴</div>
+              <div><div style="font-size:12px;font-weight:700;color:#fff">Polar</div><div style="font-size:9px;color:rgba(255,255,255,.35)">Polar Flow</div></div>
+              <div style="position:absolute;top:6px;right:6px;background:rgba(255,255,255,.1);border-radius:5px;padding:2px 6px;font-size:8px;font-weight:700;color:rgba(255,255,255,.5)">EM BREVE</div>
+            </div>
+            <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:12px;display:flex;align-items:center;gap:10px;opacity:.5;position:relative;overflow:hidden">
+              <div style="width:34px;height:34px;background:rgba(255,255,255,.06);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">⬛</div>
+              <div><div style="font-size:12px;font-weight:700;color:#fff">COROS</div><div style="font-size:9px;color:rgba(255,255,255,.35)">COROS App</div></div>
+              <div style="position:absolute;top:6px;right:6px;background:rgba(255,255,255,.1);border-radius:5px;padding:2px 6px;font-size:8px;font-weight:700;color:rgba(255,255,255,.5)">EM BREVE</div>
+            </div>
+            <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:12px;display:flex;align-items:center;gap:10px;opacity:.5;position:relative;overflow:hidden">
+              <div style="width:34px;height:34px;background:rgba(255,255,255,.06);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">⌚</div>
+              <div><div style="font-size:12px;font-weight:700;color:#fff">Apple</div><div style="font-size:9px;color:rgba(255,255,255,.35)">Health Kit</div></div>
+              <div style="position:absolute;top:6px;right:6px;background:rgba(255,255,255,.1);border-radius:5px;padding:2px 6px;font-size:8px;font-weight:700;color:rgba(255,255,255,.5)">EM BREVE</div>
+            </div>
+            <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:12px;display:flex;align-items:center;gap:10px;opacity:.5;position:relative;overflow:hidden">
+              <div style="width:34px;height:34px;background:rgba(255,255,255,.06);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🟩</div>
+              <div><div style="font-size:12px;font-weight:700;color:#fff">Fitbit</div><div style="font-size:9px;color:rgba(255,255,255,.35)">Google Fit</div></div>
+              <div style="position:absolute;top:6px;right:6px;background:rgba(255,255,255,.1);border-radius:5px;padding:2px 6px;font-size:8px;font-weight:700;color:rgba(255,255,255,.5)">EM BREVE</div>
+            </div>
+            <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:12px;display:flex;align-items:center;gap:10px;opacity:.5;position:relative;overflow:hidden">
+              <div style="width:34px;height:34px;background:rgba(255,255,255,.06);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🟠</div>
+              <div><div style="font-size:12px;font-weight:700;color:#fff">Wahoo</div><div style="font-size:9px;color:rgba(255,255,255,.35)">SYSTM</div></div>
+              <div style="position:absolute;top:6px;right:6px;background:rgba(255,255,255,.1);border-radius:5px;padding:2px 6px;font-size:8px;font-weight:700;color:rgba(255,255,255,.5)">EM BREVE</div>
+            </div>
           </div>
         </div>
-
-        <!-- Auth sheet (shown after brand selection) -->
+        <!-- Auth sheet — Garmin OAuth -->
         <div id="watch-auth-panel" style="display:none">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
             <button onclick="cancelWatchAuth()" style="background:rgba(255,255,255,.07);border:none;border-radius:8px;width:28px;height:28px;color:#fff;font-size:13px;cursor:pointer;font-family:inherit">←</button>
-            <div style="font-size:13px;font-weight:700;color:#fff" id="watch-auth-title">Ligar Garmin</div>
+            <div style="font-size:13px;font-weight:700;color:#fff">Ligar Garmin Connect</div>
           </div>
-          <div id="watch-auth-logo" style="text-align:center;font-size:48px;margin-bottom:12px"></div>
-          <div style="font-size:12px;color:rgba(255,255,255,.5);text-align:center;margin-bottom:16px;line-height:1.5" id="watch-auth-desc"></div>
-          <input id="watch-auth-email" type="email" placeholder="Email da conta" style="width:100%;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);border-radius:13px;padding:12px 14px;color:#fff;font-size:14px;font-family:inherit;outline:none;margin-bottom:8px"/>
-          <input id="watch-auth-pass" type="password" placeholder="Password" style="width:100%;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);border-radius:13px;padding:12px 14px;color:#fff;font-size:14px;font-family:inherit;outline:none;margin-bottom:14px"/>
-          <button onclick="authorizeWatch()" style="width:100%;padding:13px;border-radius:14px;background:#fff;border:none;color:#000;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">Autorizar acesso</button>
-          <div style="font-size:10px;color:rgba(255,255,255,.25);text-align:center;margin-top:10px">🔒 Ligação segura OAuth 2.0 · Os teus dados não são armazenados pela Trendout</div>
+          <!-- Garmin logo área -->
+          <div style="text-align:center;margin-bottom:20px">
+            <div style="width:72px;height:72px;background:linear-gradient(135deg,rgba(0,178,255,.15),rgba(0,178,255,.05));border:1.5px solid rgba(0,178,255,.3);border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
+              <svg width="36" height="36" viewBox="0 0 64 64" fill="none"><path d="M32 8C18.7 8 8 18.7 8 32s10.7 24 24 24 24-10.7 24-24S45.3 8 32 8zm0 4c11 0 20 9 20 20s-9 20-20 20S12 43 12 32s9-20 20-20zm0 6a14 14 0 000 28V18zm2 2.3l12 9.7H34V20.3z" fill="#00B2FF"/></svg>
+            </div>
+            <div style="font-size:15px;font-weight:800;color:#fff">Garmin Connect</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:4px">Autorização segura via Garmin Health API</div>
+          </div>
+          <!-- O que será sincronizado -->
+          <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px;margin-bottom:16px">
+            <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">O que vais sincronizar</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;align-items:center;gap:10px"><span style="font-size:16px">🏃</span><span style="font-size:12px;color:rgba(255,255,255,.7)">Atividades e percursos GPS</span><span style="margin-left:auto;font-size:11px;color:#4ADE80;font-weight:700">✓</span></div>
+              <div style="display:flex;align-items:center;gap:10px"><span style="font-size:16px">❤️</span><span style="font-size:12px;color:rgba(255,255,255,.7)">Frequência cardíaca e HRV</span><span style="margin-left:auto;font-size:11px;color:#4ADE80;font-weight:700">✓</span></div>
+              <div style="display:flex;align-items:center;gap:10px"><span style="font-size:16px">👟</span><span style="font-size:12px;color:rgba(255,255,255,.7)">Passos e calorias diárias</span><span style="margin-left:auto;font-size:11px;color:#4ADE80;font-weight:700">✓</span></div>
+              <div style="display:flex;align-items:center;gap:10px"><span style="font-size:16px">😴</span><span style="font-size:12px;color:rgba(255,255,255,.7)">Dados de sono</span><span style="margin-left:auto;font-size:11px;color:#4ADE80;font-weight:700">✓</span></div>
+            </div>
+          </div>
+          <!-- Botão OAuth -->
+          <button id="garmin-oauth-btn" onclick="authorizeGarmin()" style="width:100%;padding:15px;border-radius:14px;background:linear-gradient(135deg,#00B2FF,#0077CC);border:none;color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px">
+            <svg width="18" height="18" viewBox="0 0 64 64" fill="none"><path d="M32 8C18.7 8 8 18.7 8 32s10.7 24 24 24 24-10.7 24-24S45.3 8 32 8zm0 4c11 0 20 9 20 20s-9 20-20 20S12 43 12 32s9-20 20-20zm0 6a14 14 0 000 28V18zm2 2.3l12 9.7H34V20.3z" fill="#fff"/></svg>
+            Ligar com Garmin Connect
+          </button>
+          <div style="font-size:10px;color:rgba(255,255,255,.25);text-align:center;line-height:1.6">🔒 OAuth 2.0 · A Trendout nunca acede à tua password Garmin<br>Podes revogar o acesso a qualquer momento nas definições Garmin</div>
         </div>
 
       </div>
@@ -2424,6 +2455,15 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
         if (window.location.search.indexOf('premium=activated') >= 0) {
           // Show premium activated confirmation
           setTimeout(function() { toast('🎉 Premium activado! Bem-vindo ao Trendout Premium!'); }, 600);
+          history.replaceState(null, '', window.location.pathname);
+        }
+        // Handle Garmin OAuth callback
+        if (window.location.search.indexOf('garmin_connected=1') >= 0) {
+          setTimeout(function() {
+            _connectedWatch = {brand:'garmin', brandName:'Garmin', model:'Garmin Connect', icon:'⌚'};
+            finishWatchConnect();
+            toast('⌚ Garmin Connect ligado com sucesso!');
+          }, 600);
           history.replaceState(null, '', window.location.pathname);
         }
       }, 300);
@@ -5363,30 +5403,12 @@ function drawHappinessChart() {
 var _connectedWatch = null;
 var _watchAuthTarget = null;
 
-function connectWatch(brand, brandName, model, icon) {
-  _watchAuthTarget = {brand:brand, brandName:brandName, model:model, icon:icon};
-  var descriptions = {
-    garmin:  'Usa as tuas credenciais Garmin Connect para autorizar a sincronização de atividades, FC, passos e sono.',
-    suunto:  'Liga a tua conta Suunto App para importar treinos, GPS e métricas de saúde em tempo real.',
-    polar:   'Conecta o Polar Flow para partilhar treinos, potência, variabilidade de FC e dados de recuperação.',
-    coros:   'Autoriza o COROS App para sincronizar atividades, métricas de treino e dados de sono.',
-    apple:   'Liga com o Apple Health para importar workouts, FC, passos, sono e dados de saúde.',
-    fitbit:  'Conecta o Fitbit para partilhar atividades diárias, FC, sono e métricas de bem-estar.'
-  };
+function startGarminOAuth() {
+  _watchAuthTarget = {brand:'garmin', brandName:'Garmin', model:'Garmin Connect', icon:'⌚'};
   var grid = document.getElementById('watch-brand-grid');
-  var auth  = document.getElementById('watch-auth-panel');
-  var title = document.getElementById('watch-auth-title');
-  var logo  = document.getElementById('watch-auth-logo');
-  var desc  = document.getElementById('watch-auth-desc');
+  var auth = document.getElementById('watch-auth-panel');
   if(grid) grid.style.display='none';
   if(auth) auth.style.display='block';
-  if(title) title.textContent = 'Ligar '+brandName;
-  if(logo) logo.textContent = icon;
-  if(desc) desc.textContent = descriptions[brand]||'';
-  var emailEl = document.getElementById('watch-auth-email');
-  var passEl  = document.getElementById('watch-auth-pass');
-  if(emailEl) emailEl.value='';
-  if(passEl) passEl.value='';
 }
 
 function cancelWatchAuth() {
@@ -5397,21 +5419,64 @@ function cancelWatchAuth() {
   if(auth) auth.style.display='none';
 }
 
+function authorizeGarmin() {
+  var btn = document.getElementById('garmin-oauth-btn');
+  if(btn) { btn.innerHTML='⏳ A redirecionar para Garmin...'; btn.style.opacity='.7'; btn.style.cursor='not-allowed'; }
+
+  // Build Garmin OAuth URL via Supabase Edge Function
+  var SUPABASE_URL = 'https://btzcyvksxlmkosluytaz.supabase.co';
+  var userId = (_user && _user.id) ? _user.id : 'anon';
+
+  // Call Edge Function to get OAuth URL
+  fetch(SUPABASE_URL + '/functions/v1/garmin-oauth?action=start&user_id=' + userId, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' }
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.oauth_url) {
+      // Redirect to Garmin OAuth page
+      window.location.href = data.oauth_url;
+    } else {
+      // Edge function not deployed yet — show setup instructions
+      showGarminSetupGuide();
+    }
+  })
+  .catch(function() {
+    // Edge function not deployed yet — show setup instructions
+    showGarminSetupGuide();
+  });
+}
+
+function showGarminSetupGuide() {
+  var auth = document.getElementById('watch-auth-panel');
+  if (!auth) return;
+  auth.innerHTML = '<div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">'
+    + '<button onclick="cancelWatchAuth()" style="background:rgba(255,255,255,.07);border:none;border-radius:8px;width:28px;height:28px;color:#fff;font-size:13px;cursor:pointer;font-family:inherit">←</button>'
+    + '<div style="font-size:13px;font-weight:700;color:#fff">Ligar Garmin Connect</div></div>'
+    + '<div style="background:rgba(250,204,21,.08);border:1px solid rgba(250,204,21,.2);border-radius:14px;padding:16px;margin-bottom:16px">'
+    + '<div style="font-size:12px;font-weight:700;color:#FACC15;margin-bottom:8px">⚙️ A integração Garmin está quase pronta</div>'
+    + '<div style="font-size:11px;color:rgba(255,255,255,.6);line-height:1.8">'
+    + 'Para activar a sincronização automática com o Garmin Connect, o administrador precisa de:<br>'
+    + '1. Registar app em <strong style="color:#fff">developer.garmin.com</strong><br>'
+    + '2. Obter Consumer Key + Secret<br>'
+    + '3. Fazer deploy da Edge Function <code style="background:rgba(255,255,255,.1);padding:1px 5px;border-radius:4px">garmin-oauth</code> no Supabase<br>'
+    + '<br>Enquanto isso, usa o <strong style="color:#fff">📂 Importar GPX/FIT</strong> para importar treinos do Garmin Connect.</div></div>'
+    + '<button onclick="closeGarminSetup()" style="width:100%;padding:13px;border-radius:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">Percebido</button>';
+}
+
+function closeGarminSetup() {
+  cancelWatchAuth();
+}
+
+function connectWatch(brand, brandName, model, icon) {
+  // Legacy — only Garmin is active now
+  if (brand === 'garmin') startGarminOAuth();
+}
+
 function authorizeWatch() {
-  var email = (document.getElementById('watch-auth-email').value||'').trim();
-  var pass  = (document.getElementById('watch-auth-pass').value||'').trim();
-  if(!email||!pass) { toast('⚠️ Preenche email e password'); return; }
-  if(!_watchAuthTarget) return;
-
-  var btn = event.target;
-  btn.textContent = '⏳ A ligar...'; btn.style.opacity='.6'; btn.style.cursor='not-allowed';
-
-  // Simulate OAuth flow
-  setTimeout(function() {
-    _connectedWatch = _watchAuthTarget;
-    btn.textContent = 'Autorizar acesso'; btn.style.opacity='1'; btn.style.cursor='pointer';
-    finishWatchConnect();
-  }, 1800);
+  // Legacy stub
+  authorizeGarmin();
 }
 
 function finishWatchConnect() {
