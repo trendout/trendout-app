@@ -691,16 +691,24 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
 
     <!-- Payment method -->
     <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Método de pagamento</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:20px">
-      <button onclick="selectPayment('mbway',this)" id="pay-mbway" style="padding:12px;border-radius:14px;background:rgba(255,255,255,.04);border:2px solid rgba(255,255,255,.12);color:rgba(255,255,255,.6);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .2s">
-        <span style="font-size:22px">📱</span><span>MB WAY</span>
+    <!-- PayPal/Cartão activo — MB WAY e Multibanco em breve -->
+    <div style="margin-bottom:16px">
+      <button onclick="selectPayment('paypal',this)" id="pay-paypal" style="width:100%;padding:14px;border-radius:14px;background:rgba(250,204,21,.06);border:2px solid rgba(250,204,21,.3);color:#FACC15;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s">
+        <span style="font-size:22px">🅿️</span><span>PayPal / Cartão de crédito</span>
       </button>
-      <button onclick="selectPayment('multibanco',this)" id="pay-multibanco" style="padding:12px;border-radius:14px;background:rgba(255,255,255,.04);border:2px solid rgba(255,255,255,.12);color:rgba(255,255,255,.6);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .2s">
-        <span style="font-size:22px">🏧</span><span>Multibanco</span>
-      </button>
-      <button onclick="selectPayment('paypal',this)" id="pay-paypal" style="padding:12px;border-radius:14px;background:rgba(255,255,255,.04);border:2px solid rgba(255,255,255,.12);color:rgba(255,255,255,.6);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .2s">
-        <span style="font-size:22px">🅿️</span><span>PayPal / Cartão</span>
-      </button>
+    </div>
+    <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Em breve</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;opacity:.45;pointer-events:none">
+      <div style="padding:12px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;align-items:center;gap:4px;position:relative">
+        <span style="font-size:22px">📱</span>
+        <span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.5)">MB WAY</span>
+        <div style="position:absolute;top:6px;right:6px;background:rgba(255,255,255,.1);border-radius:4px;padding:1px 6px;font-size:8px;font-weight:700;color:rgba(255,255,255,.5)">EM BREVE</div>
+      </div>
+      <div style="padding:12px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;align-items:center;gap:4px;position:relative">
+        <span style="font-size:22px">🏧</span>
+        <span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.5)">Multibanco</span>
+        <div style="position:absolute;top:6px;right:6px;background:rgba(255,255,255,.1);border-radius:4px;padding:1px 6px;font-size:8px;font-weight:700;color:rgba(255,255,255,.5)">EM BREVE</div>
+      </div>
     </div>
 
     <!-- Payment forms -->
@@ -2803,7 +2811,17 @@ function drawTileMap(canvasId, lat, lng, zoom, route, callback, hideDot) {
             ctx.drawImage(img,x,y,tileSize,tileSize);
             tryDone();
           };
-          img.onerror=function(){ tryDone(); };
+          img.onerror=function(){
+            // 403 on one subdomain — try another subdomain silently
+            if (!img._retried) {
+              img._retried = true;
+              var subs2 = ['a','b','c'].filter(function(s){ return u.indexOf('/'+s+'.')  < 0 || true; });
+              var nextSub = subs2[(subs2.indexOf(u.match(/\/\/([abc])\./)?.[1]) + 1) % 3];
+              img.src = u.replace(/\/\/[abc]\.tile/, '//' + nextSub + '.tile');
+            } else {
+              tryDone();
+            }
+          };
           img.src=u;
         }
       })(px,py,key,url);
@@ -3497,6 +3515,11 @@ function closeUpgrade() {
 
 function selectPlan(plan) {
   _selectedPlan = plan;
+  // Auto-activate PayPal since it's the only active method
+  if (_selectedPayment !== 'paypal') {
+    _selectedPayment = 'paypal';
+    setTimeout(function(){ var btn=document.getElementById('pay-paypal'); if(btn) selectPayment('paypal',btn); }, 50);
+  }
   var annual  = document.getElementById('plan-annual');
   var monthly = document.getElementById('plan-monthly');
   var checkA  = document.getElementById('plan-annual-check');
@@ -4766,20 +4789,40 @@ function renderActSplits(a) {
   var _distKm = a.distKm || parseFloat((a.dist||'0').replace(/[^0-9.]/g,'')) || 0;
   var _totalSecs = a.totalSeconds || a.total_seconds || 0;
   if (!_totalSecs && a.dur) {
-    var _dp = (a.dur||'0:00').replace(/[^0-9:]/g,'').split(':');
-    _totalSecs = (parseInt(_dp[0]||0)*60 + parseInt(_dp[1]||0)) * 60;
+    var _dur = (a.dur||'').trim();
+    if (_dur.indexOf('h') >= 0) {
+      // Format: "1h 30m" or "1h30m"
+      var _hM = _dur.match(/(\d+)h/), _mM = _dur.match(/(\d+)\s*m/);
+      _totalSecs = ((_hM ? parseInt(_hM[1]) : 0) * 3600) + ((_mM ? parseInt(_mM[1]) : 0) * 60);
+    } else if (_dur.indexOf(':') >= 0) {
+      var _dp = _dur.replace(/[^0-9:]/g,'').split(':');
+      if (_dp.length === 3) {
+        // h:mm:ss
+        _totalSecs = parseInt(_dp[0]||0)*3600 + parseInt(_dp[1]||0)*60 + parseInt(_dp[2]||0);
+      } else {
+        // mm:ss — parts[0]=minutes, parts[1]=seconds
+        _totalSecs = parseInt(_dp[0]||0)*60 + parseInt(_dp[1]||0);
+      }
+    } else if (!isNaN(parseFloat(_dur))) {
+      _totalSecs = parseFloat(_dur) * 60;
+    }
   }
   if (!splits.length && _distKm > 0 && _totalSecs > 0) {
     var totalKm = Math.floor(_distKm);
     var pacePerKm = _totalSecs / _distKm;
+    if (!pacePerKm || !isFinite(pacePerKm) || isNaN(pacePerKm)) pacePerKm = 360; // fallback 6:00/km
     for (var i = 0; i < totalKm; i++) {
       var variation = (Math.random() - 0.5) * 20;
-      splits.push({ km: i+1, seconds: Math.round(pacePerKm + variation) });
+      var splitSecs = Math.round(pacePerKm + variation);
+      if (isNaN(splitSecs) || !isFinite(splitSecs) || splitSecs <= 0) splitSecs = Math.round(pacePerKm);
+      splits.push({ km: i+1, seconds: splitSecs });
     }
     // Partial last km
     var remainder = _distKm - totalKm;
     if (remainder > 0.05) {
-      splits.push({ km: totalKm + parseFloat(remainder.toFixed(2)), seconds: Math.round(pacePerKm * remainder), partial: true });
+      var partialSecs = Math.round(pacePerKm * remainder);
+      if (isNaN(partialSecs) || !isFinite(partialSecs) || partialSecs <= 0) partialSecs = Math.round(pacePerKm);
+      splits.push({ km: totalKm + parseFloat(remainder.toFixed(2)), seconds: partialSecs, partial: true });
     }
   }
 
@@ -4797,9 +4840,10 @@ function renderActSplits(a) {
   var worstPace = Math.max.apply(null, paces);
 
   container.innerHTML = splits.map(function(s, i) {
-    var mins = Math.floor(s.seconds/60);
-    var secs = Math.round(s.seconds%60);
-    var paceStr = mins + ':' + (secs < 10 ? '0' : '') + secs;
+    var splitSec = (s.seconds && isFinite(s.seconds) && !isNaN(s.seconds) && s.seconds > 0) ? s.seconds : null;
+    var mins = splitSec ? Math.floor(splitSec/60) : 0;
+    var secs = splitSec ? Math.round(splitSec%60) : 0;
+    var paceStr = splitSec ? (mins + ':' + (secs < 10 ? '0' : '') + secs) : '--:--';
     var isBest  = !s.partial && s.seconds === bestPace;
     var pct = worstPace > bestPace ? (1 - (s.seconds - bestPace)/(worstPace - bestPace)) * 100 : 70;
     var barColor = isBest ? '#22C55E' : (s.seconds < (bestPace + worstPace)/2 ? '#4ADE80' : '#60A5FA');

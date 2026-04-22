@@ -14,15 +14,11 @@ html,body{background:#000;color:#fff;font-family:'Helvetica Neue',Helvetica,Aria
 #loading{position:fixed;inset:0;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999}
 .spinner{width:28px;height:28px;border:2.5px solid rgba(255,255,255,.1);border-top-color:#FACC15;border-radius:50%;animation:spin .8s linear infinite;margin-top:20px}
 @keyframes spin{to{transform:rotate(360deg)}}
-/* Plan selector */
+@keyframes drawCircle { to { stroke-dashoffset: 0; } }
+@keyframes drawCheck  { to { stroke-dashoffset: 0; } }
+@keyframes pulse { 0%,100%{opacity:.4} 50%{opacity:1} }
 .plan-card{background:rgba(255,255,255,.04);border:2px solid rgba(255,255,255,.1);border-radius:16px;padding:16px;cursor:pointer;transition:all .2s;position:relative}
 .plan-card.selected{border-color:#FACC15;background:rgba(250,204,21,.06)}
-/* Payment method */
-.pay-method{flex:1;padding:10px 8px;border-radius:12px;background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;text-align:center}
-.pay-method.selected{border-color:#FACC15;background:rgba(250,204,21,.08);color:#FACC15}
-/* Form inputs */
-input[type=tel]{width:100%;padding:14px 16px;border-radius:12px;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.12);color:#fff;font-size:16px;font-family:inherit;outline:none;-webkit-appearance:none}
-input[type=tel]:focus{border-color:rgba(250,204,21,.5)}
 </style>
 </head>
 <body>
@@ -33,11 +29,11 @@ input[type=tel]:focus{border-color:rgba(250,204,21,.5)}
   <div class="spinner"></div>
 </div>
 
-<div id="page" style="display:none;max-width:430px;margin:0 auto;overflow-y:auto;min-height:100dvh;background:#000">
+<div id="page" style="display:none;max-width:430px;margin:0 auto;min-height:100dvh;background:#000;overflow-y:auto">
   <div style="max-width:430px;margin:0 auto;padding:max(env(safe-area-inset-top,0px),20px) 20px max(env(safe-area-inset-bottom,0px),32px)">
 
     <!-- Back -->
-    <button onclick="closeUpgrade()" style="background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.12);border-radius:12px;width:36px;height:36px;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-bottom:28px">←</button>
+    <button onclick="history.back()" style="background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.12);border-radius:12px;width:36px;height:36px;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-bottom:28px">←</button>
 
     <!-- Hero -->
     <div style="text-align:center;margin-bottom:32px;position:relative">
@@ -111,16 +107,24 @@ input[type=tel]:focus{border-color:rgba(250,204,21,.5)}
 
     <!-- Payment method -->
     <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Método de pagamento</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:20px">
-      <button onclick="selectPayment('mbway',this)" id="pay-mbway" style="padding:12px;border-radius:14px;background:rgba(255,255,255,.04);border:2px solid rgba(255,255,255,.12);color:rgba(255,255,255,.6);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .2s">
-        <span style="font-size:22px">📱</span><span>MB WAY</span>
+    <!-- PayPal/Cartão activo — MB WAY e Multibanco em breve -->
+    <div style="margin-bottom:16px">
+      <button onclick="selectPayment('paypal',this)" id="pay-paypal" style="width:100%;padding:14px;border-radius:14px;background:rgba(250,204,21,.06);border:2px solid rgba(250,204,21,.3);color:#FACC15;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s">
+        <span style="font-size:22px">🅿️</span><span>PayPal / Cartão de crédito</span>
       </button>
-      <button onclick="selectPayment('multibanco',this)" id="pay-multibanco" style="padding:12px;border-radius:14px;background:rgba(255,255,255,.04);border:2px solid rgba(255,255,255,.12);color:rgba(255,255,255,.6);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .2s">
-        <span style="font-size:22px">🏧</span><span>Multibanco</span>
-      </button>
-      <button onclick="selectPayment('paypal',this)" id="pay-paypal" style="padding:12px;border-radius:14px;background:rgba(255,255,255,.04);border:2px solid rgba(255,255,255,.12);color:rgba(255,255,255,.6);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .2s">
-        <span style="font-size:22px">🅿️</span><span>PayPal / Cartão</span>
-      </button>
+    </div>
+    <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Em breve</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;opacity:.45;pointer-events:none">
+      <div style="padding:12px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;align-items:center;gap:4px;position:relative">
+        <span style="font-size:22px">📱</span>
+        <span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.5)">MB WAY</span>
+        <div style="position:absolute;top:6px;right:6px;background:rgba(255,255,255,.1);border-radius:4px;padding:1px 6px;font-size:8px;font-weight:700;color:rgba(255,255,255,.5)">EM BREVE</div>
+      </div>
+      <div style="padding:12px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;align-items:center;gap:4px;position:relative">
+        <span style="font-size:22px">🏧</span>
+        <span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.5)">Multibanco</span>
+        <div style="position:absolute;top:6px;right:6px;background:rgba(255,255,255,.1);border-radius:4px;padding:1px 6px;font-size:8px;font-weight:700;color:rgba(255,255,255,.5)">EM BREVE</div>
+      </div>
     </div>
 
     <!-- Payment forms -->
@@ -201,59 +205,42 @@ input[type=tel]:focus{border-color:rgba(250,204,21,.5)}
 </div>
 
 <script>
+// ── Supabase ──
 var SUPA_URL = 'https://btzcyvksxlmkosluytaz.supabase.co';
 var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ0emN5dmtzeGxta29zbHV5dGF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NDU3NzYsImV4cCI6MjA4OTQyMTc3Nn0.f9pjtUyp7SlJ8dal5xJ180TD9TWvVWDj86u9ZLmyUs0';
 var _db, _user;
+var _isPremium = false;
+var _upgradeFromApp = false;
+var _selectedPlan = 'annual';
+var _selectedPayment = 'paypal';
+var _paymentInProgress = false;
 
-// ── Init Supabase ──
-document.addEventListener('DOMContentLoaded', function() {
-  _db = supabase.createClient(SUPA_URL, SUPA_KEY, {
-    auth: { persistSession: true, autoRefreshToken: true, storageKey: 'trendout_auth' }
-  });
-  _db.auth.getSession().then(function(res) {
-    if (res.data && res.data.session) {
-      _user = res.data.session.user;
-    }
-    // Show page regardless - non-logged users can still see plans
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('page').style.display = 'block';
-    // Init plan UI
-    selectPlan('annual');
-    updateOrderSummary();
-  }).catch(function() {
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('page').style.display = 'block';
-    selectPlan('annual');
-  });
-});
-
-// ── Override closeUpgrade to go back ──
-function closeUpgrade() {
-  // Go back to previous page or to app
-  if (document.referrer && document.referrer.indexOf('trendout') >= 0) {
-    history.back();
-  } else {
-    window.location.href = '/';
-  }
-}
-
-// ── Override toast (not available in standalone) ──
+// ── Toast ──
 function toast(msg) {
   var t = document.getElementById('premium-toast');
   if (!t) {
     t = document.createElement('div');
     t.id = 'premium-toast';
-    t.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#fff;color:#000;padding:11px 20px;border-radius:14px;font-size:13px;font-weight:600;z-index:9999;max-width:calc(100vw - 40px);text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.3);transition:opacity .3s';
+    t.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#fff;color:#000;padding:11px 20px;border-radius:14px;font-size:13px;font-weight:600;z-index:9999;max-width:calc(100vw - 40px);text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.3);transition:opacity .3s;white-space:normal';
     document.body.appendChild(t);
   }
-  t.textContent = msg;
-  t.style.opacity = '1';
+  t.textContent = msg; t.style.opacity = '1';
   clearTimeout(t._timer);
   t._timer = setTimeout(function() { t.style.opacity = '0'; }, 3000);
 }
 
-// ── Override premium activation to save in Supabase ──
-async function activatePremium(subscriptionId) {
+// ── pad helper ──
+function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+// ── Navigation ──
+function closeUpgrade() {
+  if (document.referrer && document.referrer.indexOf('trendout') >= 0) history.back();
+  else window.location.href = '/';
+}
+function navTo() {}
+
+// ── Activate premium in Supabase ──
+async function activatePremiumInDB(subscriptionId) {
   if (_user && _db) {
     try {
       await _db.from('profiles').upsert({
@@ -263,49 +250,23 @@ async function activatePremium(subscriptionId) {
         subscription_id: subscriptionId,
         premium_since: new Date().toISOString()
       }, { onConflict: 'id' });
-      console.log('[premium] Activated in Supabase');
-    } catch(e) {
-      console.error('[premium] Supabase save error:', e);
-    }
+    } catch(e) { console.error('[premium] DB error:', e); }
   }
-  // Redirect back to app after 2s
-  setTimeout(function() {
-    window.location.href = '/?premium=activated';
-  }, 2000);
+  setTimeout(function() { window.location.href = '/?premium=activated'; }, 2200);
 }
 
-// ── navTo stub (not used in standalone) ──
-function navTo() {}
+// ── Override updatePremiumUI (not used standalone) ──
+function updatePremiumUI() {}
 
-var _isPremium = false;
-var _upgradeFromApp = false;
-var _selectedPlan = 'annual';
-var _selectedPayment = 'mbway';
-
-function openUpgrade() {
-  var shell = document.getElementById('app-shell');
-  _upgradeFromApp = shell && shell.classList.contains('active');
-  if (shell) shell.classList.remove('active');
-  go('s-upgrade');
-  var el = document.getElementById('s-upgrade');
-  if (el) el.scrollTop = 0;
-}
-
-function closeUpgrade() {
-  var shell = document.getElementById('app-shell');
-  var wasInApp = shell && shell.classList.contains('was-active-before-upgrade');
-  // Remove upgrade screen
-  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
-  if (_upgradeFromApp) {
-    // Return to app
-    if (shell) shell.classList.add('active');
-  } else {
-    go('s-welcome');
-  }
-}
+// ── Payment functions from main app ──
 
 function selectPlan(plan) {
   _selectedPlan = plan;
+  // Auto-activate PayPal since it's the only active method
+  if (_selectedPayment !== 'paypal') {
+    _selectedPayment = 'paypal';
+    setTimeout(function(){ var btn=document.getElementById('pay-paypal'); if(btn) selectPayment('paypal',btn); }, 50);
+  }
   var annual  = document.getElementById('plan-annual');
   var monthly = document.getElementById('plan-monthly');
   var checkA  = document.getElementById('plan-annual-check');
@@ -382,6 +343,250 @@ function selectPayment(method, btn) {
   }
 }
 
+function loadPayPalSDK(callback) {
+  if (typeof paypal !== 'undefined') { callback(); return; }
+  var script = document.createElement('sc' + 'ript');
+  script.src = 'https://www.paypal.com/sdk/js?client-id=AeNcSJxwfC1EhVHM6xpVBsEL0vle5-VxHxuk2MOgJb3OTbHnaC8bT7jgNVk1mZoXrRLT0craKWwaXvUY&vault=true&intent=subscription&currency=EUR';
+  script.onload = function() { callback(); };
+  script.onerror = function() {
+    toast('❌ Erro ao carregar PayPal. Verifica a tua ligação.');
+  };
+  document.head.appendChild(script);
+}
+
+function submitPayment() {
+  // Validate
+  if (_selectedPayment==='mbway') {
+    var phone = (document.getElementById('pay-mbway-num').value||'').replace(/\s/g,'');
+    if(phone.length<9) { toast('⚠️ Introduz um número de telemóvel válido'); return; }
+    showPaymentSuccess();
+    return;
+  } else if (_selectedPayment==='paypal') {
+    renderPayPalButtons();
+    return;
+  }
+
+  // Show success for card/multibanco
+  showPaymentSuccess();
+}
+
+function showPaymentSuccess() {
+  _isPremium = true;
+  updatePremiumUI();
+
+  // Remove upgrade screen
+  var upgradeScreen = document.getElementById('s-upgrade');
+  if (upgradeScreen) upgradeScreen.style.display = 'none';
+  var shell = document.getElementById('app-shell');
+
+  // Build full premium success overlay with confetti
+  var overlay = document.createElement('div');
+  overlay.id = 'premium-success-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:#000;z-index:99999;overflow-y:auto;font-family:\'DM Sans\',sans-serif';
+
+  overlay.innerHTML = `
+    <canvas id="prem-confetti" style="position:fixed;inset:0;pointer-events:none;z-index:1"></canvas>
+    <div style="position:relative;z-index:2;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center">
+
+      <!-- Checkmark animado -->
+      <div style="width:90px;height:90px;margin-bottom:24px;position:relative">
+        <svg viewBox="0 0 90 90" style="width:90px;height:90px">
+          <circle cx="45" cy="45" r="42" fill="none" stroke="rgba(34,197,94,.2)" stroke-width="3"/>
+          <circle cx="45" cy="45" r="42" fill="none" stroke="#22C55E" stroke-width="3"
+            stroke-dasharray="264" stroke-dashoffset="264"
+            style="transform:rotate(-90deg);transform-origin:45px 45px;transition:stroke-dashoffset 1s ease;animation:drawCircle 1s .2s ease forwards"/>
+          <polyline points="25,47 38,60 65,33" fill="none" stroke="#22C55E" stroke-width="4"
+            stroke-linecap="round" stroke-linejoin="round"
+            stroke-dasharray="60" stroke-dashoffset="60"
+            style="animation:drawCheck .4s .9s ease forwards"/>
+        </svg>
+      </div>
+
+      <div style="font-size:13px;font-weight:700;color:rgba(250,204,21,.8);text-transform:uppercase;letter-spacing:2px;margin-bottom:12px">✦ Premium Activado</div>
+      <div style="font-size:28px;font-weight:900;color:#fff;line-height:1.2;margin-bottom:10px">Bem-vindo ao<br><span style="color:#FACC15">Trendout Premium!</span></div>
+      <div style="font-size:14px;color:rgba(255,255,255,.5);line-height:1.7;max-width:300px;margin-bottom:32px">
+        A tua subscrição está activa. Tens agora acesso a todos os coaches de IA e funcionalidades avançadas.
+      </div>
+
+      <!-- Features unlocked -->
+      <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:320px;margin-bottom:32px">
+        ${[
+          ['✨','Insights IA','Correlação humor × treino','#7C3AED'],
+          ['🌱','Coach de Recuperação','Plano semanal personalizado','#22C55E'],
+          ['🥗','Coach de Alimentação','Nutrição adaptada ao teu treino','#22C55E'],
+          ['📊','Performance Avançada','VO₂, heatmap e recordes','#3B82F6']
+        ].map(function(f){
+          return '<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:13px 16px;display:flex;align-items:center;gap:12px;text-align:left">'
+            +'<div style="width:38px;height:38px;background:'+f[3]+'22;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">'+f[0]+'</div>'
+            +'<div><div style="font-size:13px;font-weight:700;color:#fff">'+f[1]+'</div>'
+            +'<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">'+f[2]+'</div></div>'
+            +'<div style="margin-left:auto;color:#22C55E;font-size:16px">✓</div></div>';
+        }).join('')}
+      </div>
+
+      <button onclick="document.getElementById('premium-success-overlay').remove();closeUpgrade();navTo('home');"
+        style="width:100%;max-width:320px;padding:16px;border-radius:16px;background:#FACC15;border:none;color:#000;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;margin-bottom:16px">
+        Começar a usar o Premium ✨
+      </button>
+      <div style="font-size:11px;color:rgba(255,255,255,.25)">Podes gerir a tua subscrição a qualquer momento</div>
+    </div>
+
+    <style>
+      @keyframes drawCircle { to { stroke-dashoffset: 0; } }
+      @keyframes drawCheck  { to { stroke-dashoffset: 0; } }
+    </style>
+  `;
+
+  document.body.appendChild(overlay);
+
+  // Launch confetti
+  setTimeout(function() { launchPremiumConfetti(); }, 300);
+}
+
+function launchPremiumConfetti() {
+  var canvas = document.getElementById('prem-confetti');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  var colors = ['#FACC15','#A78BFA','#22C55E','#60A5FA','#F97316','#fff','#F472B6','#2DD4BF'];
+
+  // Draw star shape
+  function drawStar(ctx, cx, cy, r, points, rot) {
+    var inner = r * 0.4;
+    ctx.beginPath();
+    for (var i = 0; i < points * 2; i++) {
+      var angle = (i * Math.PI / points) + rot;
+      var radius = i % 2 === 0 ? r : inner;
+      i === 0 ? ctx.moveTo(cx + radius*Math.cos(angle), cy + radius*Math.sin(angle))
+              : ctx.lineTo(cx + radius*Math.cos(angle), cy + radius*Math.sin(angle));
+    }
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // Draw lightning bolt
+  function drawLightning(ctx, x, y, size) {
+    ctx.beginPath();
+    ctx.moveTo(x + size*0.4,  y);
+    ctx.lineTo(x,             y + size*0.45);
+    ctx.lineTo(x + size*0.35, y + size*0.45);
+    ctx.lineTo(x - size*0.1,  y + size);
+    ctx.lineTo(x + size*0.55, y + size*0.4);
+    ctx.lineTo(x + size*0.2,  y + size*0.4);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // Draw diamond
+  function drawDiamond(ctx, x, y, w, h) {
+    ctx.beginPath();
+    ctx.moveTo(x, y - h/2);
+    ctx.lineTo(x + w/2, y);
+    ctx.lineTo(x, y + h/2);
+    ctx.lineTo(x - w/2, y);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  var pieces = [];
+  var shapes = ['star','lightning','diamond','circle','ribbon'];
+  for (var i = 0; i < 80; i++) {
+    pieces.push({
+      x:     Math.random() * canvas.width,
+      y:     -Math.random() * canvas.height,
+      size:  Math.random() * 12 + 6,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      rot:   Math.random() * Math.PI * 2,
+      vx:    (Math.random() - 0.5) * 2.5,
+      vy:    Math.random() * 3 + 1.5,
+      vr:    (Math.random() - 0.5) * 0.12,
+      shape: shapes[Math.floor(Math.random() * shapes.length)],
+      alpha: 0.7 + Math.random() * 0.3,
+      wobble: Math.random() * Math.PI * 2,
+      wobbleSpeed: 0.03 + Math.random() * 0.04
+    });
+  }
+
+  // Ambient particles (mystical floating orbs)
+  var orbs = [];
+  for (var j = 0; j < 20; j++) {
+    orbs.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 3 + 1,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      vy: -(Math.random() * 0.8 + 0.3),
+      alpha: Math.random() * 0.5 + 0.2,
+      life: Math.random() * 100
+    });
+  }
+
+  var frame = 0;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    var fadeAlpha = Math.max(0, 1 - frame / 220);
+
+    // Draw orbs
+    orbs.forEach(function(o) {
+      o.y  += o.vy;
+      o.life++;
+      o.alpha = Math.sin(o.life * 0.05) * 0.4 + 0.2;
+      if (o.y < -10) { o.y = canvas.height + 10; o.x = Math.random() * canvas.width; }
+      var grad = ctx.createRadialGradient(o.x, o.y, 0, o.x, o.y, o.r * 3);
+      grad.addColorStop(0, o.color);
+      grad.addColorStop(1, 'transparent');
+      ctx.globalAlpha = o.alpha * fadeAlpha;
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(o.x, o.y, o.r * 3, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // Draw confetti pieces
+    pieces.forEach(function(p) {
+      p.wobble += p.wobbleSpeed;
+      p.x += p.vx + Math.sin(p.wobble) * 0.8;
+      p.y += p.vy;
+      p.rot += p.vr;
+      if (p.y > canvas.height + 20) {
+        p.y = -20; p.x = Math.random() * canvas.width;
+      }
+
+      ctx.save();
+      ctx.globalAlpha = p.alpha * fadeAlpha;
+      ctx.fillStyle = p.color;
+      // Glow effect
+      ctx.shadowColor = p.color;
+      ctx.shadowBlur = 6;
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+
+      if (p.shape === 'star') {
+        drawStar(ctx, 0, 0, p.size/2, 4, p.rot);
+      } else if (p.shape === 'lightning') {
+        drawLightning(ctx, -p.size/2, -p.size/2, p.size);
+      } else if (p.shape === 'diamond') {
+        drawDiamond(ctx, 0, 0, p.size * 0.8, p.size);
+      } else if (p.shape === 'circle') {
+        ctx.beginPath();
+        ctx.arc(0, 0, p.size/2.5, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        // ribbon
+        ctx.fillRect(-p.size/2, -p.size/6, p.size, p.size/3);
+      }
+      ctx.restore();
+    });
+
+    frame++;
+    if (frame < 260) requestAnimationFrame(draw);
+    else ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  draw();
+}
+
 function formatCardNumber(input) {
   var v = input.value.replace(/\D/g,'').substring(0,16);
   input.value = v.replace(/(\d{4})(?=\d)/g,'$1 ');
@@ -405,64 +610,115 @@ function formatPhone(input) {
   input.value = v.replace(/(\d{3})(?=\d)/g,'$1 ');
 }
 
-function submitPayment() {
-  // Validate
-  if (_selectedPayment==='mbway') {
-    var phone = (document.getElementById('pay-mbway-num').value||'').replace(/\s/g,'');
-    if(phone.length<9) { toast('⚠️ Introduz um número de telemóvel válido'); return; }
-    showPaymentSuccess();
-    return;
-  } else if (_selectedPayment==='paypal') {
-    renderPayPalButtons();
-    return;
+function renderPayPalButtons() {
+  _paymentInProgress = true;
+  var container = document.getElementById('paypal-button-container');
+  if (!container) return;
+
+  // Show the PayPal form
+  document.querySelectorAll('[id^="form-"]').forEach(function(f){ f.style.display='none'; });
+  var paypalForm = document.getElementById('form-paypal');
+  if (paypalForm) paypalForm.style.display = 'block';
+
+  // Hide submit button
+  var submitBtn = document.getElementById('pay-submit-btn');
+  if (submitBtn) submitBtn.style.display = 'none';
+
+  container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,.45);font-size:12px;padding:20px">⏳ A carregar PayPal...</div>';
+
+  loadPayPalSDK(function() {
+    container.innerHTML = '';
+    var planId = _selectedPlan === 'annual' ? 'P-2PW97776220834152NG57SYQ' : 'P-6KS56165DL5530622NG57R2Y';
+
+  try {
+    paypal.Buttons({
+      style: {
+        shape:  'rect',
+        color:  'gold',
+        layout: 'vertical',
+        label:  'subscribe'
+      },
+      createSubscription: function(data, actions) {
+        return actions.subscription.create({ plan_id: planId });
+      },
+      onApprove: function(data, actions) {
+        _paymentInProgress = false;
+        console.log('PayPal subscription approved:', data.subscriptionID);
+        if (!data.subscriptionID) {
+          toast('❌ Pagamento não confirmado. Tenta novamente.');
+          return;
+        }
+        // Activate premium only after real approval
+        _isPremium = true;
+        updatePremiumUI();
+        toast('🎉 Premium activado! Bem-vindo!');
+        // Save to Supabase
+        if (_db) {
+          _db.auth.getUser().then(function(res) {
+            if (res.data && res.data.user) {
+              _db.from('profiles').upsert({
+                id: res.data.user.id,
+                is_premium: true,
+                premium_plan: _selectedPlan,
+                premium_provider: 'paypal',
+                premium_subscription_id: data.subscriptionID
+              }, { onConflict: 'id' });
+            }
+          });
+        }
+        showPaymentSuccess();
+      },
+      onError: function(err) {
+        _paymentInProgress = false;
+        console.error('PayPal error:', err);
+        toast('❌ Erro no pagamento PayPal. Tenta novamente.');
+        var submitBtn = document.getElementById('pay-submit-btn');
+        if (submitBtn) submitBtn.style.display = 'block';
+      },
+      onCancel: function() {
+        _paymentInProgress = false;
+        toast('⚠️ Pagamento cancelado.');
+        var submitBtn = document.getElementById('pay-submit-btn');
+        if (submitBtn) submitBtn.style.display = 'block';
+      }
+    }).render('#paypal-button-container');
+  } catch(e) {
+    console.error('PayPal render error:', e);
+    container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,.4);font-size:12px;padding:16px">❌ Erro ao carregar PayPal. Tenta novamente.</div>';
+    var submitBtn = document.getElementById('pay-submit-btn');
+    if (submitBtn) submitBtn.style.display = 'block';
   }
-
-  // Show success for card/multibanco
-  showPaymentSuccess();
+  }); // end loadPayPalSDK
 }
 
-function loadPayPalSDK(callback) {
-  if (typeof paypal !== 'undefined') { callback(); return; }
-  var script = document.createElement('sc' + 'ript');
-  script.src = 'https://www.paypal.com/sdk/js?client-id=AeNcSJxwfC1EhVHM6xpVBsEL0vle5-VxHxuk2MOgJb3OTbHnaC8bT7jgNVk1mZoXrRLT0craKWwaXvUY&vault=true&intent=subscription&currency=EUR';
-  script.onload = function() { callback(); };
-  script.onerror = function() {
-    toast('❌ Erro ao carregar PayPal. Verifica a tua ligação.');
-  };
-  document.head.appendChild(script);
-}
-
-
-// ── Override onApprove to use activatePremium ──
-// Patch renderPayPalButtons to call activatePremium on success
+// ── Override onApprove to save to Supabase ──
 var _origRenderPayPal = renderPayPalButtons;
 renderPayPalButtons = function() {
   _paymentInProgress = true;
   var container = document.getElementById('paypal-button-container');
   if (!container) return;
-  document.querySelectorAll('[id^="form-"]').forEach(function(f){ f.style.display='none'; });
+  document.querySelectorAll('[id^="form-"]').forEach(function(f) { f.style.display = 'none'; });
   var paypalForm = document.getElementById('form-paypal');
   if (paypalForm) paypalForm.style.display = 'block';
   var submitBtn = document.getElementById('pay-submit-btn');
   if (submitBtn) submitBtn.style.display = 'none';
   container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,.45);font-size:12px;padding:20px">⏳ A carregar PayPal...</div>';
+
   loadPayPalSDK(function() {
     container.innerHTML = '';
     var planId = _selectedPlan === 'annual' ? 'P-2PW97776220834152NG57SYQ' : 'P-6KS56165DL5530622NG57R2Y';
     try {
       paypal.Buttons({
-        style: { shape:'rect', color:'gold', layout:'vertical', label:'subscribe' },
+        style: { shape: 'rect', color: 'gold', layout: 'vertical', label: 'subscribe' },
         createSubscription: function(data, actions) {
           return actions.subscription.create({ plan_id: planId });
         },
         onApprove: function(data) {
           _paymentInProgress = false;
-          if (!data.subscriptionID) {
-            toast('❌ Pagamento não confirmado. Tenta novamente.');
-            return;
-          }
+          if (!data.subscriptionID) { toast('❌ Pagamento não confirmado. Tenta novamente.'); return; }
           toast('✅ Premium activado! Bem-vindo ao Trendout Premium!');
-          activatePremium(data.subscriptionID);
+          activatePremiumInDB(data.subscriptionID);
+          showPaymentSuccess();
         },
         onError: function(err) {
           _paymentInProgress = false;
@@ -479,6 +735,33 @@ renderPayPalButtons = function() {
     }
   });
 };
+
+// ── Init ──
+document.addEventListener('DOMContentLoaded', function() {
+  _db = supabase.createClient(SUPA_URL, SUPA_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true, storageKey: 'trendout_auth' }
+  });
+  _db.auth.getSession().then(function(res) {
+    if (res.data && res.data.session) _user = res.data.session.user;
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('page').style.display = 'block';
+    // Default: annual plan + PayPal active
+    selectPlan('annual');
+    // Auto-trigger PayPal buttons
+    setTimeout(function() {
+      var btn = document.getElementById('pay-paypal');
+      if (btn) selectPayment('paypal', btn);
+    }, 300);
+  }).catch(function() {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('page').style.display = 'block';
+    selectPlan('annual');
+    setTimeout(function() {
+      var btn = document.getElementById('pay-paypal');
+      if (btn) selectPayment('paypal', btn);
+    }, 300);
+  });
+});
 </script>
 </body>
 </html>
