@@ -1652,7 +1652,7 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
   </div>
 
 <!-- ═══ GPX/FIT IMPORT OVERLAY ═══ -->
-<div id="gpx-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:1000;overflow-y:auto;-webkit-overflow-scrolling:touch" onclick="if(event.target===this)closeGpxImport()">
+<div id="gpx-overlay" style="display:none;position:fixed;inset:0;background:#000;z-index:1000;overflow-y:auto;-webkit-overflow-scrolling:touch" onclick="if(event.target===this)closeGpxImport()">
   <div style="max-width:430px;margin:0 auto;padding:max(env(safe-area-inset-top,0px),20px) 20px max(env(safe-area-inset-bottom,0px),40px)">
 
     <!-- Header -->
@@ -2439,7 +2439,7 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
           if (editAvatarEl) { editAvatarEl.innerHTML  = '<img src="'+_profile.photo+'" style="width:100%;height:100%;object-fit:cover">'; }
         }
         // Restore weight chart if data loaded
-        if (_weightLog.length > 0) renderWeightChart();
+        if (_weightLog.length > 0) { _weightPeriod = 'month'; renderWeightChart(); }
         // Restore happiness if data loaded
         if (_happinessLog.length > 0) {
           setHapChartPeriod('week', null);  // set week + update both tab UIs
@@ -7150,13 +7150,14 @@ function navTo(page) {
       if (_happinessLog.length) drawPerfHapChart();
     }, 50);
   }
-  if (page === 'profile')  { setTimeout(function(){ if(_happinessLog.length) { renderHappinessMeter(); drawHappinessChart(); } }, 50); }
+  if (page === 'profile')  { setTimeout(function(){ renderProfile(); if(_happinessLog.length) { renderHappinessMeter(); drawHappinessChart(); } }, 50); }
   // Only highlight nav for known tabs
   var navPages = ['home','record','enjoy','profile'];
   document.querySelectorAll('.nav-btn').forEach(function(b) {
     b.classList.toggle('on', b.dataset.page === page);
   });
   if (page === 'home')    { renderHomeActs(); renderStatsCard(); }
+  if (page === 'enjoy')   { setTimeout(function(){ renderEnjoyPage(); }, 20); }
   if (page === 'history') {
     renderHistory();
     document.querySelectorAll('.nav-btn').forEach(function(b) { b.classList.remove('on'); });
