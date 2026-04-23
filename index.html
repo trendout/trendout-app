@@ -4527,20 +4527,10 @@ function openActDetail(btn) {
 function openShareSheetDet() {
   if (!_currentAct) return;
   _shareAct = _currentAct;
-  var ic = _actIcons[_shareAct.type] || '🏅';
-  var preview = document.getElementById('share-preview');
-  if (preview) {
-    preview.innerHTML = '<div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:8px">' + ic + ' ' + (_shareAct.title||_shareAct.type) + '</div>'
-      + '<div style="display:flex;gap:20px">'
-      + '<div><div style="font-size:16px;font-weight:800;color:#fff">' + (_shareAct.dist||'—') + '</div><div style="font-size:10px;color:rgba(255,255,255,.4)">Distância</div></div>'
-      + '<div><div style="font-size:16px;font-weight:800;color:#fff">' + (_shareAct.dur||'—') + '</div><div style="font-size:10px;color:rgba(255,255,255,.4)">Tempo</div></div>'
-      + '<div><div style="font-size:16px;font-weight:800;color:#fff">' + (_shareAct.pace||'—') + '</div><div style="font-size:10px;color:rgba(255,255,255,.4)">Pace</div></div>'
-      + '</div>';
-  }
-  var textEl = document.getElementById('share-text');
-  if (textEl) textEl.value = buildShareText();
+  _shareFormat = _shareFormat || 'post';
   var sheet = document.getElementById('share-sheet');
   if (sheet) { sheet.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+  setTimeout(function() { generateShareImage(); }, 100);
 }
 
 function renderActDetail(a) {
@@ -6297,19 +6287,10 @@ function openShareSheet(btn) {
   var idx = parseInt(btn.dataset.idx);
   _shareAct = _allActivities[idx] || _allActivities[0];
   if (!_shareAct) return;
-  // Render preview
-  var ic = _actIcons[_shareAct.type] || '🏅';
-  var preview = document.getElementById('share-preview');
-  if (preview) {
-    preview.innerHTML = '<div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:8px">' + ic + ' ' + (_shareAct.title||_shareAct.type) + '</div>'
-      + '<div style="display:flex;gap:20px">'
-      + '<div><div style="font-size:16px;font-weight:800;color:#fff">' + (_shareAct.dist||'—') + '</div><div style="font-size:10px;color:rgba(255,255,255,.4)">Distância</div></div>'
-      + '<div><div style="font-size:16px;font-weight:800;color:#fff">' + (_shareAct.dur||'—') + '</div><div style="font-size:10px;color:rgba(255,255,255,.4)">Tempo</div></div>'
-      + '<div><div style="font-size:16px;font-weight:800;color:#fff">' + (_shareAct.pace||'—') + '</div><div style="font-size:10px;color:rgba(255,255,255,.4)">Pace</div></div>'
-      + '</div>';
-  }
+  _shareFormat = _shareFormat || 'post';
   document.getElementById('share-sheet').style.display = 'flex';
   document.body.style.overflow = 'hidden';
+  setTimeout(function() { generateShareImage(); }, 120);
 }
 
 function closeShareSheet() {
@@ -6321,11 +6302,16 @@ function buildShareText() {
   if (!_shareAct) return '';
   var ic = _actIcons[_shareAct.type] || '🏅';
   var name = (_profile.name + ' ' + _profile.last).trim() || 'Atleta';
-  return name + ' completou: ' + ic + ' ' + (_shareAct.title||_shareAct.type)
-    + '\n📏 ' + (_shareAct.dist||'—')
-    + '  ⏱ ' + (_shareAct.dur||'—')
-    + '  ⚡ ' + (_shareAct.pace||'—')
-    + '\n\nPowered by trendout.pt 💪 #trendout #enjoylife';
+  var lines = [name + ' completou: ' + ic + ' ' + (_shareAct.type||'Atividade')];
+  var stats = [];
+  if (_shareAct.dist && _shareAct.dist !== '—') stats.push('📏 ' + _shareAct.dist);
+  if (_shareAct.dur  && _shareAct.dur  !== '—') stats.push('⏱ ' + _shareAct.dur);
+  if (_shareAct.pace && _shareAct.pace !== '—') stats.push('⚡ ' + _shareAct.pace);
+  if (_shareAct.cal  && _shareAct.cal  !== '0') stats.push('🔥 ' + _shareAct.cal + ' kcal');
+  if (stats.length) lines.push(stats.join('  '));
+  lines.push('A usar a app.trendout.es 💪');
+  lines.push('#trendout #enjoylife');
+  return lines.join('\n');
 }
 
 function shareTo(platform) {
@@ -8063,6 +8049,521 @@ function importGpxActivity() {
   addActivity(act);
   navTo('home');
   toast('✅ ' + d.dist + ' importados do ficheiro!');
+}
+
+// ═══════════════════════════════════════════════
+// SHARE IMAGE GENERATOR
+// Generates a branded canvas image for Instagram post (1080×1080) or story (1080×1920)
+// ═══════════════════════════════════════════════
+
+var _shareImageDataUrl = null;  // cached for current share session
+
+function generateShareImage(act, format, callback) {
+  // format: 'post' (1:1) or 'story' (9:16)
+  var W = format === 'story' ? 1080 : 1080;
+  var H = format === 'story' ? 1920 : 1080;
+  var dpr = 1; // full res
+
+  var canvas = document.createElement('canvas');
+  canvas.width  = W;
+  canvas.height = H;
+  var ctx = canvas.getContext('2d');
+
+  // ── Background ──
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, W, H);
+
+  // Subtle noise texture (optional — small dots for depth)
+  ctx.fillStyle = 'rgba(255,255,255,.015)';
+  for (var i = 0; i < 1200; i++) {
+    ctx.fillRect(
+      Math.floor(Math.random() * W),
+      Math.floor(Math.random() * H),
+      1, 1
+    );
+  }
+
+  var mapH    = format === 'story' ? Math.round(H * 0.52) : Math.round(H * 0.58);
+  var statsY  = mapH;
+  var statsH  = H - mapH;
+  var pad     = Math.round(W * 0.07);
+
+  // ── Map area ──
+  var route = act.route || [];
+  var hasRoute = route.length > 2 && (act.distKm || 0) > 0.05 && act.hasGps;
+
+  if (hasRoute) {
+    // Draw map background
+    ctx.fillStyle = '#0a0a0a';
+    ctx.fillRect(0, 0, W, mapH);
+
+    // Grid lines (subtle)
+    ctx.strokeStyle = 'rgba(255,255,255,.04)';
+    ctx.lineWidth = 1;
+    for (var gx = 0; gx < W; gx += 60) {
+      ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, mapH); ctx.stroke();
+    }
+    for (var gy = 0; gy < mapH; gy += 60) {
+      ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
+    }
+
+    // Calculate route bounds for scaling
+    var lats = route.map(function(p) { return Array.isArray(p) ? p[0] : p.lat; });
+    var lngs = route.map(function(p) { return Array.isArray(p) ? p[1] : p.lng; });
+    var minLat = Math.min.apply(null, lats), maxLat = Math.max.apply(null, lats);
+    var minLng = Math.min.apply(null, lngs), maxLng = Math.max.apply(null, lngs);
+
+    var routePad = Math.round(Math.min(W, mapH) * 0.14);
+    var routeW = W - routePad * 2;
+    var routeH = mapH - routePad * 2;
+
+    function toX(lng) { return routePad + (lng - minLng) / (maxLng - minLng || 0.001) * routeW; }
+    function toY(lat) { return mapH - routePad - (lat - minLat) / (maxLat - minLat || 0.001) * routeH; }
+
+    // Glow effect
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(34,197,94,.25)';
+    ctx.lineWidth = 22;
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    route.forEach(function(p, i) {
+      var lat = Array.isArray(p) ? p[0] : p.lat;
+      var lng = Array.isArray(p) ? p[1] : p.lng;
+      i === 0 ? ctx.moveTo(toX(lng), toY(lat)) : ctx.lineTo(toX(lng), toY(lat));
+    });
+    ctx.stroke();
+
+    // Outer glow
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(34,197,94,.12)';
+    ctx.lineWidth = 38;
+    route.forEach(function(p, i) {
+      var lat = Array.isArray(p) ? p[0] : p.lat;
+      var lng = Array.isArray(p) ? p[1] : p.lng;
+      i === 0 ? ctx.moveTo(toX(lng), toY(lat)) : ctx.lineTo(toX(lng), toY(lat));
+    });
+    ctx.stroke();
+
+    // Main route line
+    ctx.beginPath();
+    var grad = ctx.createLinearGradient(0, 0, W, mapH);
+    grad.addColorStop(0,   '#4ADE80');
+    grad.addColorStop(0.5, '#22C55E');
+    grad.addColorStop(1,   '#16A34A');
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 8;
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    route.forEach(function(p, i) {
+      var lat = Array.isArray(p) ? p[0] : p.lat;
+      var lng = Array.isArray(p) ? p[1] : p.lng;
+      i === 0 ? ctx.moveTo(toX(lng), toY(lat)) : ctx.lineTo(toX(lng), toY(lat));
+    });
+    ctx.stroke();
+
+    // Start dot (green)
+    var sp = route[0];
+    var slat = Array.isArray(sp) ? sp[0] : sp.lat;
+    var slng = Array.isArray(sp) ? sp[1] : sp.lng;
+    ctx.shadowColor = '#22C55E'; ctx.shadowBlur = 20;
+    ctx.fillStyle = '#22C55E';
+    ctx.beginPath(); ctx.arc(toX(slng), toY(slat), 14, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#000';
+    ctx.beginPath(); ctx.arc(toX(slng), toY(slat), 6, 0, Math.PI*2); ctx.fill();
+
+    // End dot (white)
+    var ep = route[route.length - 1];
+    var elat = Array.isArray(ep) ? ep[0] : ep.lat;
+    var elng = Array.isArray(ep) ? ep[1] : ep.lng;
+    ctx.shadowColor = '#fff'; ctx.shadowBlur = 16;
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(toX(elng), toY(elat), 14, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#000';
+    ctx.beginPath(); ctx.arc(toX(elng), toY(elat), 6, 0, Math.PI*2); ctx.fill();
+
+  } else {
+    // No GPS — gradient background
+    var bgGrad = ctx.createLinearGradient(0, 0, W, mapH);
+    bgGrad.addColorStop(0, '#0a1a0a');
+    bgGrad.addColorStop(1, '#050a05');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, W, mapH);
+
+    // Activity icon large
+    ctx.font = Math.round(mapH * 0.25) + 'px serif';
+    ctx.textAlign = 'center';
+    ctx.globalAlpha = 0.12;
+    ctx.fillStyle = '#22C55E';
+    ctx.fillText(_actIcons[act.type] || '🏅', W/2, mapH * 0.6);
+    ctx.globalAlpha = 1;
+  }
+
+  // ── Gradient fade from map into stats area ──
+  var fadeGrad = ctx.createLinearGradient(0, mapH - Math.round(mapH * 0.22), 0, mapH + 2);
+  fadeGrad.addColorStop(0, 'rgba(0,0,0,0)');
+  fadeGrad.addColorStop(1, '#000');
+  ctx.fillStyle = fadeGrad;
+  ctx.fillRect(0, mapH - Math.round(mapH * 0.22), W, Math.round(mapH * 0.22) + 2);
+
+  // ── Stats area ──
+  var sy = statsY + Math.round(statsH * 0.08);
+
+  // Sport type + icon
+  var ic = _actIcons[act.type] || '🏅';
+  var sportLabel = (act.type || 'Atividade').toUpperCase();
+
+  ctx.font = 'bold ' + Math.round(W * 0.038) + 'px Helvetica Neue, Helvetica, Arial, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillStyle = 'rgba(255,255,255,.45)';
+  ctx.letterSpacing = '3px';
+  ctx.fillText(sportLabel, pad, sy + Math.round(W * 0.05));
+
+  // Athlete name
+  var name = (_profile.name + ' ' + _profile.last).trim() || 'Atleta';
+  ctx.font = 'bold ' + Math.round(W * 0.068) + 'px Helvetica Neue, Helvetica, Arial, sans-serif';
+  ctx.fillStyle = '#fff';
+  ctx.fillText(name, pad, sy + Math.round(W * 0.115));
+
+  // Stats row
+  var statsRowY = sy + Math.round(W * 0.175);
+  var statItems = [
+    { val: act.dist || '—',       lbl: 'DISTÂNCIA' },
+    { val: act.dur  || '—',       lbl: 'TEMPO'     },
+    { val: act.pace || '—',       lbl: 'RITMO/KM'  },
+  ];
+  if (act.cal && parseInt(act.cal) > 0) {
+    statItems.push({ val: act.cal + ' kcal', lbl: 'CALORIAS' });
+  }
+
+  var colW = Math.round((W - pad * 2) / statItems.length);
+  statItems.forEach(function(s, i) {
+    var x = pad + i * colW;
+    // Value
+    ctx.font = 'bold ' + Math.round(W * 0.062) + 'px Helvetica Neue, Helvetica, Arial, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#fff';
+    ctx.fillText(s.val, x, statsRowY);
+    // Label
+    ctx.font = 'bold ' + Math.round(W * 0.028) + 'px Helvetica Neue, Helvetica, Arial, sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,.4)';
+    ctx.fillText(s.lbl, x, statsRowY + Math.round(W * 0.05));
+  });
+
+  // Separator line
+  var sepY = statsRowY + Math.round(W * 0.09);
+  ctx.strokeStyle = 'rgba(255,255,255,.1)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(pad, sepY); ctx.lineTo(W - pad, sepY); ctx.stroke();
+
+  // Branding footer
+  var footY = sepY + Math.round(W * 0.065);
+  ctx.font = 'bold ' + Math.round(W * 0.035) + 'px Helvetica Neue, Helvetica, Arial, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#22C55E';
+  ctx.fillText('app.trendout.es', pad, footY);
+
+  ctx.textAlign = 'right';
+  ctx.fillStyle = 'rgba(255,255,255,.3)';
+  ctx.fillText('#trendout #enjoylife', W - pad, footY);
+
+  // ── Export ──
+  try {
+    var dataUrl = canvas.toDataURL('image/png');
+    _shareImageDataUrl = dataUrl;
+    if (callback) callback(dataUrl);
+  } catch(e) {
+    console.error('[share image] toDataURL error:', e);
+    if (callback) callback(null);
+  }
+}
+
+function downloadShareImage(format) {
+  if (!_shareAct) return;
+  var btn = document.getElementById('share-img-btn-' + format);
+  if (btn) { btn.textContent = '⏳ A gerar...'; btn.disabled = true; }
+
+  generateShareImage(_shareAct, format, function(dataUrl) {
+    if (btn) { btn.textContent = format === 'post' ? '📥 Post (1:1)' : '📥 Story (9:16)'; btn.disabled = false; }
+    if (!dataUrl) { toast('❌ Erro ao gerar imagem'); return; }
+    var a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = 'trendout_' + (format) + '_' + (new Date().toLocaleDateString('pt-PT').replace(/\//g, '-')) + '.png';
+    a.click();
+    toast('🖼️ Imagem guardada! Partilha no Instagram.');
+  });
+}
+
+function previewShareImage(format) {
+  if (!_shareAct) return;
+  var prev = document.getElementById('share-img-preview');
+  var prevWrap = document.getElementById('share-img-preview-wrap');
+  if (!prev || !prevWrap) return;
+  prev.style.opacity = '.4';
+  generateShareImage(_shareAct, format, function(dataUrl) {
+    if (!dataUrl) return;
+    prev.src = dataUrl;
+    prev.style.opacity = '1';
+    prevWrap.style.display = 'block';
+  });
+}
+
+// ═══════════════════════════════════════════════
+// SHARE IMAGE GENERATOR
+// ═══════════════════════════════════════════════
+var _shareFormat = 'post'; // 'post' (1:1) or 'story' (9:16)
+var _shareImageDataUrl = null;
+
+function setShareFormat(fmt, btn) {
+  _shareFormat = fmt;
+  ['post','story'].forEach(function(f) {
+    var b = document.getElementById('fmt-' + f);
+    if (!b) return;
+    if (f === fmt) { b.style.background = '#fff'; b.style.color = '#000'; }
+    else { b.style.background = 'rgba(255,255,255,.1)'; b.style.color = 'rgba(255,255,255,.5)'; }
+  });
+  generateShareImage();
+}
+
+function generateShareImage() {
+  var canvas = document.getElementById('share-canvas');
+  var loader = document.getElementById('share-canvas-loader');
+  if (!canvas || !_shareAct) return;
+
+  // Dimensions: post=1080x1080, story=1080x1920
+  var isStory = _shareFormat === 'story';
+  var W = 1080, H = isStory ? 1920 : 1080;
+
+  // Display size (fits phone screen width)
+  var displayW = Math.min(window.innerWidth - 40, 390);
+  var displayH = Math.round(displayW * H / W);
+  canvas.width  = W;
+  canvas.height = H;
+  canvas.style.width  = displayW + 'px';
+  canvas.style.height = displayH + 'px';
+
+  var ctx = canvas.getContext('2d');
+  var dpr = 1; // canvas is full res, display scaled via CSS
+
+  // Show loader while drawing
+  if (loader) loader.style.display = 'flex';
+
+  // Draw background
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, W, H);
+
+  // Layout zones
+  var mapH   = isStory ? Math.round(H * 0.55) : Math.round(H * 0.62);
+  var statsY = mapH;
+  var statsH = H - mapH;
+
+  // ── Draw map zone ──
+  var route = _shareAct.route || [];
+  var hasRoute = route.length > 2 && (_shareAct.hasGps || _shareAct.distKm > 0.05);
+
+  if (hasRoute) {
+    _drawShareRoute(ctx, W, mapH, route);
+  } else {
+    _drawShareNoGps(ctx, W, mapH, _shareAct);
+  }
+
+  // ── Gradient fade from map to stats ──
+  var fadeH = Math.round(H * 0.08);
+  var fadeGrad = ctx.createLinearGradient(0, mapH - fadeH, 0, mapH + fadeH * 0.5);
+  fadeGrad.addColorStop(0, 'rgba(0,0,0,0)');
+  fadeGrad.addColorStop(1, '#000');
+  ctx.fillStyle = fadeGrad;
+  ctx.fillRect(0, mapH - fadeH, W, fadeH + fadeH * 0.5);
+
+  // ── Stats zone ──
+  _drawShareStats(ctx, W, H, statsY, statsH, _shareAct);
+
+  // ── Done ──
+  _shareImageDataUrl = canvas.toDataURL('image/png');
+  if (loader) loader.style.display = 'none';
+}
+
+function _drawShareRoute(ctx, W, mapH, route) {
+  var pad = Math.round(W * 0.08);
+  var lats = route.map(function(p) { return Array.isArray(p) ? p[0] : p.lat; });
+  var lngs = route.map(function(p) { return Array.isArray(p) ? p[1] : p.lng; });
+  var minLat = Math.min.apply(null, lats), maxLat = Math.max.apply(null, lats);
+  var minLng = Math.min.apply(null, lngs), maxLng = Math.max.apply(null, lngs);
+
+  // Keep aspect ratio of route
+  var routeW = maxLng - minLng || 0.001;
+  var routeH = maxLat - minLat || 0.001;
+  var drawW = W - pad * 2;
+  var drawH = mapH - pad * 2;
+  var scale = Math.min(drawW / routeW, drawH / routeH) * 0.85;
+  var cx = W / 2, cy = mapH / 2;
+
+  function toX(lng) { return cx + (lng - (minLng + maxLng) / 2) * scale; }
+  function toY(lat) { return cy - (lat - (minLat + maxLat) / 2) * scale; }
+
+  // Dark subtle grid lines
+  ctx.strokeStyle = 'rgba(255,255,255,.04)';
+  ctx.lineWidth = 1;
+  for (var gx = 0; gx < W; gx += 60) {
+    ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, mapH); ctx.stroke();
+  }
+  for (var gy = 0; gy < mapH; gy += 60) {
+    ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
+  }
+
+  // Glow under route
+  ctx.beginPath();
+  route.forEach(function(p, i) {
+    var lat = Array.isArray(p) ? p[0] : p.lat;
+    var lng = Array.isArray(p) ? p[1] : p.lng;
+    i === 0 ? ctx.moveTo(toX(lng), toY(lat)) : ctx.lineTo(toX(lng), toY(lat));
+  });
+  ctx.strokeStyle = 'rgba(34,197,94,.18)';
+  ctx.lineWidth = 18;
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.stroke();
+
+  // Route line
+  ctx.beginPath();
+  route.forEach(function(p, i) {
+    var lat = Array.isArray(p) ? p[0] : p.lat;
+    var lng = Array.isArray(p) ? p[1] : p.lng;
+    i === 0 ? ctx.moveTo(toX(lng), toY(lat)) : ctx.lineTo(toX(lng), toY(lat));
+  });
+  ctx.strokeStyle = '#22C55E';
+  ctx.lineWidth = 6;
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.shadowColor = '#22C55E'; ctx.shadowBlur = 16;
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Start dot
+  var s = route[0];
+  var sx = toX(Array.isArray(s) ? s[1] : s.lng), sy = toY(Array.isArray(s) ? s[0] : s.lat);
+  ctx.beginPath(); ctx.fillStyle = '#EF4444'; ctx.shadowColor = '#EF4444'; ctx.shadowBlur = 12;
+  ctx.arc(sx, sy, 14, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
+  ctx.arc(sx, sy, 6, 0, Math.PI * 2); ctx.fill();
+
+  // End dot
+  var e = route[route.length - 1];
+  var ex = toX(Array.isArray(e) ? e[1] : e.lng), ey = toY(Array.isArray(e) ? e[0] : e.lat);
+  ctx.beginPath(); ctx.fillStyle = '#22C55E'; ctx.shadowColor = '#22C55E'; ctx.shadowBlur = 12;
+  ctx.arc(ex, ey, 14, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
+  ctx.arc(ex, ey, 6, 0, Math.PI * 2); ctx.fill();
+}
+
+function _drawShareNoGps(ctx, W, mapH, act) {
+  // No GPS — show activity icon large
+  var cx = W / 2, cy = mapH / 2;
+  var ic = _actIcons[act.type] || '🏅';
+
+  // Radial glow
+  var glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, W * 0.35);
+  glow.addColorStop(0, 'rgba(34,197,94,.12)');
+  glow.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = glow; ctx.fillRect(0, 0, W, mapH);
+
+  // Concentric rings
+  [0.18, 0.28, 0.38].forEach(function(r) {
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(34,197,94,' + (0.12 - r * 0.2).toFixed(2) + ')';
+    ctx.lineWidth = 2;
+    ctx.arc(cx, cy, W * r, 0, Math.PI * 2);
+    ctx.stroke();
+  });
+
+  // Icon
+  ctx.font = Math.round(W * 0.22) + 'px serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(ic, cx, cy);
+
+  // Grid
+  ctx.strokeStyle = 'rgba(255,255,255,.04)';
+  ctx.lineWidth = 1;
+  for (var gx = 0; gx < W; gx += 60) {
+    ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, mapH); ctx.stroke();
+  }
+}
+
+function _drawShareStats(ctx, W, H, statsY, statsH, act) {
+  var pad = Math.round(W * 0.08);
+  var name = (_profile.name + ' ' + _profile.last).trim() || 'Atleta';
+  var ic   = _actIcons[act.type] || '🏅';
+
+  // Activity type + name
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+
+  // Athlete name
+  ctx.font = 'bold ' + Math.round(W * 0.042) + 'px -apple-system,Helvetica Neue,Arial,sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,.55)';
+  ctx.fillText(name + ' completou', pad, statsY + Math.round(statsH * 0.14));
+
+  // Activity type
+  ctx.font = 'bold ' + Math.round(W * 0.075) + 'px -apple-system,Helvetica Neue,Arial,sans-serif';
+  ctx.fillStyle = '#fff';
+  ctx.fillText(ic + ' ' + (act.type || 'Atividade'), pad, statsY + Math.round(statsH * 0.32));
+
+  // Divider
+  ctx.fillStyle = 'rgba(255,255,255,.1)';
+  ctx.fillRect(pad, statsY + Math.round(statsH * 0.38), W - pad * 2, 1);
+
+  // Stats row
+  var stats = [];
+  if (act.dist && act.dist !== '—') stats.push({ label: 'DISTÂNCIA', value: act.dist });
+  if (act.dur  && act.dur  !== '—') stats.push({ label: 'TEMPO',     value: act.dur  });
+  if (act.pace && act.pace !== '—') stats.push({ label: 'RITMO',     value: act.pace });
+  if (act.cal  && act.cal  !== '0') stats.push({ label: 'CALORIAS',  value: act.cal + ' kcal' });
+
+  var statY  = statsY + Math.round(statsH * 0.48);
+  var colW   = (W - pad * 2) / Math.min(stats.length, 3);
+  stats.slice(0, 3).forEach(function(s, i) {
+    var sx = pad + i * colW;
+    ctx.textAlign = 'left';
+    ctx.font = 'bold ' + Math.round(W * 0.03) + 'px -apple-system,Helvetica Neue,Arial,sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,.4)';
+    ctx.fillText(s.label, sx, statY);
+    ctx.font = 'bold ' + Math.round(W * 0.055) + 'px -apple-system,Helvetica Neue,Arial,sans-serif';
+    ctx.fillStyle = '#fff';
+    ctx.fillText(s.value, sx, statY + Math.round(statsH * 0.15));
+  });
+
+  // If 4th stat (calories), put below or show pace with /km
+  if (stats.length === 4) {
+    var s4 = stats[3];
+    var s4x = pad + 3 * colW > W - pad ? pad : pad + 3 * colW;
+  }
+
+  // Trendout branding
+  var brandY = H - Math.round(statsH * 0.12);
+  ctx.textAlign = 'left';
+  ctx.font = 'bold ' + Math.round(W * 0.032) + 'px -apple-system,Helvetica Neue,Arial,sans-serif';
+
+  // Wordmark
+  ctx.fillStyle = '#22C55E';
+  ctx.fillText('TRENDOUT', pad, brandY);
+  var twid = ctx.measureText('TRENDOUT').width;
+  ctx.fillStyle = 'rgba(255,255,255,.3)';
+  ctx.fillText('  app.trendout.es', pad + twid, brandY);
+
+  // Hashtags right
+  ctx.textAlign = 'right';
+  ctx.fillStyle = 'rgba(255,255,255,.25)';
+  ctx.font = Math.round(W * 0.028) + 'px -apple-system,Helvetica Neue,Arial,sans-serif';
+  ctx.fillText('#trendout  #enjoylife', W - pad, brandY);
+}
+
+function saveShareImage() {
+  if (!_shareImageDataUrl) { generateShareImage(); return; }
+  var link = document.createElement('a');
+  var name = (_profile.name || 'trendout').toLowerCase().replace(/\s+/g, '_');
+  var act  = _shareAct ? (_shareAct.type || 'atividade').toLowerCase().replace(/\s+/g, '_') : 'atividade';
+  link.download = 'trendout_' + act + '_' + name + '.png';
+  link.href = _shareImageDataUrl;
+  link.click();
+  toast('✅ Imagem guardada!');
 }
 
 </script>
@@ -10663,7 +11164,44 @@ function importGpxActivity() {
         <div style="font-size:18px;font-weight:800">Partilhar atividade</div>
         <button onclick="closeShareSheet()" style="background:rgba(255,255,255,.1);border:none;border-radius:50%;width:30px;height:30px;color:#fff;font-size:15px;cursor:pointer;font-family:inherit">✕</button>
       </div>
-      <div id="share-preview" style="margin:16px 20px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:14px"></div>
+      <div style="margin:12px 20px 8px">
+        <!-- Format toggle: Post / Story -->
+        <div style="display:flex;gap:6px;margin-bottom:10px">
+          <button onclick="setShareFormat('post',this)" id="fmt-post" style="flex:1;padding:8px;border-radius:10px;background:#fff;border:none;color:#000;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">📐 Post</button>
+          <button onclick="setShareFormat('story',this)" id="fmt-story" style="flex:1;padding:8px;border-radius:10px;background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.5);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">📱 Story</button>
+        </div>
+        <!-- Share image canvas -->
+        <div style="position:relative;border-radius:14px;overflow:hidden;background:#000">
+          <canvas id="share-canvas" style="width:100%;display:block;border-radius:14px"></canvas>
+          <div id="share-canvas-loader" style="position:absolute;inset:0;background:#111;display:flex;align-items:center;justify-content:center;border-radius:14px">
+            <div style="text-align:center"><div style="font-size:28px;margin-bottom:8px">🗺️</div><div style="font-size:12px;color:rgba(255,255,255,.4)">A gerar imagem...</div></div>
+          </div>
+        </div>
+        <!-- Save image button -->
+        <button onclick="saveShareImage()" style="width:100%;margin-top:10px;padding:13px;border-radius:12px;background:linear-gradient(135deg,#22C55E,#16A34A);border:none;color:#000;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Guardar imagem
+        </button>
+      </div>
+      <!-- Image generation for Instagram -->
+      <div style="padding:14px 22px;border-bottom:1px solid rgba(255,255,255,.07)">
+        <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Imagem para Instagram</div>
+        <!-- Preview thumbnail -->
+        <div id="share-img-preview-wrap" style="display:none;margin-bottom:10px;border-radius:12px;overflow:hidden;max-height:180px">
+          <img id="share-img-preview" src="" style="width:100%;display:block;border-radius:12px;transition:opacity .3s" />
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <button id="share-img-btn-post" onclick="downloadShareImage('post')"
+            style="padding:12px;border-radius:12px;background:rgba(34,197,94,.08);border:1.5px solid rgba(34,197,94,.2);color:#4ADE80;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s">
+            📥 Post (1:1)
+          </button>
+          <button id="share-img-btn-story" onclick="downloadShareImage('story')"
+            style="padding:12px;border-radius:12px;background:rgba(96,165,250,.08);border:1.5px solid rgba(96,165,250,.2);color:#60A5FA;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s">
+            📥 Story (9:16)
+          </button>
+        </div>
+        <div style="font-size:10px;color:rgba(255,255,255,.25);text-align:center;margin-top:8px">Guarda a imagem e partilha directamente no Instagram</div>
+      </div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:0 20px 16px">
         <button onclick="openInstaMenu()" style="display:flex;flex-direction:column;align-items:center;gap:7px;background:none;border:none;cursor:pointer;padding:8px 0">
           <div style="width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);display:flex;align-items:center;justify-content:center;font-size:26px">📸</div>
