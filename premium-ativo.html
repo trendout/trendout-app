@@ -263,6 +263,7 @@
     50%     { opacity: 1;  transform: scale(1.05); }
   }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -315,8 +316,8 @@
     <!-- Plan chip -->
     <div class="plan-chip">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="#4ADE80"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-      <span style="font-size:12px;font-weight:700;color:#4ADE80">Plano Anual · 39,99€</span>
-      <span style="font-size:11px;color:rgba(255,255,255,.4)">ativo desde hoje</span>
+      <span id="prem-plan-label" style="font-size:12px;font-weight:700;color:#4ADE80">A carregar...</span>
+      <span id="prem-since-label" style="font-size:11px;color:rgba(255,255,255,.4)">ativo desde hoje</span>
     </div>
   </div>
 
@@ -504,6 +505,81 @@ function goToApp() {
   // In full app context: closeUpgrade(); navTo('home');
   window.location.href = '/';
 }
+
+// ── Supabase: load plan info + premium status ──
+(function() {
+  var SUPA_URL = 'https://btzcyvksxlmkosluytaz.supabase.co';
+  var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ0emN5dmtzeGxta29zbHV5dGF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NDU3NzYsImV4cCI6MjA4OTQyMTc3Nn0.f9pjtUyp7SlJ8dal5xJ180TD9TWvVWDj86u9ZLmyUs0';
+
+  var planLabels = {
+    annual:  'Plano Anual · 39,99€/ano',
+    monthly: 'Plano Mensal · 4,99€/mês',
+    anual:   'Plano Anual · 39,99€/ano',
+    mensal:  'Plano Mensal · 4,99€/mês'
+  };
+
+  function setPlanUI(plan, since) {
+    var label = document.getElementById('prem-plan-label');
+    var sinceEl = document.getElementById('prem-since-label');
+    if (label) label.textContent = planLabels[plan] || 'Plano Premium';
+    if (sinceEl && since) {
+      try {
+        var d = new Date(since);
+        var opts = { day: '2-digit', month: 'long', year: 'numeric' };
+        sinceEl.textContent = 'ativo desde ' + d.toLocaleDateString('pt-PT', opts);
+      } catch(e) { sinceEl.textContent = 'ativo desde hoje'; }
+    }
+  }
+
+  try {
+    var _db = supabase.createClient(SUPA_URL, SUPA_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true, storageKey: 'trendout_auth' }
+    });
+
+    _db.auth.getSession().then(function(res) {
+      if (!res.data || !res.data.session) {
+        // No session — use URL params as fallback
+        var params = new URLSearchParams(window.location.search);
+        var plan  = params.get('plan') || 'annual';
+        var since = params.get('since') || new Date().toISOString();
+        setPlanUI(plan, since);
+        return;
+      }
+
+      var uid = res.data.session.user.id;
+      _db.from('profiles')
+        .select('is_premium, subscription_status, premium_plan, premium_since, name, last')
+        .eq('id', uid)
+        .single()
+        .then(function(pRes) {
+          var p = pRes.data || {};
+          var plan  = p.premium_plan  || new URLSearchParams(window.location.search).get('plan') || 'annual';
+          var since = p.premium_since || new URLSearchParams(window.location.search).get('since') || new Date().toISOString();
+          setPlanUI(plan, since);
+
+          // If profile has name, personalise heading
+          if (p.name) {
+            var h = document.querySelector('h1, .hero-title, [class*="title"]');
+            // Try to find the main heading
+            var headings = document.querySelectorAll('h1, h2');
+            headings.forEach(function(el) {
+              if (el.textContent.indexOf('Premium') >= 0 && el.textContent.indexOf('Bem-vindo') >= 0) {
+                el.textContent = 'Bem-vindo, ' + p.name + '! 🎉';
+              }
+            });
+          }
+        })
+        .catch(function() {
+          setPlanUI('annual', new Date().toISOString());
+        });
+    }).catch(function() {
+      setPlanUI('annual', new Date().toISOString());
+    });
+  } catch(e) {
+    setPlanUI('annual', new Date().toISOString());
+  }
+})();
+
 </script>
 </body>
 </html>

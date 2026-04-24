@@ -248,11 +248,24 @@ async function activatePremiumInDB(subscriptionId) {
         is_premium: true,
         subscription_status: 'active',
         subscription_id: subscriptionId,
+        premium_plan: _selectedPlan || 'annual',
         premium_since: new Date().toISOString()
       }, { onConflict: 'id' });
     } catch(e) { console.error('[premium] DB error:', e); }
+
+    // Send confirmation email via Edge Function
+    try {
+      fetch('https://btzcyvksxlmkosluytaz.supabase.co/functions/v1/send-premium-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: _user.id, plan: _selectedPlan || 'annual' })
+      });
+    } catch(e) { console.warn('[premium] Email send error:', e); }
   }
-  setTimeout(function() { window.location.href = '/?premium=activated'; }, 2200);
+  setTimeout(function() {
+    var since = new Date().toISOString();
+    window.location.href = '/premium-ativo?plan=' + (_selectedPlan || 'annual') + '&since=' + encodeURIComponent(since);
+  }, 1800);
 }
 
 // ── Override updatePremiumUI (not used standalone) ──

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Trendout PWA v1.0-beta | app.trendout.pt | 18/03/2026 -->
+<!-- Trendout PWA v1.0-beta | app.trendout.pt | Built with Claude AI | 18/03/2026 -->
 <html lang="pt">
 <head>
 <meta charset="UTF-8"/>
@@ -340,7 +340,7 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
 <div class="screen active" id="s-splash" style="align-items:center;justify-content:center">
   <div style="text-align:center;animation:fadeUp .6s ease">
     <div class="logo-word">trendout</div>
-    <div class="tagline" style="font-size:13px;line-height:1.5;max-width:280px;margin:0 auto">A App de fitness que mede como te sentes.<br>Desenvolvida em Portugal. #enjoylife<br><br><br><br>Análise Física e Mental<br>Regista os teus Treinos<br>Melhora a tua Recuperação e Nutrição<br>Melhora a tua Performance e Vida<br>Diversos Desportos</div>
+    <div class="tagline" style="font-size:13px;line-height:1.5;max-width:280px;margin:0 auto">A App de fitness que mede como te sentes.<br>Desenvolvida em Portugal. #enjoylife</div>
   </div>
   <div style="position:absolute;bottom:max(env(safe-area-inset-bottom,0px),40px);left:0;right:0;padding:0 28px;animation:fadeUp .6s .2s ease both">
     <button class="btn btn-white" onclick="go('s-welcome')">Começar →</button>
@@ -2430,13 +2430,25 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
             if (Array.isArray(log) && log.length > 0) _enjoyLog = log;
           } catch(e) {}
         }
+        // Restore Premium status
+        if (p.is_premium === true || p.subscription_status === 'active') {
+          _isPremium = true;
+        }
+        // Store plan info for use in premium-ativo and UI
+        _premiumPlan = p.premium_plan || null;
+        _premiumSince = p.premium_since || null;
         userData.name  = ((p.name || '') + (p.last ? ' '+p.last : '')).trim() || user.email;
         userData.email = user.email;
       }
       launchApp(userData);
+      // Apply premium state immediately if loaded from Supabase
+      if (_isPremium) { updatePremiumUI(); }
       // Re-render profile after launchApp to show all loaded data
       setTimeout(function() {
         renderProfile();
+        // Render EnjoyPoints card with Supabase data
+        renderEnjoyPage();
+        renderStatsCard();
         // Restore avatar photo if saved
         if (_profile.photo) {
           var avatarEl     = document.getElementById('app-avatar');
@@ -2461,9 +2473,8 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
         setTimeout(flushPendingSync, 2000);
         // If redirected from a coach with ?upgrade=1 — open upgrade screen
         if (window.location.search.indexOf('premium=activated') >= 0) {
-          // Show premium activated confirmation
-          setTimeout(function() { toast('🎉 Premium activado! Bem-vindo ao Trendout Premium!'); }, 600);
-          history.replaceState(null, '', window.location.pathname);
+          // Redirect to premium-ativo page
+          window.location.href = '/premium-ativo';
         }
         // Handle Garmin OAuth callback
         if (window.location.search.indexOf('garmin_connected=1') >= 0) {
@@ -3491,8 +3502,10 @@ function showInsightsError() {
 
 
 // ── PREMIUM / PAYWALL ──
-var _isPremium = false;
+var _isPremium      = false;
 var _upgradeFromApp = false;
+var _premiumPlan    = null;  // 'annual' | 'monthly'
+var _premiumSince   = null;  // ISO date string
 var _selectedPlan = 'annual';
 var _selectedPayment = 'mbway';
 
