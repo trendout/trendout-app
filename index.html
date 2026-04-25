@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Trendout PWA v1.0-beta | app.trendout.pt | Built with Claude AI | 18/03/2026 -->
+<!-- Trendout PWA v1.0-beta | app.trendout.pt | 18/03/2026 -->
 <html lang="pt">
 <head>
 <meta charset="UTF-8"/>
@@ -2474,6 +2474,8 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
         renderHomeActs();
         // Flush activities queued while offline or session was expired
         setTimeout(flushPendingSync, 2000);
+        // Also flush on visibility restore if online
+        if (navigator.onLine) setTimeout(flushPendingSync, 2500);
         // If redirected from a coach with ?upgrade=1 — open upgrade screen
         if (window.location.search.indexOf('premium=activated') >= 0) {
           // Redirect to premium-ativo page
@@ -2706,6 +2708,7 @@ var _gps = {
   hasGps:false,
   route:[],    // [{lat,lng}]
   buf:[],      // rolling buffer for 3-reading average
+  lastTileCenter: null, // last lat/lng used to draw tiles — avoid redundant tile loads
 };
 
 // ── TILE MAP ENGINE ──
@@ -2739,6 +2742,22 @@ function drawTileMap(canvasId, lat, lng, zoom, route, callback, hideDot) {
   // Dark background
   ctx.fillStyle = '#1a1a2e';
   ctx.fillRect(0,0,W,H);
+
+  // If offline, skip tile loading entirely — just draw route on dark bg
+  if (!navigator.onLine) {
+    // Draw offline grid
+    ctx.strokeStyle = 'rgba(255,255,255,.05)';
+    ctx.lineWidth = 1;
+    for (var ogx = 0; ogx < W; ogx += 40) { ctx.beginPath(); ctx.moveTo(ogx,0); ctx.lineTo(ogx,H); ctx.stroke(); }
+    for (var ogy = 0; ogy < H; ogy += 40) { ctx.beginPath(); ctx.moveTo(0,ogy); ctx.lineTo(W,ogy); ctx.stroke(); }
+    ctx.fillStyle = 'rgba(255,255,255,.15)';
+    ctx.font = '11px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('📡 Sem rede — mapa indisponível', W/2, H - 12);
+    if (route && route.length >= 2) { drawRoute(); }
+    if (!hideDot) drawDot();
+    if (callback) callback();
+    return;
+  }
 
   var tileSize = 256;
   var tX0 = lon2tile(lng, zoom);
@@ -3062,8 +3081,23 @@ function updateGpsPosition(lat, lng) {
   _gps.lastLat=lat; _gps.lastLng=lng;
   _gps.route.push({lat:lat,lng:lng});
 
-  // Redraw map
-  drawTileMap('map-canvas', lat, lng, 16, _gps.route, null);
+  // ── Two-layer map: tiles only when center shifts, route every update ──
+  var tileThresholdKm = 0.05; // only reload tiles if moved >50m from last tile draw
+  var needTiles = true;
+  if (_gps.lastTileCenter) {
+    var d = haversine(_gps.lastTileCenter.lat, _gps.lastTileCenter.lng, lat, lng);
+    if (d < tileThresholdKm) needTiles = false;
+  }
+  if (needTiles) {
+    _gps.lastTileCenter = { lat: lat, lng: lng };
+    drawTileMap('map-canvas', lat, lng, 16, null, function() {
+      // Tiles done — draw route on top layer
+      drawRouteOnCanvas('map-route-canvas', lat, lng, 16, _gps.route);
+    }, true); // hideDot=true on tile layer
+  } else {
+    // Tiles unchanged — just refresh route layer
+    drawRouteOnCanvas('map-route-canvas', lat, lng, 16, _gps.route);
+  }
 
   var distEl=document.getElementById('gps-dist'); if(distEl) distEl.textContent=_gps.distKm.toFixed(2);
   if(_gps.seconds>5&&_gps.distKm>0.01){
@@ -3119,7 +3153,8 @@ function stopGps() {
   var paceStr='--:--';
   if(_gps.distKm>0.01&&_gps.seconds>0){
     var ps=_gps.seconds/_gps.distKm;
-    paceStr=Math.floor(ps/60)+':'+pad(Math.floor(ps%60));
+    var pMin=Math.floor(ps/60), pSec=Math.floor(ps%60);
+    paceStr=pMin+':'+pad(pSec);
   }
   var act={
     type:_selAct?_selAct.lb:'Corrida',
@@ -4608,7 +4643,31 @@ function renderActDetail(a) {
   var hrNoteEl   = document.getElementById('det-hr-note');
   if (distStatEl) distStatEl.textContent = a.dist  || '—';
   if (timeEl)     timeEl.textContent     = a.dur   || '—';
-  if (paceEl)     paceEl.textContent     = a.pace  || '—';
+  // Recalculate pace if missing, blank, or '--:--'
+  var paceDisplay = a.pace || '';
+  if (!paceDisplay || paceDisplay === '—' || paceDisplay.indexOf('--') >= 0 || paceDisplay.indexOf('_') >= 0) {
+    // Try to calculate from raw data
+    var _d = parseFloat(a.distKm) || parseFloat((a.dist||'0').replace(/[^0-9.]/g,'')) || 0;
+    var _s = a.totalSeconds || a.total_seconds || 0;
+    if (!_s && a.dur) {
+      var _dp = (a.dur||'').replace(/[^0-9:hm]/g,'');
+      if (_dp.indexOf('h') >= 0) {
+        var _hm = _dp.match(/(\d+)h/), _mm = _dp.match(/(\d+)m/);
+        _s = ((_hm ? parseInt(_hm[1]) : 0) * 3600) + ((_mm ? parseInt(_mm[1]) : 0) * 60);
+      } else if (_dp.indexOf(':') >= 0) {
+        var _parts = _dp.split(':');
+        _s = _parts.length === 3
+          ? parseInt(_parts[0])*3600 + parseInt(_parts[1])*60 + parseInt(_parts[2])
+          : parseInt(_parts[0])*60  + parseInt(_parts[1]);
+      }
+    }
+    if (_d > 0.01 && _s > 0) {
+      var _ps = _s / _d;
+      var _pm = Math.floor(_ps / 60), _psc = Math.floor(_ps % 60);
+      paceDisplay = _pm + ':' + (_psc < 10 ? '0' : '') + _psc + ' /km';
+    }
+  }
+  if (paceEl) paceEl.textContent = paceDisplay || '—';
   if (calEl)      calEl.textContent      = a.cal   ? String(a.cal) : '—';
   if (distEl)     distEl.textContent     = a.dist  || '— km';
   // FC média
@@ -4679,7 +4738,10 @@ function renderActDetailMap(a) {
   }
 
   // Draw immediately without labels while fetching
-  drawVectorRoute(ctx, W, H, route, null, null, null);
+  // Initial draw without labels — geocoding will redraw with labels when ready
+  drawVectorRoute(ctx, W, H, route, a.startStreet||null, a.endStreet||null, a.city||null);
+  // If we already have geocoding cached on the activity, no need to re-fetch
+  if (a.startStreet || a.endStreet || a.city) return;
 
   // Fetch geocoding and save to activity
   var startPt = route[0];
@@ -6887,7 +6949,14 @@ var _actIcons = {
 
 function addActivity(act) {
   _allActivities.unshift(act);
-  dbSyncActivity(act);
+  if (!navigator.onLine) {
+    // Offline — save to localStorage queue and show feedback
+    _pendingSync.push(act);
+    savePendingSync();
+    toast('💾 Actividade guardada localmente — sincroniza quando houver rede');
+  } else {
+    dbSyncActivity(act);
+  }
   renderHomeActs();
   renderStatsCard();
   renderHistory();
@@ -7154,7 +7223,12 @@ function saveManualActivity() {
   var durStr = durH>0 ? (durH+'h '+(durM<10?'0':'')+durM+'m') : durM+'m';
   var totalSec = durH*3600+durM*60;
   var paceStr  = '--:--';
-  if (dist>0 && totalSec>0) { var ps=totalSec/dist; paceStr=Math.floor(ps/60)+':'+(ps%60<10?'0':'')+Math.floor(ps%60); }
+  if (dist>0 && totalSec>0) {
+    var ps = totalSec / dist;
+    var pM = Math.floor(ps / 60);
+    var pS = Math.floor(ps % 60);
+    paceStr = pM + ':' + (pS < 10 ? '0' : '') + pS;
+  }
   var act = {
     type:  _selAct?_selAct.lb:'Actividade',
     title: (_selAct?_selAct.ic+' ':'')+(_selAct?_selAct.lb:'Actividade'),
@@ -7735,6 +7809,31 @@ function initPerfAdv() {
 
 
 // Re-acquire wake lock if released by system (e.g. screen dimmed briefly)
+// Auto-sync when network recovers
+window.addEventListener('online', function() {
+  console.log('[network] Back online — flushing pending activities');
+  if (typeof flushPendingSync === 'function') {
+    setTimeout(flushPendingSync, 1000);
+  }
+  // Re-draw tile map if GPS is active
+  if (_gps.active && _gps.lastLat) {
+    setTimeout(function() {
+      drawTileMap('map-canvas', _gps.lastLat, _gps.lastLng, 16, null, function() {
+        drawRouteOnCanvas('map-route-canvas', _gps.lastLat, _gps.lastLng, 16, _gps.route);
+      }, true);
+    }, 1500);
+  }
+  toast('🌐 Rede recuperada — a sincronizar actividades...');
+});
+
+window.addEventListener('offline', function() {
+  console.log('[network] Gone offline');
+  if (_gps.active) {
+    gpsSetStatus('📡 Sem rede — GPS continua a gravar', '#F97316');
+    toast('📡 Sem rede — o GPS continua a gravar normalmente');
+  }
+});
+
 document.addEventListener('visibilitychange', function() {
   if (document.visibilityState === 'visible') {
     // Re-acquire Wake Lock if GPS active
@@ -8002,7 +8101,8 @@ function buildActivityFromRoute(route, times, elevations, name) {
   var paceStr = '--:--';
   if (distKm > 0.01 && totalSecs > 0) {
     var ps = totalSecs / distKm;
-    paceStr = Math.floor(ps/60) + ':' + (Math.floor(ps%60) < 10 ? '0' : '') + Math.floor(ps%60);
+    var gpxPm = Math.floor(ps/60), gpxPs = Math.floor(ps%60);
+    paceStr = gpxPm + ':' + (gpxPs < 10 ? '0' : '') + gpxPs;
   }
 
   // Duration string
@@ -8733,6 +8833,64 @@ function renderActInsight(a) {
   iconEl.textContent = result[0];
   textEl.textContent = result[1];
   card.style.display = 'flex';
+}
+
+function drawRouteOnCanvas(canvasId, lat, lng, zoom, route) {
+  var canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  var W = canvas.parentElement.offsetWidth  || 400;
+  var H = canvas.parentElement.offsetHeight || 300;
+  if (canvas.width !== W * window.devicePixelRatio) {
+    canvas.width  = W * window.devicePixelRatio;
+    canvas.height = H * window.devicePixelRatio;
+    canvas.style.width  = W + 'px';
+    canvas.style.height = H + 'px';
+  }
+  var ctx = canvas.getContext('2d');
+  var dpr = window.devicePixelRatio || 1;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  if (!route || route.length < 1) return;
+
+  // Draw route line
+  if (route.length >= 2) {
+    // Glow
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(34,197,94,.35)';
+    ctx.lineWidth = 8; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.shadowColor = '#22C55E'; ctx.shadowBlur = 10;
+    route.forEach(function(p, i) {
+      var px = latLng2px(p.lat, p.lng, lat, lng, zoom, W, H);
+      i === 0 ? ctx.moveTo(px.x, px.y) : ctx.lineTo(px.x, px.y);
+    });
+    ctx.stroke();
+    // Main line
+    ctx.beginPath();
+    ctx.strokeStyle = '#22C55E';
+    ctx.lineWidth = 3; ctx.shadowBlur = 0;
+    route.forEach(function(p, i) {
+      var px = latLng2px(p.lat, p.lng, lat, lng, zoom, W, H);
+      i === 0 ? ctx.moveTo(px.x, px.y) : ctx.lineTo(px.x, px.y);
+    });
+    ctx.stroke();
+    // Start dot
+    var p0 = latLng2px(route[0].lat, route[0].lng, lat, lng, zoom, W, H);
+    ctx.fillStyle = '#EF4444'; ctx.shadowColor = '#EF4444'; ctx.shadowBlur = 6;
+    ctx.beginPath(); ctx.arc(p0.x, p0.y, 5, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
+    ctx.beginPath(); ctx.arc(p0.x, p0.y, 2, 0, Math.PI*2); ctx.fill();
+  }
+
+  // Current position dot (always at centre of canvas = current GPS position)
+  ctx.beginPath();
+  ctx.fillStyle = 'rgba(34,197,94,.25)';
+  ctx.arc(W/2, H/2, 10, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath();
+  ctx.fillStyle = '#22C55E'; ctx.shadowColor = '#22C55E'; ctx.shadowBlur = 8;
+  ctx.arc(W/2, H/2, 6, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath();
+  ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
+  ctx.arc(W/2, H/2, 2.5, 0, Math.PI*2); ctx.fill();
 }
 
 </script>
@@ -11002,7 +11160,8 @@ function renderActInsight(a) {
 
     <!-- LEAFLET MAP -->
     <div style="flex:1;position:relative;overflow:hidden;min-height:200px">
-      <canvas id="map-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;filter:invert(1) hue-rotate(180deg) brightness(0.85) contrast(1.1)"></canvas>
+      <canvas id="map-canvas"       style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;filter:invert(1) hue-rotate(180deg) brightness(0.85) contrast(1.1)"></canvas>
+      <canvas id="map-route-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:2;pointer-events:none"></canvas>
       <div style="position:absolute;top:12px;right:12px;width:36px;height:36px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;z-index:1000;pointer-events:none">🧭</div>
       <div id="gps-coords" style="position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:4px 10px;font-size:10px;color:rgba(255,255,255,.5);font-family:monospace;z-index:999;pointer-events:none"></div>
     </div>
