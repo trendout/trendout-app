@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Trendout PWA v1.0-beta | app.trendout.pt | 18/03/2026 -->
+<!-- Trendout PWA v1.0-beta | app.trendout.pt | Built with Claude AI | 18/03/2026 -->
 <html lang="pt">
 <head>
 <meta charset="UTF-8"/>
@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#000"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<title>Trendout App - Treina. Sente. Pensa. Evolui.</title>
+<title>Trendout — Fitness que sente. Pensa. Evolui.</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;overflow:hidden}
@@ -2153,11 +2153,7 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
             <div style="font-size:28px;margin-bottom:8px">📍</div>
             <div style="font-size:12px">Sem dados GPS para esta actividade</div>
           </div>
-          <!-- Distance badge -->
-          <div id="det-dist-badge" style="position:absolute;bottom:12px;left:12px;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);border-radius:10px;padding:6px 12px">
-            <div id="det-dist-big" style="font-size:18px;font-weight:900;color:#fff"></div>
-            <div style="font-size:9px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px">distância</div>
-          </div>
+          <!-- Distance badge removed — shown in stats below -->
         </div>
 
         <!-- Main stats: 4 boxes — Distância · Tempo · Pace · Calorias -->
@@ -2219,6 +2215,13 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
             Partilhar actividade
           </button>
+
+          <!-- Free local insight -->
+          <div id="act-insight-card" style="margin-top:10px;padding:14px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:16px;display:flex;align-items:flex-start;gap:12px">
+            <div style="font-size:20px;flex-shrink:0;margin-top:1px" id="act-insight-icon">💡</div>
+            <div style="font-size:13px;color:rgba(255,255,255,.7);line-height:1.6" id="act-insight-text">A analisar...</div>
+          </div>
+
         </div>
 
       </div>
@@ -2701,7 +2704,8 @@ var _gps = {
   watchId:null,
   centerLat:38.7169, centerLng:-9.1399,
   hasGps:false,
-  route:[], // [{lat,lng}]
+  route:[],    // [{lat,lng}]
+  buf:[],      // rolling buffer for 3-reading average
 };
 
 // ── TILE MAP ENGINE ──
@@ -2937,7 +2941,7 @@ function startGpsRecording() {
   _gps.active=true; _gps.paused=false;
   _gps.seconds=0; _gps.distKm=0;
   _gps.route=[]; _gps.lastKm=0; _gps.kmSplits=[];
-  _gps.lastUpdate = null; _gps.badPoints = 0;
+  _gps.lastUpdate = null; _gps.badPoints = 0; _gps.buf = [];
   _gps.hr=60+Math.floor(Math.random()*20);
   _gps.elev=10+Math.floor(Math.random()*30); _gps.elevDir=1;
 
@@ -2992,18 +2996,58 @@ function onGpsPosition(pos) {
   var acc = pos.coords.accuracy;
   _gps.lastUpdate = Date.now();
 
-  // Filter bad accuracy points
+  // Reject points with poor accuracy
   if (acc > GPS_MAX_ACCURACY) {
     _gps.badPoints = (_gps.badPoints || 0) + 1;
     gpsSetStatus('📶 Sinal fraco (' + Math.round(acc) + 'm) — a aguardar...', '#FACC15');
     return;
   }
-
   _gps.badPoints = 0;
-  // Show accuracy in status
-  var accStr = acc < 10 ? '🟢' : acc < 20 ? '🟡' : '🟠';
-  gpsSetStatus(accStr + ' GPS ±' + Math.round(acc) + 'm', '#fff');
-  updateGpsPosition(pos.coords.latitude, pos.coords.longitude);
+
+  // ── 3-reading rolling average ──
+  // Buffer each good reading. When we have 3, use their average as the
+  // committed point. This smooths GPS noise without introducing lag
+  // and prevents the straight-line jumps caused by momentary signal loss.
+  _gps.buf.push({ lat: pos.coords.latitude, lng: pos.coords.longitude, acc: acc });
+  if (_gps.buf.length < 3) {
+    // Not enough readings yet — update status but don't commit a point
+    var accStr = acc < 10 ? '🟢' : acc < 20 ? '🟡' : '🟠';
+    gpsSetStatus(accStr + ' GPS ±' + Math.round(acc) + 'm · a calibrar...', '#fff');
+    return;
+  }
+
+  // Keep only last 3 readings
+  if (_gps.buf.length > 3) _gps.buf.shift();
+
+  // Weighted average — weight by inverse of accuracy (better accuracy = more weight)
+  var wLat = 0, wLng = 0, wSum = 0;
+  _gps.buf.forEach(function(p) {
+    var w = 1 / Math.max(p.acc, 1);
+    wLat += p.lat * w;
+    wLng += p.lng * w;
+    wSum += w;
+  });
+  var avgLat = wLat / wSum;
+  var avgLng = wLng / wSum;
+  var avgAcc = _gps.buf.reduce(function(s, p) { return s + p.acc; }, 0) / _gps.buf.length;
+
+  // Sanity check: reject if the averaged point is impossibly far from last committed
+  // (catches the rare case where all 3 buffered readings are bad)
+  if (_gps.lastLat !== null) {
+    var jumpKm = haversine(_gps.lastLat, _gps.lastLng, avgLat, avgLng);
+    var elapsedSecs = 3; // ~3 readings at ~1s each
+    var maxSpeedKmh = 60; // generous max for any activity
+    if (jumpKm > (maxSpeedKmh / 3600) * elapsedSecs * 3) {
+      // Jump too large — discard buffer and start fresh
+      _gps.buf = [];
+      gpsSetStatus('📶 Posição inconsistente — a recalibrar...', '#FACC15');
+      return;
+    }
+  }
+
+  var accStr = avgAcc < 10 ? '🟢' : avgAcc < 20 ? '🟡' : '🟠';
+  gpsSetStatus(accStr + ' GPS ±' + Math.round(avgAcc) + 'm', '#fff');
+  updateGpsPosition(avgLat, avgLng);
 }
 
 function simulateGpsStep() {
@@ -3052,6 +3096,7 @@ function showKmSplit(km) {
 
 function toggleGpsPause() {
   _gps.paused=!_gps.paused;
+  _gps.buf = []; // clear buffer on pause/resume to avoid stale readings
   var btn=document.getElementById('gps-pause-btn');
   var recLabel=document.getElementById('gps-rec-label');
   var dot=document.getElementById('gps-rec-dot')?document.getElementById('gps-rec-dot').querySelector('div'):null;
@@ -4586,6 +4631,8 @@ function renderActDetail(a) {
 
   // Splits
   renderActSplits(a);
+  // Free local insight (no API)
+  renderActInsight(a);
 }
 
 function renderActDetailMap(a) {
@@ -8577,6 +8624,115 @@ function saveShareImage() {
   link.href = _shareImageDataUrl;
   link.click();
   toast('✅ Imagem guardada!');
+}
+
+// ═══════════════════════════════════════════════
+// LOCAL FREE INSIGHT — no API call, rule-based
+// ═══════════════════════════════════════════════
+function generateLocalInsight(a) {
+  var type     = (a.type || '').toLowerCase();
+  var distKm   = parseFloat(a.distKm) || parseFloat((a.dist||'0').replace(/[^0-9.]/g,'')) || 0;
+  var totalSec = a.totalSeconds || a.total_seconds || 0;
+  if (!totalSec && a.dur) {
+    var dp = (a.dur||'').replace(/[^0-9:]/g,'').split(':');
+    if (dp.length === 3) totalSec = parseInt(dp[0])*3600 + parseInt(dp[1])*60 + parseInt(dp[2]);
+    else if (dp.length === 2) totalSec = parseInt(dp[0])*60 + parseInt(dp[1]);
+  }
+  var paceSecKm = (distKm > 0 && totalSec > 0) ? totalSec / distKm : 0;
+  var mins      = totalSec / 60;
+
+  // Helpers
+  var isRun  = /corrid|run|jogg/.test(type);
+  var isCycl = /cicl|bike|biciclet/.test(type);
+  var isSwim = /nata|swim/.test(type);
+  var isWalk = /caminhad|walk|hike/.test(type);
+  var isPaddle = /paddle|sup|kayak|remo/.test(type);
+  var isGym  = /gin|treino|muscula|força/.test(type);
+
+  var insights = [];
+
+  // ── Distance-based ──
+  if (isRun) {
+    if (distKm >= 42)      insights.push(['🏅', 'Maratona completada! Menos de 1% dos atletas alguma vez chega a este patamar.']);
+    else if (distKm >= 21) insights.push(['⭐', 'Meia-maratona! Distância que exige treino consistente — parabéns.']);
+    else if (distKm >= 15) insights.push(['🔥', 'Corrida longa. Acima dos 15km o corpo começa a usar gordura como combustível principal.']);
+    else if (distKm >= 10) insights.push(['💪', '10km ou mais — ' + (paceSecKm > 0 ? 'ao teu ritmo consegues completar uma meia-maratona em ' + Math.round(paceSecKm * 21 / 60) + ' min.' : 'excelente base aeróbia.')]);
+    else if (distKm >= 5)  insights.push(['✅', distKm.toFixed(1) + 'km é a distância ideal para manter a forma — acima do limiar aeróbio.']);
+    else if (distKm >= 2)  insights.push(['👟', 'Curto mas feito! A consistência vale mais do que a distância.']);
+    else                   insights.push(['🌱', 'Cada passo conta. Aumenta 10% por semana para evitar lesões.']);
+  }
+
+  if (isCycl) {
+    if (distKm >= 100)     insights.push(['🏆', 'Século! 100km de bicicleta é uma marca que poucos atingem.']);
+    else if (distKm >= 50) insights.push(['🚴', '50km+ no selim — equivalente a ~15km de corrida em esforço cardíaco.']);
+    else if (distKm >= 20) insights.push(['⚡', 'Boa saída. Ciclismo a esta distância trabalha bem o quadricípite sem impacto nas articulações.']);
+    else                   insights.push(['🔄', 'Saída de treino sólida — ideal para recuperação activa.']);
+  }
+
+  if (isWalk) {
+    if (distKm >= 20)      insights.push(['🥾', 'Caminhada longa! Queimas gordura de forma eficiente a este ritmo.']);
+    else if (distKm >= 10) insights.push(['🌿', '10km a pé equivale a cerca de 12000 passos — excelente para a saúde cardiovascular.']);
+    else if (distKm >= 5)  insights.push(['🚶', '5km de caminhada diária reduz o risco cardiovascular em 30% segundo estudos.']);
+    else                   insights.push(['☀️', 'Mesmo uma caminhada curta activa a circulação e melhora o humor.']);
+  }
+
+  if (isSwim) {
+    if (mins >= 60)        insights.push(['🏊', '60min na água equivale a ~3x o esforço de corrida — recupera bem hoje.']);
+    else if (mins >= 30)   insights.push(['💦', '30min de natação trabalha 80% dos grupos musculares simultaneamente.']);
+    else                   insights.push(['🌊', 'Cada braçada fortalece ombros, costas e core em simultâneo.']);
+  }
+
+  if (isPaddle) {
+    if (distKm >= 10)      insights.push(['🏄', 'Sessão longa de paddle! Core, ombros e equilíbrio em máximo esforço.']);
+    else if (distKm >= 5)  insights.push(['🚣', 'SUP activa o core mais do que qualquer outro desporto aquático.']);
+    else                   insights.push(['🌊', 'Paddle combina equilíbrio, força e cardio — treino completo.']);
+  }
+
+  if (isGym) {
+    if (mins >= 60)        insights.push(['💪', 'Treino de 60min+ — o nível de hormona de crescimento atinge o pico após 45min.']);
+    else if (mins >= 30)   insights.push(['🏋️', '30-45min é a janela de treino ideal para hipertrofia sem catabolismo excessivo.']);
+    else                   insights.push(['⚡', 'Sessão curta de treino activa o metabolismo por 24-48h.']);
+  }
+
+  // ── Pace-based (corrida) ──
+  if (isRun && paceSecKm > 0) {
+    if (paceSecKm < 240)        insights.push(['⚡', 'Pace abaixo de 4:00/km — zona de velocidade anaeróbia. Excelente!']);
+    else if (paceSecKm < 300)   insights.push(['🚀', 'Ritmo entre 4:00-5:00/km — zona de performance. Muito sólido.']);
+    else if (paceSecKm < 360)   insights.push(['💚', 'Pace entre 5:00-6:00/km — zona aeróbia ideal para queimar gordura.']);
+    else if (paceSecKm < 480)   insights.push(['🏃', 'Ritmo de treino longo — perfeito para construir base aeróbia.']);
+    else                         insights.push(['🌱', 'Ritmo confortável — ideal para recuperação activa.']);
+  }
+
+  // ── Duration-based ──
+  if (mins >= 90)  insights.push(['🔋', 'Mais de 90 minutos de actividade — certifica-te que bebes água e comes algo nas próximas 2h.']);
+  else if (mins >= 60) insights.push(['⏱️', 'Sessão de 1h+ — o teu corpo começa a usar reservas de glicogénio muscular. Recupera bem.']);
+  else if (mins < 20 && distKm > 0) insights.push(['⚡', 'Treino curto mas intenso. Qualidade importa mais do que quantidade.']);
+
+  // ── Fallback ──
+  if (!insights.length) {
+    var fallbacks = [
+      ['💪', 'Actividade registada. Consistência é o segredo — um treino de cada vez.'],
+      ['🌱', 'Cada sessão conta. O progresso acontece fora da zona de conforto.'],
+      ['✅', 'Feito! O pior treino é sempre o que não aconteceu.'],
+      ['⭐', 'Mais um registo no teu historial. A soma faz a diferença.'],
+    ];
+    insights.push(fallbacks[Math.floor(Math.random() * fallbacks.length)]);
+  }
+
+  // Pick the most relevant (first match wins — ordered by priority above)
+  return insights[0];
+}
+
+function renderActInsight(a) {
+  var card    = document.getElementById('act-insight-card');
+  var iconEl  = document.getElementById('act-insight-icon');
+  var textEl  = document.getElementById('act-insight-text');
+  if (!card || !iconEl || !textEl) return;
+  var result = generateLocalInsight(a);
+  if (!result) { card.style.display = 'none'; return; }
+  iconEl.textContent = result[0];
+  textEl.textContent = result[1];
+  card.style.display = 'flex';
 }
 
 </script>
