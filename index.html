@@ -1,7 +1,57 @@
 <!DOCTYPE html>
-<!-- Trendout PWA v1.0-beta | app.trendout.pt | 18/03/2026 -->
+<!-- Trendout PWA v1.0-beta | app.trendout.pt | Built with Claude AI | 18/03/2026 -->
 <html lang="pt">
 <head>
+<!-- 
+  TRENDOUT FITNESS PWA — v17
+  Build: 2026-04-25
+  
+  v17 Changes vs v16:
+  ─────────────────────────────────────────────
+  GPS
+  · Two-layer canvas (tiles static, route animated) — eliminates 403 errors and flash
+  · 3-reading weighted average buffer — smooths route on paddle/outdoor activities
+  · Offline fallback — dark grid map when no network, GPS continues recording
+  · online/offline event listeners — auto-sync when network recovers
+  · addActivity detects offline — saves to localStorage immediately, no timeout
+  
+  Activity Detail
+  · Street labels (start/end) and city restored — cached from Supabase, no redundant geocoding
+  · Distance badge removed from map overlay (shown in stats below)
+  · Free local insight card below Share button — rule-based, no API cost
+  · Pace recalculation fallback — recalculates from distKm+totalSeconds if stored value missing
+  · Splits NaN guard — all split values validated before render
+  · Duration parsing — supports h:mm:ss, mm:ss, hm formats
+  
+  EnjoyPoints
+  · Persist to Supabase on every award (profiles.enjoy_pts + enjoy_log)
+  · Restore on app load (supaLoadData reads enjoy_pts/enjoy_log)
+  · renderEnjoyPage called on navTo('enjoy') — always shows current points
+  
+  Premium & Payments
+  · Premium status read from Supabase on every load (profiles.is_premium)
+  · updatePremiumUI called immediately after supaLoadData — no stale state
+  · PayPal/Cartão active, MB WAY + Multibanco marked "Em breve"
+  · openUpgrade() → /premium (standalone payment page)
+  · premium-ativo.html reads plan+date from Supabase
+  · Email confirmation trigger added to premium.html onApprove
+  
+  GPS Import
+  · GPX/FIT/TCX/KML import overlay with sport selector and preview
+  · FIT binary parser, GPX/TCX/KML XML parsers — all formats without external libs
+  
+  Share
+  · Branded share image generator (post 1080×1080, story 1080×1920)
+  · Vector route drawn on canvas — no CORS issues
+  · Updated share text with app.trendout.es branding
+  
+  Profile
+  · Weight chart defaults to "Mês" period
+  · Garmin Connect OAuth button (primary), other brands "Em breve"
+  · Duplicate stat IDs resolved
+  ─────────────────────────────────────────────
+-->
+
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
 <meta name="theme-color" content="#000"/>
@@ -340,7 +390,7 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
 <div class="screen active" id="s-splash" style="align-items:center;justify-content:center">
   <div style="text-align:center;animation:fadeUp .6s ease">
     <div class="logo-word">trendout</div>
-    <div class="tagline" style="font-size:13px;line-height:1.5;max-width:280px;margin:0 auto">A App de fitness que mede como te sentes.<br>Desenvolvida em Portugal. #enjoylife<br><br><br><br><br>Análise Física e Mental<br>Regista os teus Treinos e Performance<br>Melhora a tua Recuperação e Nutrição<br>Diversos Desportos</div>
+    <div class="tagline" style="font-size:13px;line-height:1.5;max-width:280px;margin:0 auto">A App de fitness que mede como te sentes.<br>Desenvolvida em Portugal. #enjoylife</div>
   </div>
   <div style="position:absolute;bottom:max(env(safe-area-inset-bottom,0px),40px);left:0;right:0;padding:0 28px;animation:fadeUp .6s .2s ease both">
     <button class="btn btn-white" onclick="go('s-welcome')">Começar →</button>
@@ -772,7 +822,7 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
       </div>
     </div>
 
-    <button id="pay-submit-btn" onclick="submitPayment()" style="width:100%;padding:16px;border-radius:16px;background:#FACC15;border:none;color:#000;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;margin-bottom:12px;transition:all .2s" id="pay-submit-btn">
+    <button id="pay-submit-btn" onclick="submitPayment()" style="width:100%;padding:16px;border-radius:16px;background:#FACC15;border:none;color:#000;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;margin-bottom:12px;transition:all .2s" id="pay-submit-btn-2">
       🔒 Subscrever agora
     </button>
 
@@ -1768,19 +1818,19 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
   <div class="perf-adv-hero-stats perf-adv-fade-up">
     <div class="perf-adv-hero-stat" style="background:linear-gradient(135deg,#0a1a0a,#0f0f0f);border:1px solid rgba(34,197,94,.2)">
       <div class="glow perf-adv-glow" style="background:radial-gradient(circle,rgba(34,197,94,.15),transparent 70%)"></div>
-      <div class="perf-adv-hero-stat-val" style="color:var(--green2)" id="stat-km">47.3</div>
+      <div class="perf-adv-hero-stat-val" style="color:var(--green2)" id="stat-km-dup">47.3</div>
       <div class="perf-adv-hero-stat-lbl" style="color:var(--green)">km totais</div>
       <div class="perf-adv-hero-stat-delta" style="color:var(--green2)">↑ +12% vs período anterior</div>
     </div>
     <div class="perf-adv-hero-stat" style="background:linear-gradient(135deg,#0d1117,#0f0f0f);border:1px solid rgba(96,165,250,.2)">
       <div class="glow perf-adv-glow" style="background:radial-gradient(circle,rgba(96,165,250,.12),transparent 70%)"></div>
-      <div class="perf-adv-hero-stat-val" style="color:var(--blue2)" id="stat-acts">8</div>
+      <div class="perf-adv-hero-stat-val" style="color:var(--blue2)" id="stat-acts-dup">8</div>
       <div class="perf-adv-hero-stat-lbl" style="color:var(--blue2)">atividades</div>
       <div class="perf-adv-hero-stat-delta" style="color:var(--blue2)">↑ +2 vs anterior</div>
     </div>
     <div class="perf-adv-hero-stat" style="background:linear-gradient(135deg,#1a1000,#0f0f0f);border:1px solid rgba(250,204,21,.15)">
       <div class="glow perf-adv-glow" style="background:radial-gradient(circle,rgba(250,204,21,.1),transparent 70%)"></div>
-      <div class="perf-adv-hero-stat-val" style="color:var(--yellow)" id="stat-time">6h 42m</div>
+      <div class="perf-adv-hero-stat-val" style="color:var(--yellow)" id="stat-time-dup">6h 42m</div>
       <div class="perf-adv-hero-stat-lbl" style="color:var(--yellow)">tempo total</div>
       <div class="perf-adv-hero-stat-delta" style="color:var(--yellow)">↑ +48min</div>
     </div>
