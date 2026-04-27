@@ -355,6 +355,30 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
 
   .hf-btn{padding:6px 14px;border-radius:20px;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;transition:all .2s}
 .hf-btn.hf-active{background:rgba(250,204,21,.1);border-color:rgba(250,204,21,.4);color:#FACC15}
+
+/* ══════════════════════════════════════
+   PSE — Percepção Subjectiva de Esforço
+   ══════════════════════════════════════ */
+@keyframes pse-slide-up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+
+#pse-sheet{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);z-index:600;display:flex;align-items:flex-end;justify-content:center}
+#pse-sheet-inner{width:100%;max-width:430px;background:#0a0a0a;border-top:1px solid rgba(255,255,255,.08);border-radius:28px 28px 0 0;padding:max(env(safe-area-inset-top,0px),24px) 22px max(env(safe-area-inset-bottom,0px),36px);animation:pse-slide-up .4s cubic-bezier(.34,1.1,.64,1)}
+.pse-scale{display:grid;grid-template-columns:repeat(11,1fr);gap:4px;margin-bottom:10px}
+.pse-btn{aspect-ratio:1;border:none;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;transition:transform .15s,opacity .15s,box-shadow .2s;display:flex;align-items:center;justify-content:center;width:100%;opacity:.65}
+.pse-btn.sel{transform:scale(1.18);opacity:1;box-shadow:0 0 0 3px rgba(255,255,255,.35),0 6px 18px rgba(0,0,0,.4);z-index:2}
+.pse-btn:active{transform:scale(.9)}
+.pse-hist-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end}
+.pse-hist-bar{width:100%;border-radius:6px 6px 0 0;min-height:4px;transition:height .4s cubic-bezier(.34,1.1,.64,1)}
+.pse-hist-bar-val{font-size:10px;font-weight:800;color:rgba(255,255,255,.65)}
+.pse-hist-bar-date{font-size:8px;color:rgba(255,255,255,.3);margin-top:2px}
+.pse-load-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:18px;margin-bottom:14px}
+.pse-metrics{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.pse-metric-val{font-size:22px;font-weight:900;color:#fff;text-align:center}
+.pse-metric-lbl{font-size:10px;color:rgba(255,255,255,.4);text-align:center;margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
+.pse-hist-item{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.pse-hist-item:last-child{border-bottom:none}
+.pse-badge-circle{width:44px;height:44px;border-radius:13px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900}
+.pse-weekly-insight{background:rgba(250,204,21,.06);border:1px solid rgba(250,204,21,.15);border-radius:14px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;margin-bottom:14px}
 </style>
 
   <!-- PWA meta -->
@@ -1485,6 +1509,18 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
         <div style="font-size:18px;color:rgba(250,204,21,.6)">→</div>
       </button>
 
+      <!-- PSE History button -->
+      <button onclick="openPseHistory()" style="width:100%;padding:15px 20px;border-radius:18px;background:linear-gradient(135deg,#0d1a12,#0a110a);border:1.5px solid rgba(34,197,94,.3);color:#4ADE80;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;transition:all .2s">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:36px;height:36px;border-radius:12px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">🎯</div>
+          <div style="text-align:left">
+            <div style="font-size:14px;font-weight:800;color:#4ADE80">Histórico PSE</div>
+            <div style="font-size:11px;color:rgba(34,197,94,.5);margin-top:1px;font-weight:500">Percepção Subjectiva de Esforço</div>
+          </div>
+        </div>
+        <div style="font-size:18px;color:rgba(34,197,94,.6)">→</div>
+      </button>
+
       <div style="background:linear-gradient(135deg,#1a1a2e,#111);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:20px;margin-bottom:12px;overflow:hidden;position:relative">
         <!-- Background glow -->
         <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:radial-gradient(circle,rgba(250,204,21,.08),transparent 70%);pointer-events:none"></div>
@@ -1784,6 +1820,114 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
         <b style="color:rgba(255,255,255,.5)">Apple Watch:</b> App Saúde → Exportar dados de saúde (ZIP)<br>
         <b style="color:rgba(255,255,255,.5)">Suunto:</b> Suunto App → Atividade → Exportar → FIT
       </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══ PSE HISTORY PAGE ═══ -->
+<div id="page-pse-history" class="app-page" style="background:#000;overflow-y:auto;height:100%">
+  <div style="max-width:430px;margin:0 auto;padding:max(env(safe-area-inset-top,0px),16px) 20px max(env(safe-area-inset-bottom,0px),120px)">
+
+    <!-- Back button top -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
+      <button onclick="navTo('perf')" style="width:36px;height:36px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-size:16px;cursor:pointer;font-family:inherit;flex-shrink:0;display:flex;align-items:center;justify-content:center">←</button>
+      <div>
+        <div style="font-size:18px;font-weight:900;color:#fff">Histórico PSE</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:1px">Percepção Subjectiva de Esforço</div>
+      </div>
+    </div>
+
+    <!-- Load metrics -->
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:18px;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px">Carga de treino — 7 dias</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+        <div style="text-align:center">
+          <div id="pse-metric-load" style="font-size:24px;font-weight:900;color:#fff">—</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:2px;text-transform:uppercase;letter-spacing:.5px">Carga total</div>
+        </div>
+        <div style="text-align:center">
+          <div id="pse-metric-avg" style="font-size:24px;font-weight:900;color:#fff">—</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:2px;text-transform:uppercase;letter-spacing:.5px">PSE médio</div>
+        </div>
+        <div style="text-align:center">
+          <div id="pse-metric-trend" style="font-size:20px;font-weight:900;color:#fff">—</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:2px;text-transform:uppercase;letter-spacing:.5px">Tendência</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Weekly insight -->
+    <div id="pse-insight-weekly" style="display:none;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:14px;padding:14px 16px;margin-bottom:14px;display:flex;gap:12px;align-items:flex-start">
+      <div style="font-size:18px;flex-shrink:0">💡</div>
+      <div id="pse-insight-weekly-text" style="font-size:12px;color:rgba(255,255,255,.65);line-height:1.6"></div>
+    </div>
+
+    <!-- Chart -->
+    <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Últimas sessões</div>
+    <div id="pse-history-chart" style="display:flex;align-items:flex-end;gap:6px;height:90px;margin-bottom:8px"></div>
+    <div style="height:1px;background:rgba(255,255,255,.06);margin-bottom:20px"></div>
+
+    <!-- List -->
+    <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Registo de esforço</div>
+    <div id="pse-history-list"></div>
+
+    <!-- Empty state -->
+    <div id="pse-history-empty" style="display:none;text-align:center;padding:40px 0">
+      <div style="font-size:40px;margin-bottom:12px">🎯</div>
+      <div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:6px">Sem registos PSE ainda</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.4);line-height:1.6">Avalia o esforço após cada actividade<br>para ver a tua carga de treino aqui.</div>
+    </div>
+
+    <!-- Back button bottom -->
+    <button onclick="navTo('perf')" style="width:100%;margin-top:24px;padding:14px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">← Voltar à Performance</button>
+
+  </div>
+</div>
+
+
+<!-- ═══ PSE SHEET (post-activity) ═══ -->
+<div id="pse-sheet" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);z-index:500;align-items:flex-end;justify-content:center">
+  <div style="width:100%;max-width:430px;background:#0a0a0a;border-top:1px solid rgba(255,255,255,.08);border-radius:28px 28px 0 0;padding:24px 22px max(env(safe-area-inset-bottom,0px),36px)">
+
+    <!-- Activity chip -->
+    <div id="pse-act-chip" style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:12px 16px;margin-bottom:22px">
+      <div id="pse-act-icon" style="width:42px;height:42px;background:rgba(34,197,94,.12);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🏃</div>
+      <div style="flex:1">
+        <div id="pse-act-name" style="font-size:14px;font-weight:800;color:#fff">Actividade</div>
+        <div style="display:flex;gap:14px;margin-top:3px">
+          <div id="pse-act-dist" style="font-size:12px;color:rgba(255,255,255,.45)">—</div>
+          <div id="pse-act-dur"  style="font-size:12px;color:rgba(255,255,255,.45)">—</div>
+          <div id="pse-act-pace" style="font-size:12px;color:rgba(255,255,255,.45)">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Question -->
+    <div style="font-size:20px;font-weight:800;color:#fff;text-align:center;margin-bottom:5px">Como te sentiste?</div>
+    <div style="font-size:12px;color:rgba(255,255,255,.4);text-align:center;margin-bottom:24px">0 = Repouso · 10 = Máximo absoluto</div>
+
+    <!-- PSE Scale -->
+    <div id="pse-scale" style="display:grid;grid-template-columns:repeat(11,1fr);gap:4px;margin-bottom:12px"></div>
+
+    <!-- Scale labels -->
+    <div style="display:flex;justify-content:space-between;margin-bottom:20px;padding:0 2px">
+      <span style="font-size:9px;color:rgba(255,255,255,.3);font-weight:600;text-transform:uppercase;letter-spacing:.3px">Fácil</span>
+      <span style="font-size:9px;color:rgba(255,255,255,.3);font-weight:600;text-transform:uppercase;letter-spacing:.3px">Moderado</span>
+      <span style="font-size:9px;color:rgba(255,255,255,.3);font-weight:600;text-transform:uppercase;letter-spacing:.3px">Máximo</span>
+    </div>
+
+    <!-- Description -->
+    <div id="pse-desc" style="min-height:52px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:12px 16px;margin-bottom:18px;display:flex;align-items:center;gap:12px;opacity:0;transition:opacity .25s">
+      <div id="pse-desc-icon" style="font-size:22px;flex-shrink:0">💭</div>
+      <div id="pse-desc-text" style="font-size:13px;color:rgba(255,255,255,.75);line-height:1.5"></div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display:grid;grid-template-columns:1fr 2fr;gap:10px">
+      <button onclick="pseDismiss()" style="padding:14px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">Saltar</button>
+      <button id="pse-save-btn" onclick="pseSave()" style="padding:14px;border-radius:14px;background:rgba(34,197,94,.2);border:1px solid rgba(34,197,94,.3);color:rgba(255,255,255,.4);font-size:14px;font-weight:800;cursor:not-allowed;font-family:inherit;transition:all .2s">Avaliar esforço</button>
     </div>
 
   </div>
@@ -3226,6 +3370,8 @@ function stopGps() {
   document.getElementById('gps-overlay').style.display='none';
   document.body.style.overflow='';
   addActivity(act); renderProfile(); navTo('home');
+  // Show PSE rating sheet after saving
+  setTimeout(function() { openPseSheet(act); }, 600);
 }
 
 function haversine(lat1,lng1,lat2,lng2){
@@ -7290,6 +7436,7 @@ function saveManualActivity() {
     source:'manual',
   };
   closeManualEntry(); addActivity(act); navTo('home'); toast('✅ Actividade guardada!');
+  setTimeout(function() { openPseSheet(act); }, 800);
 }
 
 function launchApp(userData) {
@@ -7372,6 +7519,7 @@ function navTo(page) {
   });
   if (page === 'home')    { renderHomeActs(); renderStatsCard(); }
   if (page === 'enjoy')   { setTimeout(function(){ renderEnjoyPage(); }, 20); }
+  if (page === 'pse-history') { /* rendered by renderPseHistory */ }
   if (page === 'history') {
     renderHistory();
     document.querySelectorAll('.nav-btn').forEach(function(b) { b.classList.remove('on'); });
@@ -8259,6 +8407,7 @@ function importGpxActivity() {
   addActivity(act);
   navTo('home');
   toast('✅ ' + d.dist + ' importados do ficheiro!');
+  setTimeout(function() { openPseSheet(act); }, 800);
 }
 
 // ═══════════════════════════════════════════════
@@ -8941,6 +9090,288 @@ function drawRouteOnCanvas(canvasId, lat, lng, zoom, route) {
   ctx.beginPath();
   ctx.fillStyle = '#fff'; ctx.shadowBlur = 0;
   ctx.arc(W/2, H/2, 2.5, 0, Math.PI*2); ctx.fill();
+}
+
+// ═══════════════════════════════════════════════════
+// PSE — PERCEPÇÃO SUBJECTIVA DE ESFORÇO
+// ═══════════════════════════════════════════════════
+
+var PSE_COLORS = [
+  '#4B5563','#6B7280','#10B981','#22C55E','#84CC16',
+  '#FACC15','#F59E0B','#F97316','#EF4444','#DC2626','#991B1B'
+];
+
+var PSE_DESC = [
+  ['😴','Repouso total. Sem esforço perceptível.'],
+  ['🧘','Muito fácil. Podes manter uma conversa sem dificuldade.'],
+  ['🚶','Fácil. Respiração ligeiramente elevada mas confortável.'],
+  ['🏃','Moderado. Podes falar mas preferes não. Zona aeróbia eficiente.'],
+  ['💪','Moderado alto. Respiração acelera. Zona de queima de gordura óptima.'],
+  ['🔥','Limiar aeróbio. Conversa difícil. Esforço sustentável por 60-90 min.'],
+  ['⚡','Difícil. Respiração exigida. Zona de limiar. Máximo 20-40 min.'],
+  ['😤','Muito difícil. Falar é difícil. Zona anaeróbia. Máximo 10-20 min.'],
+  ['🫁','Intenso. Ofega. Ritmo de competição. Máximo 5-10 min.'],
+  ['😵','Quase máximo. Esforço extremo. Poucos minutos possíveis.'],
+  ['💀','Máximo absoluto. Tudo o que tens. Insustentável além de 1-2 min.'],
+];
+var PSE_DESCRIPTIONS = PSE_DESC; // alias
+
+var _pseValue    = null;  // current selection
+var _pseActivity = null;  // activity being rated
+
+function buildPseScale() {
+  var container = document.getElementById('pse-scale');
+  if (!container || container.children.length > 0) return;
+  for (var i = 0; i <= 10; i++) {
+    (function(val) {
+      var btn = document.createElement('button');
+      btn.style.cssText = 'aspect-ratio:1;border:none;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;transition:transform .15s,opacity .15s,box-shadow .2s;display:flex;align-items:center;justify-content:center;width:100%;background:' + PSE_COLORS[val] + ';color:' + (val >= 5 ? '#000' : '#fff') + ';opacity:.65';
+      btn.textContent = val;
+      btn.id = 'pse-btn-' + val;
+      btn.onclick = function() { pseSelect(val); };
+      container.appendChild(btn);
+    })(i);
+  }
+}
+
+function openPseSheet(act) {
+  _pseActivity = act || null;
+  _pseValue    = null;
+
+  buildPseScale();
+
+  // Reset buttons
+  for (var i = 0; i <= 10; i++) {
+    var b = document.getElementById('pse-btn-' + i);
+    if (b) { b.style.transform = ''; b.style.opacity = '.65'; b.style.boxShadow = ''; }
+  }
+
+  // Reset description
+  var desc = document.getElementById('pse-desc');
+  if (desc) desc.style.opacity = '0';
+
+  // Reset save button
+  var saveBtn = document.getElementById('pse-save-btn');
+  if (saveBtn) {
+    saveBtn.textContent = 'Avaliar esforço';
+    saveBtn.style.background = 'rgba(34,197,94,.2)';
+    saveBtn.style.borderColor = 'rgba(34,197,94,.3)';
+    saveBtn.style.color = 'rgba(255,255,255,.4)';
+    saveBtn.style.cursor = 'not-allowed';
+  }
+
+  // Populate activity chip
+  if (act) {
+    var icon = document.getElementById('pse-act-icon');
+    var name = document.getElementById('pse-act-name');
+    var dist = document.getElementById('pse-act-dist');
+    var dur  = document.getElementById('pse-act-dur');
+    var pace = document.getElementById('pse-act-pace');
+    var actIcon = _actIcons[act.type] || '🏅';
+    if (icon) { icon.textContent = actIcon; icon.style.background = 'rgba(34,197,94,.12)'; }
+    if (name) name.textContent = act.type || 'Actividade';
+    if (dist) dist.textContent = act.dist || '—';
+    if (dur)  dur.textContent  = act.dur  || '—';
+    if (pace) pace.textContent = act.pace || '—';
+  }
+
+  var sheet = document.getElementById('pse-sheet');
+  if (sheet) { sheet.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+}
+
+function pseSelect(val) {
+  _pseValue = val;
+
+  // Update buttons
+  for (var i = 0; i <= 10; i++) {
+    var b = document.getElementById('pse-btn-' + i);
+    if (!b) continue;
+    if (i === val) {
+      b.style.transform  = 'scale(1.18)';
+      b.style.opacity    = '1';
+      b.style.boxShadow  = '0 0 0 3px rgba(255,255,255,.35), 0 8px 20px rgba(0,0,0,.4)';
+      b.style.zIndex     = '2';
+    } else {
+      b.style.transform  = '';
+      b.style.opacity    = '.4';
+      b.style.boxShadow  = '';
+      b.style.zIndex     = '';
+    }
+  }
+
+  // Description
+  var desc  = document.getElementById('pse-desc');
+  var icon  = document.getElementById('pse-desc-icon');
+  var text  = document.getElementById('pse-desc-text');
+  if (desc) { desc.style.opacity = '1'; desc.style.borderColor = PSE_COLORS[val] + '55'; desc.style.background = PSE_COLORS[val] + '11'; }
+  if (icon) icon.textContent = PSE_DESC[val][0];
+  if (text) text.textContent = PSE_DESC[val][1];
+
+  // Save button
+  var saveBtn = document.getElementById('pse-save-btn');
+  if (saveBtn) {
+    saveBtn.textContent    = 'Guardar PSE ' + val + '/10';
+    saveBtn.style.background  = 'linear-gradient(135deg,' + PSE_COLORS[Math.max(0,val-1)] + ',' + PSE_COLORS[val] + ')';
+    saveBtn.style.borderColor = 'transparent';
+    saveBtn.style.color       = val >= 4 ? '#000' : '#fff';
+    saveBtn.style.cursor      = 'pointer';
+  }
+}
+
+function pseDismiss() {
+  var sheet = document.getElementById('pse-sheet');
+  if (sheet) { sheet.style.display = 'none'; document.body.style.overflow = ''; }
+}
+
+function pseSave() {
+  if (_pseValue === null) return;
+
+  // Attach PSE to the activity and save
+  if (_pseActivity) {
+    _pseActivity.pse = _pseValue;
+
+    // Save PSE log to localStorage
+    var log = getPseLog();
+    var totalSec = _pseActivity.totalSeconds || _pseActivity.total_seconds || 0;
+    var mins = totalSec > 0 ? Math.round(totalSec / 60) : 0;
+    log.unshift({
+      pse:   _pseValue,
+      type:  _pseActivity.type  || 'Outro',
+      icon:  _actIcons[_pseActivity.type] || '🏅',
+      dist:  _pseActivity.dist  || '—',
+      dur:   _pseActivity.dur   || '—',
+      pace:  _pseActivity.pace  || '—',
+      date:  _pseActivity.date  || new Date().toLocaleDateString('pt-PT'),
+      mins:  mins,
+      load:  mins > 0 ? Math.round(mins * _pseValue) : 0,
+    });
+    savePseLog(log);
+
+    // Also update in _allActivities
+    var idx = _allActivities.indexOf(_pseActivity);
+    if (idx >= 0) _allActivities[idx].pse = _pseValue;
+
+    // Sync to Supabase if possible
+    if (_db && _pseActivity.id) {
+      _db.from('activities').update({ pse: _pseValue }).eq('id', _pseActivity.id).then(function(){}).catch(function(){});
+    }
+  }
+
+  pseDismiss();
+
+  var msg = _pseValue <= 3 ? '😴 PSE ' + _pseValue + ' — Recuperação activa registada!'
+          : _pseValue <= 5 ? '✅ PSE ' + _pseValue + ' — Treino moderado!'
+          : _pseValue <= 7 ? '💪 PSE ' + _pseValue + ' — Treino intenso!'
+          :                   '🔥 PSE ' + _pseValue + ' — Sessão máxima!';
+  toast(msg);
+}
+
+// ── PSE Log (localStorage) ──
+function getPseLog() {
+  try {
+    var key = 'trendout_pse_' + (_user ? _user.id : 'anon');
+    var s = localStorage.getItem(key);
+    return s ? JSON.parse(s) : [];
+  } catch(e) { return []; }
+}
+function savePseLog(log) {
+  try {
+    var key = 'trendout_pse_' + (_user ? _user.id : 'anon');
+    localStorage.setItem(key, JSON.stringify(log.slice(0, 100)));
+  } catch(e) {}
+}
+
+// ── PSE History Page ──
+function openPseHistory() {
+  navTo('pse-history');
+  setTimeout(renderPseHistory, 50);
+}
+
+function renderPseHistory() {
+  var log = getPseLog();
+  var empty = document.getElementById('pse-history-empty');
+  var chart = document.getElementById('pse-history-chart');
+  var list  = document.getElementById('pse-history-list');
+  var insight = document.getElementById('pse-insight-weekly');
+
+  if (!log.length) {
+    if (empty) empty.style.display = 'block';
+    if (chart) chart.style.display = 'none';
+    if (insight) insight.style.display = 'none';
+    document.getElementById('pse-metric-load').textContent = '—';
+    document.getElementById('pse-metric-avg').textContent  = '—';
+    document.getElementById('pse-metric-trend').innerHTML  = '—';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+  if (chart) chart.style.display = 'flex';
+
+  // Metrics
+  var recent = log.slice(0, 7);
+  var totalLoad = recent.reduce(function(s,a){ return s + (a.load||0); }, 0);
+  var avgPse    = (recent.reduce(function(s,a){ return s + a.pse; }, 0) / recent.length).toFixed(1);
+  var last3avg  = log.slice(0,3).length ? log.slice(0,3).reduce(function(s,a){return s+a.pse;},0)/log.slice(0,3).length : 0;
+  var prev3avg  = log.slice(3,6).length ? log.slice(3,6).reduce(function(s,a){return s+a.pse;},0)/log.slice(3,6).length : last3avg;
+  var trend     = last3avg - prev3avg;
+  var trendStr  = trend > 0.5 ? '↑ +' + trend.toFixed(1) : trend < -0.5 ? '↓ ' + trend.toFixed(1) : '→';
+  var trendColor= trend > 0.5 ? '#EF4444' : trend < -0.5 ? '#22C55E' : '#FACC15';
+
+  document.getElementById('pse-metric-load').textContent = totalLoad;
+  document.getElementById('pse-metric-avg').textContent  = avgPse;
+  document.getElementById('pse-metric-trend').innerHTML  = '<span style="color:' + trendColor + '">' + trendStr + '</span>';
+
+  // Weekly insight
+  var insightText = '';
+  if (trend > 1)    insightText = 'O teu PSE subiu ' + trend.toFixed(1) + ' pontos para a mesma carga. Considera um dia de recuperação activa.';
+  else if (trend < -1) insightText = 'PSE a descer — boa adaptação ao treino. Podes aumentar ligeiramente a carga esta semana.';
+  else if (parseFloat(avgPse) >= 7.5) insightText = 'PSE médio elevado (' + avgPse + '/10). Prioriza o sono e hidratação nas próximas 24h.';
+  else if (parseFloat(avgPse) <= 3.5) insightText = 'PSE médio muito baixo (' + avgPse + '/10). Podes desafiar-te mais — o teu corpo está a adaptar-se.';
+  else insightText = 'PSE consistente nas últimas sessões. Boa gestão de carga — mantém o ritmo.';
+
+  if (insight) {
+    insight.style.display = 'flex';
+    document.getElementById('pse-insight-weekly-text').textContent = insightText;
+  }
+
+  // Chart
+  if (chart) {
+    chart.innerHTML = '';
+    var last7 = recent.slice().reverse();
+    last7.forEach(function(a) {
+      var wrap = document.createElement('div');
+      wrap.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end';
+      wrap.innerHTML =
+        '<div style="font-size:10px;font-weight:800;color:rgba(255,255,255,.6)">' + a.pse + '</div>' +
+        '<div style="width:100%;border-radius:6px 6px 0 0;min-height:4px;background:' + PSE_COLORS[a.pse] + ';box-shadow:0 0 8px ' + PSE_COLORS[a.pse] + '66;height:' + (a.pse/10*100) + '%"></div>' +
+        '<div style="font-size:8px;color:rgba(255,255,255,.3);margin-top:2px">' + (a.date||'').slice(0,5) + '</div>';
+      chart.appendChild(wrap);
+    });
+  }
+
+  // List
+  if (list) {
+    list.innerHTML = '';
+    log.slice(0, 10).forEach(function(a, i) {
+      var prev = log[i+1];
+      var diff = prev ? a.pse - prev.pse : 0;
+      var trendHtml = diff > 0
+        ? '<span style="color:#EF4444;font-size:11px;font-weight:700">↑ +' + diff + '</span>'
+        : diff < 0
+        ? '<span style="color:#22C55E;font-size:11px;font-weight:700">↓ ' + diff + '</span>'
+        : '<span style="color:#FACC15;font-size:11px;font-weight:700">→</span>';
+
+      var item = document.createElement('div');
+      item.style.cssText = 'display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06)';
+      item.innerHTML =
+        '<div style="width:42px;height:42px;border-radius:12px;background:' + PSE_COLORS[a.pse] + '22;border:1px solid ' + PSE_COLORS[a.pse] + '44;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:' + PSE_COLORS[a.pse] + ';flex-shrink:0">' + a.pse + '</div>' +
+        '<div style="flex:1">' +
+          '<div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:2px">' + (a.icon||'🏅') + ' ' + (a.type||'Actividade') + ' · ' + (a.dist||'—') + '</div>' +
+          '<div style="font-size:11px;color:rgba(255,255,255,.4)">' + (a.date||'') + ' · ' + (a.dur||'—') + (a.load ? ' · Carga: ' + a.load : '') + '</div>' +
+        '</div>' +
+        trendHtml;
+      list.appendChild(item);
+    });
+  }
 }
 
 </script>
