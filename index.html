@@ -3187,6 +3187,9 @@ function startGpsRecording() {
   var nm=document.getElementById('gps-sport-name');
   if(ic&&_selAct) ic.textContent=_selAct.ic;
   if(nm&&_selAct) nm.textContent=_selAct.lb;
+  // Store sport emoji for use in km alerts
+  _gps.sportIc = (_selAct && _selAct.ic) ? _selAct.ic : '🏃';
+  _gps.sportLb = (_selAct && _selAct.lb) ? _selAct.lb : 'Corrida';
 
   setTimeout(function(){
     drawTileMap('map-canvas', _gps.centerLat, _gps.centerLng, 16, _gps.route, null);
@@ -3339,7 +3342,8 @@ function updateGpsPosition(lat, lng) {
 function showKmSplit(km) {
   var el=document.getElementById('km-toast'),txt=document.getElementById('km-toast-text'),pace=document.getElementById('km-toast-pace');
   if(!el||!txt) return;
-  txt.textContent=km+' km! 🔥';
+  var _ic = _gps.sportIc || '🏃';
+  txt.textContent=_ic + ' ' + km+' km!';
   var st=_gps.kmSplits.length>1?_gps.seconds-_gps.kmSplits[_gps.kmSplits.length-2].time:_gps.seconds;
   if(pace) pace.textContent='Split: '+Math.floor(st/60)+':'+pad(st%60)+' min/km';
   el.style.display='flex'; el.style.flexDirection='column'; el.style.alignItems='center';
@@ -4865,7 +4869,7 @@ function renderActDetail(a) {
   if (timeEl) timeEl.textContent = a.dur || '—';
 
   // ── Indoor/strength sports: hide dist, pace, map, splits ──
-  var _isIndoor = /gym|boxe|padel|calistenia|muscula|yoga|pilates|treino|força|workout|ginast/i.test(a.type||'');
+  var _isIndoor = /gym|boxe|padel|calistenia|muscula|yoga|pilates|treino|força|workout|gin[aá]st/i.test(a.type||'');
   var _distCard   = document.getElementById('det-dist-card');
   var _paceCard   = document.getElementById('det-pace-card');
   var _mapWrap    = document.getElementById('det-map-wrap');
@@ -7163,7 +7167,7 @@ addActivity = function(act) {
   }
 
   var qualifiesKm   = km >= 5;
-  var _isIndoorEP   = /gym|boxe|padel|calistenia|muscula|yoga|pilates|treino|força|workout|ginast/i.test(act.type||'');
+  var _isIndoorEP   = /gym|boxe|padel|calistenia|muscula|yoga|pilates|treino|força|workout|gin[aá]st/i.test(act.type||'');
   var qualifiesMins = _isIndoorEP ? totalMins >= 30 : totalMins >= 60;
 
   if (qualifiesKm || qualifiesMins) {
@@ -7403,7 +7407,7 @@ function actCard(a, compact) {
     })()
     + '</div>'
     + (function(){
-      var _indoor = /gym|boxe|padel|calistenia|muscula|yoga|pilates|treino|força|workout|ginast/i.test(a.type||'');
+      var _indoor = /gym|boxe|padel|calistenia|muscula|yoga|pilates|treino|força|workout|gin[aá]st/i.test(a.type||'');
       if (_indoor) {
         return '<div style="display:flex;gap:16px;margin-bottom:14px">'
           + '<div><div style="font-size:14px;font-weight:700;color:#fff">' + (a.dur||'—') + '</div><div style="font-size:10px;color:rgba(255,255,255,.4)">Tempo</div></div>'
@@ -7481,7 +7485,7 @@ function saveManualActivity() {
   var durH  = parseInt(document.getElementById('manual-dur-h').value||0)||0;
   var durM  = parseInt(document.getElementById('manual-dur-m').value||0)||0;
   var cal   = (document.getElementById('manual-cal').value||'').trim();
-  var _noDistSport = _selAct && /gym|boxe|padel|calistenia|muscula|yoga|pilates|treino|força|workout|ginast/i.test(_selAct.lb);
+  var _noDistSport = _selAct && /gym|boxe|padel|calistenia|muscula|yoga|pilates|treino|força|workout|gin[aá]st/i.test(_selAct.lb);
   if (!_noDistSport && !dist && !durH && !durM) { toast('⚠️ Introduz pelo menos a distância ou duração'); return; }
   if (_noDistSport && !durH && !durM) { toast('⚠️ Introduz pelo menos a duração do treino'); return; }
   var durStr = durH>0 ? (durH+'h '+(durM<10?'0':'')+durM+'m') : durM+'m';
@@ -8653,13 +8657,25 @@ function generateShareImage(act, format, callback) {
 
   // Stats row
   var statsRowY = sy + Math.round(W * 0.175);
-  var statItems = [
-    { val: act.dist || '—',       lbl: 'DISTÂNCIA' },
-    { val: act.dur  || '—',       lbl: 'TEMPO'     },
-    { val: act.pace || '—',       lbl: 'RITMO/KM'  },
-  ];
-  if (act.cal && parseInt(act.cal) > 0) {
-    statItems.push({ val: act.cal + ' kcal', lbl: 'CALORIAS' });
+  var _imgIndoor = /gym|boxe|padel|calistenia|muscula|yoga|pilates|treino|força|workout|gin[aá]st/i.test(act.type||'');
+  var statItems;
+  if (_imgIndoor) {
+    // Indoor: Tempo + Calorias only
+    statItems = [
+      { val: act.dur || '—', lbl: 'TEMPO' },
+    ];
+    if (act.cal && parseInt(act.cal) > 0) {
+      statItems.push({ val: act.cal + ' kcal', lbl: 'CALORIAS' });
+    }
+  } else {
+    statItems = [
+      { val: act.dist || '—', lbl: 'DISTÂNCIA' },
+      { val: act.dur  || '—', lbl: 'TEMPO'     },
+      { val: act.pace || '—', lbl: 'RITMO/KM'  },
+    ];
+    if (act.cal && parseInt(act.cal) > 0) {
+      statItems.push({ val: act.cal + ' kcal', lbl: 'CALORIAS' });
+    }
   }
 
   var colW = Math.round((W - pad * 2) / statItems.length);
@@ -12107,25 +12123,7 @@ function inviteFriend(channel) {
           Guardar imagem
         </button>
       </div>
-      <!-- Image generation for Instagram -->
-      <div style="padding:14px 22px;border-bottom:1px solid rgba(255,255,255,.07)">
-        <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Imagem para Instagram</div>
-        <!-- Preview thumbnail -->
-        <div id="share-img-preview-wrap" style="display:none;margin-bottom:10px;border-radius:12px;overflow:hidden;max-height:180px">
-          <img id="share-img-preview" src="" style="width:100%;display:block;border-radius:12px;transition:opacity .3s" />
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <button id="share-img-btn-post" onclick="downloadShareImage('post')"
-            style="padding:12px;border-radius:12px;background:rgba(34,197,94,.08);border:1.5px solid rgba(34,197,94,.2);color:#4ADE80;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s">
-            📥 Post (1:1)
-          </button>
-          <button id="share-img-btn-story" onclick="downloadShareImage('story')"
-            style="padding:12px;border-radius:12px;background:rgba(96,165,250,.08);border:1.5px solid rgba(96,165,250,.2);color:#60A5FA;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s">
-            📥 Story (9:16)
-          </button>
-        </div>
-        <div style="font-size:10px;color:rgba(255,255,255,.25);text-align:center;margin-top:8px">Guarda a imagem e partilha directamente no Instagram</div>
-      </div>
+      <!-- Instagram section removed — image generated via canvas save button -->
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:0 20px 16px">
         <button onclick="openInstaMenu()" style="display:flex;flex-direction:column;align-items:center;gap:7px;background:none;border:none;cursor:pointer;padding:8px 0">
           <div style="width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);display:flex;align-items:center;justify-content:center;font-size:26px">📸</div>
