@@ -3342,8 +3342,10 @@ function updateGpsPosition(lat, lng) {
 function showKmSplit(km) {
   var el=document.getElementById('km-toast'),txt=document.getElementById('km-toast-text'),pace=document.getElementById('km-toast-pace');
   if(!el||!txt) return;
-  var _ic = _gps.sportIc || '🏃';
-  txt.textContent=_ic + ' ' + km+' km!';
+  // Ensure sport icon is correct in GPS header
+  var icEl = document.getElementById('gps-sport-ic');
+  if (icEl && _gps.sportIc) icEl.textContent = _gps.sportIc;
+  txt.textContent = km + ' km!';
   var st=_gps.kmSplits.length>1?_gps.seconds-_gps.kmSplits[_gps.kmSplits.length-2].time:_gps.seconds;
   if(pace) pace.textContent='Split: '+Math.floor(st/60)+':'+pad(st%60)+' min/km';
   el.style.display='flex'; el.style.flexDirection='column'; el.style.alignItems='center';
@@ -11845,7 +11847,6 @@ function inviteFriend(channel) {
 
   <!-- KM SPLIT TOAST -->
   <div id="km-toast" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;color:#000;border-radius:20px;padding:20px 32px;text-align:center;z-index:700;pointer-events:none">
-    <div style="font-size:32px;margin-bottom:4px">🏃</div>
     <div id="km-toast-text" style="font-size:24px;font-weight:900"></div>
     <div style="font-size:13px;color:rgba(0,0,0,.5);margin-top:4px" id="km-toast-pace"></div>
   </div>
