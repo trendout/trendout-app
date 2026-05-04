@@ -1958,6 +1958,64 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
   </div>
 </div>
 
+
+<!-- ═══ CRONÓMETRO INDOOR ═══ -->
+<div id="timer-overlay" style="display:none;position:fixed;inset:0;background:#000;z-index:600;flex-direction:column;max-width:430px;margin:0 auto">
+
+  <!-- Header -->
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:max(env(safe-area-inset-top,0px),18px) 18px 12px;flex-shrink:0">
+    <button onclick="cancelTimer()" style="width:36px;height:36px;border-radius:12px;background:rgba(255,255,255,.08);border:none;color:#fff;font-size:16px;cursor:pointer;font-family:inherit">←</button>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div id="timer-sport-ic" style="font-size:22px">🏋️</div>
+      <div id="timer-sport-name" style="font-size:15px;font-weight:700;color:#fff">Gym</div>
+    </div>
+    <div style="width:36px"></div>
+  </div>
+
+  <!-- Main content -->
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px">
+
+    <!-- Status indicator -->
+    <div id="timer-status" style="display:flex;align-items:center;gap:8px;margin-bottom:32px">
+      <div id="timer-rec-dot" style="width:8px;height:8px;border-radius:50%;background:#EF4444;animation:gps-blink 1s infinite"></div>
+      <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px">A gravar</div>
+    </div>
+
+    <!-- Big timer -->
+    <div id="timer-display" style="font-family:'DM Mono',monospace;font-size:72px;font-weight:900;color:#fff;letter-spacing:-2px;line-height:1;margin-bottom:12px">00:00</div>
+
+    <!-- Calories estimate -->
+    <div style="font-size:14px;color:rgba(255,255,255,.35);margin-bottom:48px">
+      <span id="timer-cal">0</span> kcal estimadas
+    </div>
+
+    <!-- HR (if available) -->
+    <div id="timer-hr-wrap" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.15);border-radius:16px;padding:12px 24px;margin-bottom:40px;display:flex;align-items:center;gap:10px">
+      <span style="font-size:20px">❤️</span>
+      <div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px">FC Média</div>
+        <div id="timer-hr" style="font-size:18px;font-weight:800;color:#fff">— bpm</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Controls -->
+  <div style="padding:0 18px max(env(safe-area-inset-bottom,0px),24px);flex-shrink:0">
+    <div style="display:grid;grid-template-columns:1fr 2fr;gap:12px">
+      <button id="timer-pause-btn" onclick="toggleTimerPause()"
+        style="padding:18px;border-radius:18px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.12);color:#fff;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit">
+        ⏸
+      </button>
+      <button onclick="stopTimer()"
+        style="padding:18px;border-radius:18px;background:linear-gradient(135deg,#22C55E,#16A34A);border:none;color:#fff;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit">
+        ⏹ Terminar
+      </button>
+    </div>
+  </div>
+
+</div>
+
 </body>
 </html>
 
@@ -4854,7 +4912,6 @@ function openShareSheetDet() {
   _shareFormat = _shareFormat || 'post';
   var sheet = document.getElementById('share-sheet');
   if (sheet) { sheet.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
-  setTimeout(function() { generateShareImage(); }, 100);
 }
 
 function renderActDetail(a) {
@@ -6835,7 +6892,13 @@ function confirmAct(mode) {
       _selAct = {ic:'🏅', lb: name};
     }
     closeActModal();
-    if (mode === 'manual') { openManualEntry(); } else { openGpsPreview(); }
+    if (mode === 'manual') {
+      openManualEntry();
+    } else {
+      // Indoor sports → timer, outdoor → GPS
+      var _isIndoorSport = _selAct && INDOOR_SPORTS.test(_selAct.lb);
+      if (_isIndoorSport) { openTimerOverlay(); } else { openGpsPreview(); }
+    }
   } else {
     // Legacy call without mode — default to GPS if sport selected
     if (_selAct) { confirmAct('gps'); }
@@ -8788,10 +8851,10 @@ function setShareFormat(fmt, btn) {
     if (f === fmt) { b.style.background = '#fff'; b.style.color = '#000'; }
     else { b.style.background = 'rgba(255,255,255,.1)'; b.style.color = 'rgba(255,255,255,.5)'; }
   });
-  generateShareImage();
+  generateShareImage(_shareAct, 'post', null);
 }
 
-function generateShareImage() {
+function generateShareImage(act, format, callback) {
   var canvas = document.getElementById('share-canvas');
   var loader = document.getElementById('share-canvas-loader');
   if (!canvas || !_shareAct) return;
@@ -9023,7 +9086,7 @@ function _drawShareStats(ctx, W, H, statsY, statsH, act) {
 }
 
 function saveShareImage() {
-  if (!_shareImageDataUrl) { generateShareImage(); return; }
+  if (!_shareImageDataUrl) { generateShareImage(_shareAct, 'post', null); return; }
   var link = document.createElement('a');
   var name = (_profile.name || 'trendout').toLowerCase().replace(/\s+/g, '_');
   var act  = _shareAct ? (_shareAct.type || 'atividade').toLowerCase().replace(/\s+/g, '_') : 'atividade';
@@ -9527,6 +9590,141 @@ function inviteFriend(channel) {
   } else {
     toast('Partilha em app.trendout.es 💪');
   }
+}
+
+// ═══════════════════════════════════════════════
+// CRONÓMETRO INDOOR
+// ═══════════════════════════════════════════════
+var _timer = {
+  active: false, paused: false,
+  seconds: 0,
+  interval: null,
+  sport: null,
+};
+
+var INDOOR_SPORTS = /gym|boxe|padel|calistenia|muscula|yoga|pilates|treino|força|workout|gin[aá]st/i;
+
+function openTimerOverlay() {
+  var overlay = document.getElementById('timer-overlay');
+  if (!overlay) return;
+
+  // Set sport info
+  var ic   = document.getElementById('timer-sport-ic');
+  var name = document.getElementById('timer-sport-name');
+  if (ic   && _selAct) ic.textContent   = _selAct.ic  || '🏋️';
+  if (name && _selAct) name.textContent = _selAct.lb  || 'Treino';
+
+  // Reset state
+  _timer.active  = false;
+  _timer.paused  = false;
+  _timer.seconds = 0;
+  _timer.sport   = _selAct ? {ic: _selAct.ic, lb: _selAct.lb} : {ic:'🏋️', lb:'Gym'};
+
+  updateTimerDisplay();
+  overlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+
+  // Start immediately
+  startTimerClock();
+
+  // Wake lock
+  if ('wakeLock' in navigator) {
+    navigator.wakeLock.request('screen').catch(function(){});
+  }
+}
+
+function startTimerClock() {
+  _timer.active = true;
+  _timer.paused = false;
+  var dot = document.getElementById('timer-rec-dot');
+  var pauseBtn = document.getElementById('timer-pause-btn');
+  if (dot) dot.style.animation = 'gps-blink 1s infinite';
+  if (pauseBtn) pauseBtn.textContent = '⏸';
+
+  clearInterval(_timer.interval);
+  _timer.interval = setInterval(function() {
+    if (_timer.active && !_timer.paused) {
+      _timer.seconds++;
+      updateTimerDisplay();
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  var el = document.getElementById('timer-display');
+  var calEl = document.getElementById('timer-cal');
+  if (!el) return;
+
+  var h = Math.floor(_timer.seconds / 3600);
+  var m = Math.floor((_timer.seconds % 3600) / 60);
+  var s = _timer.seconds % 60;
+  el.textContent = (h > 0 ? pad(h) + ':' : '') + pad(m) + ':' + pad(s);
+
+  // Estimate calories: ~5 kcal/min for indoor activity
+  if (calEl) calEl.textContent = Math.round(_timer.seconds / 60 * 5);
+}
+
+function toggleTimerPause() {
+  _timer.paused = !_timer.paused;
+  var dot      = document.getElementById('timer-rec-dot');
+  var pauseBtn = document.getElementById('timer-pause-btn');
+  if (_timer.paused) {
+    if (dot) dot.style.animation = 'none';
+    if (pauseBtn) pauseBtn.textContent = '▶';
+  } else {
+    if (dot) dot.style.animation = 'gps-blink 1s infinite';
+    if (pauseBtn) pauseBtn.textContent = '⏸';
+  }
+}
+
+function cancelTimer() {
+  clearInterval(_timer.interval);
+  _timer.active = false;
+  var overlay = document.getElementById('timer-overlay');
+  if (overlay) overlay.style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function stopTimer() {
+  if (_timer.seconds < 10) { toast('⚠️ Treino demasiado curto'); return; }
+
+  clearInterval(_timer.interval);
+  _timer.active = false;
+
+  var sport   = _timer.sport || {ic:'🏋️', lb:'Gym'};
+  var durSecs = _timer.seconds;
+  var h = Math.floor(durSecs/3600), m = Math.floor((durSecs%3600)/60), s = durSecs%60;
+  var durStr  = (h > 0 ? pad(h)+':' : '') + pad(m) + ':' + pad(s);
+  var cal     = Math.round(durSecs / 60 * 5);
+  var now     = new Date();
+
+  var act = {
+    type:         sport.lb,
+    title:        sport.ic + ' ' + sport.lb,
+    dist:         '—',
+    distKm:       0,
+    dur:          durStr,
+    totalSeconds: durSecs,
+    pace:         '—',
+    cal:          String(cal),
+    date:         now.toLocaleDateString('pt-PT'),
+    startTime:    now.toLocaleTimeString('pt-PT', {hour:'2-digit', minute:'2-digit'}),
+    source:       'timer',
+    hasGps:       false,
+    route:        [],
+  };
+
+  var overlay = document.getElementById('timer-overlay');
+  if (overlay) overlay.style.display = 'none';
+  document.body.style.overflow = '';
+
+  addActivity(act);
+  renderProfile();
+  navTo('home');
+  toast('✅ ' + sport.lb + ' guardado! ' + durStr);
+
+  // PSE sheet
+  setTimeout(function() { openPseSheet(act); }, 700);
 }
 
 </script>
