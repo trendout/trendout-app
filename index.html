@@ -2602,6 +2602,10 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
         _allActivities = actsRes.data.map(function(a) {
           // Parse route and splits from JSON strings back to arrays
           if (a.route   && typeof a.route   === 'string') { try { a.route   = JSON.parse(a.route);   } catch(e) { a.route   = []; } }
+          // Normalise route points: [lat,lon] arrays → {lat,lng} objects
+          if (Array.isArray(a.route) && a.route.length > 0 && Array.isArray(a.route[0])) {
+            a.route = a.route.map(function(p){ return {lat:p[0], lng:p[1]}; });
+          }
           if (a.splits  && typeof a.splits  === 'string') { try { a.splits  = JSON.parse(a.splits);  } catch(e) { a.splits  = []; } }
           // Map snake_case DB columns to camelCase local fields
           if (a.total_seconds) a.totalSeconds = a.total_seconds;
@@ -5391,7 +5395,17 @@ var _sysApps = [
 var _sysActions = [
   {ic:'📋', name:'Copiar texto',       fn: function(t){ if(navigator.clipboard){navigator.clipboard.writeText(t).then(function(){toast('📋 Copiado!');}); } else { toast('📋 Copiado!'); } }},
   {ic:'🔗', name:'Copiar link',        fn: function(){ if(navigator.clipboard){navigator.clipboard.writeText('https://trendout.pt').then(function(){toast('🔗 Link copiado!');});} }},
-  {ic:'💾', name:'Guardar imagem',     fn: function(){ toast('🖼️ Imagem guardada na galeria!'); }},
+  {ic:'💾', name:'Guardar imagem', fn: function(){
+    if (!_shareAct) { toast('❌ Sem atividade para guardar'); return; }
+    generateShareImage(_shareAct, 'post', function(dataUrl) {
+      if (!dataUrl) { toast('❌ Erro ao gerar imagem'); return; }
+      var a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = 'trendout_' + (_shareAct.type||'atividade') + '_' + (_shareAct.date||'').replace(/\//g,'-') + '.png';
+      a.click();
+      toast('🖼️ Imagem guardada! Partilha no Instagram.');
+    });
+  }},
   {ic:'📧', name:'Enviar por email',   fn: function(t){ window.open('mailto:?subject='+encodeURIComponent('Atividade trendout 💪')+'&body='+encodeURIComponent(t)); }},
   {ic:'🖨️', name:'Imprimir',          fn: function(){ window.print(); }},
 ];
@@ -6662,7 +6676,13 @@ function openShareSheet(btn) {
   _shareFormat = _shareFormat || 'post';
   document.getElementById('share-sheet').style.display = 'flex';
   document.body.style.overflow = 'hidden';
-  setTimeout(function() { generateShareImage(); }, 120);
+  // Generate preview for the share canvas
+  setTimeout(function() {
+    if (_shareAct) generateShareImage(_shareAct, 'post', function(dataUrl) {
+      var prev = document.getElementById('share-canvas-preview');
+      if (prev && dataUrl) { prev.src = dataUrl; prev.style.display = 'block'; }
+    });
+  }, 120);
 }
 
 function closeShareSheet() {
@@ -8416,7 +8436,7 @@ function buildActivityFromRoute(route, times, elevations, name) {
     cal:         String(cal),
     date:        actDate,
     startTime:   startTime,
-    route:       route,
+    route:       route.map(function(p){ return Array.isArray(p) ? {lat:p[0],lng:p[1]} : p; }),
     splits:      splits,
     centerLat:   centerLat,
     centerLng:   centerLng,
@@ -8470,7 +8490,7 @@ function importGpxActivity() {
     date:        d.date,
     startTime:   d.startTime,
     source:      'gpx_import',
-    route:       d.route,
+    route:       (d.route||[]).map(function(p){ return Array.isArray(p) ? {lat:p[0],lng:p[1]} : p; }),
     splits:      d.splits,
     centerLat:   d.centerLat,
     centerLng:   d.centerLng,
@@ -8492,6 +8512,8 @@ function importGpxActivity() {
 var _shareImageDataUrl = null;  // cached for current share session
 
 function generateShareImage(act, format, callback) {
+  // Guard against missing activity
+  if (!act) { if (callback) callback(null); return; }
   // format: 'post' (1:1) or 'story' (9:16)
   var W = format === 'story' ? 1080 : 1080;
   var H = format === 'story' ? 1920 : 1080;
