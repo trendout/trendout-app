@@ -1292,6 +1292,22 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
               <div style="position:absolute;top:6px;right:6px;background:rgba(255,255,255,.1);border-radius:5px;padding:2px 6px;font-size:8px;font-weight:700;color:rgba(255,255,255,.5)">EM BREVE</div>
             </div>
           </div>
+
+          <!-- Importar GPX/FIT — disponível para todas as marcas -->
+          <div style="margin-top:14px;background:linear-gradient(135deg,rgba(96,165,250,.07),rgba(96,165,250,.03));border:1.5px solid rgba(96,165,250,.22);border-radius:16px;padding:16px">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+              <div style="width:40px;height:40px;background:rgba(96,165,250,.12);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">📂</div>
+              <div>
+                <div style="font-size:13px;font-weight:800;color:#fff">Importar treino do relógio</div>
+                <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">GPX · FIT · TCX · KML</div>
+              </div>
+            </div>
+            <div style="font-size:11px;color:rgba(255,255,255,.4);line-height:1.7;margin-bottom:12px">Exporta o treino na app do teu relógio e importa aqui. Compatível com <span style="color:rgba(255,255,255,.65)">Garmin · Suunto · Polar · COROS · Apple · Amazfit · Wahoo</span> e mais.</div>
+            <button onclick="openGpxImport()" style="width:100%;padding:12px;border-radius:12px;background:rgba(96,165,250,.14);border:1.5px solid rgba(96,165,250,.32);color:#60A5FA;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .2s" onmouseover="this.style.background='rgba(96,165,250,.22)'" onmouseout="this.style.background='rgba(96,165,250,.14)'">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Importar ficheiro GPX / FIT
+            </button>
+          </div>
         </div>
         <!-- Auth sheet — Garmin OAuth -->
         <div id="watch-auth-panel" style="display:none">
@@ -3117,16 +3133,19 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
 var _gps = {
   active:false, paused:false,
   timer:null, simTimer:null,
-  seconds:0, distKm:0,
+  seconds:0, startedAt:0,   // wall-clock start for drift-free timing
+  pausedAt:0,               // timestamp when paused
+  distKm:0,
   lastLat:null, lastLng:null,
   lastKm:0, kmSplits:[],
   hr:65, elev:0, elevDir:1,
-  watchId:null,
+  watchId:null, reconnectTimer:null,
   centerLat:38.7169, centerLng:-9.1399,
   hasGps:false,
   route:[],    // [{lat,lng}]
   buf:[],      // rolling buffer for 3-reading average
-  lastTileCenter: null, // last lat/lng used to draw tiles — avoid redundant tile loads
+  lastUpdate:null,
+  lastTileCenter: null,
 };
 
 // ── TILE MAP ENGINE ──
@@ -3357,10 +3376,12 @@ function gpsStartWatch() {
   _gps.watchId = navigator.geolocation.watchPosition(
     onGpsPosition,
     function(err) {
-      gpsSetStatus('⚠️ GPS: ' + (err.code === 1 ? 'sem permissão' : err.code === 2 ? 'sinal perdido' : 'timeout'), '#F97316');
-      // Auto-reconnect on signal loss
-      if (_gps.active && !_gps.paused) {
-        setTimeout(function(){ if(_gps.active && !_gps.paused) gpsStartWatch(); }, 3000);
+      if (err.code === 1) {
+        // Permissão negada — não tentar reconectar
+        gpsSetStatus('🚫 GPS: sem permissão. Activa nas definições.', '#EF4444');
+      } else {
+        // Sinal perdido ou timeout — gpsReconnectCheck (cada 5s) trata do restart
+        gpsSetStatus('⚠️ GPS: ' + (err.code === 2 ? 'sinal perdido' : 'timeout') + ' — a aguardar...', '#F97316');
       }
     },
     { enableHighAccuracy: true, maximumAge: 3000, timeout: 30000 }
@@ -3392,10 +3413,10 @@ function startGpsRecording() {
   overlay.style.display = 'flex';
 
   _gps.active=true; _gps.paused=false;
-  _gps.seconds=0; _gps.distKm=0;
+  _gps.seconds=0; _gps.startedAt=Date.now(); _gps.pausedAt=0;
+  _gps.distKm=0;
   _gps.route=[]; _gps.lastKm=0; _gps.kmSplits=[];
-  _gps.lastUpdate = null; _gps.badPoints = 0; _gps.buf = [];
-  _gps.lastPositionTime = Date.now();
+  _gps.lastUpdate=null; _gps.badPoints=0; _gps.buf=[];
   _gps.hr=60+Math.floor(Math.random()*20);
   _gps.elev=10+Math.floor(Math.random()*30); _gps.elevDir=1;
 
@@ -3443,7 +3464,8 @@ function startGpsRecording() {
 
 function gpsTimerTick() {
   if (_gps.paused) return;
-  _gps.seconds++;
+  // Wall-clock timing — survives background throttling
+  _gps.seconds = Math.floor((Date.now() - _gps.startedAt) / 1000);
   var h=Math.floor(_gps.seconds/3600),m=Math.floor((_gps.seconds%3600)/60),s=_gps.seconds%60;
   var el=document.getElementById('gps-timer');
   if(el) el.textContent=(h>0?pad(h)+':':'')+pad(m)+':'+pad(s);
@@ -3578,16 +3600,29 @@ function showKmSplit(km) {
 }
 
 function toggleGpsPause() {
-  _gps.paused=!_gps.paused;
+  _gps.paused = !_gps.paused;
   _gps.buf = []; // clear buffer on pause/resume to avoid stale readings
-  var btn=document.getElementById('gps-pause-btn');
-  var recLabel=document.getElementById('gps-rec-label');
-  var dot=document.getElementById('gps-rec-dot')?document.getElementById('gps-rec-dot').querySelector('div'):null;
-  if(btn) btn.textContent=_gps.paused?'▶ Retomar':'⏸ Pausa';
-  if(recLabel) recLabel.textContent=_gps.paused?'PAUSA':'REC';
-  if(dot) dot.style.background=_gps.paused?'#FACC15':'#EF4444';
-  var stEl=document.getElementById('gps-status');
-  if(stEl) stEl.textContent=_gps.paused?'⏸ Em pausa':(_gps.hasGps?'📍 GPS ativo':'📡 Simulado');
+
+  if (_gps.paused) {
+    // Save elapsed seconds at pause moment (wall-clock)
+    _gps.seconds = Math.floor((Date.now() - _gps.startedAt) / 1000);
+    _gps.pausedAt = Date.now();
+  } else {
+    // Resume: shift startedAt by paused duration so timer stays accurate
+    if (_gps.pausedAt) {
+      _gps.startedAt += (Date.now() - _gps.pausedAt);
+      _gps.pausedAt = 0;
+    }
+  }
+
+  var btn      = document.getElementById('gps-pause-btn');
+  var recLabel = document.getElementById('gps-rec-label');
+  var dot      = document.getElementById('gps-rec-dot') ? document.getElementById('gps-rec-dot').querySelector('div') : null;
+  if (btn)      btn.textContent      = _gps.paused ? '▶ Retomar' : '⏸ Pausa';
+  if (recLabel) recLabel.textContent = _gps.paused ? 'PAUSA' : 'REC';
+  if (dot)      dot.style.background = _gps.paused ? '#FACC15' : '#EF4444';
+  var stEl = document.getElementById('gps-status');
+  if (stEl) stEl.textContent = _gps.paused ? '⏸ Em pausa' : (_gps.hasGps ? '📍 GPS ativo' : '📡 Simulado');
 }
 
 function stopGps() {
@@ -8369,6 +8404,11 @@ window.addEventListener('offline', function() {
 
 document.addEventListener('visibilitychange', function() {
   if (document.visibilityState === 'visible') {
+    // Recalculate timer seconds from wall clock after background (no drift)
+    if (_timer.active && !_timer.paused && _timer.startedAt) {
+      _timer.seconds = Math.floor((Date.now() - _timer.startedAt) / 1000);
+      updateTimerDisplay();
+    }
     // Re-acquire Wake Lock if GPS active
     if (_gps.active && !GPS_WAKELOCK && 'wakeLock' in navigator) {
       navigator.wakeLock.request('screen').then(function(lock) {
@@ -8376,12 +8416,36 @@ document.addEventListener('visibilitychange', function() {
         lock.addEventListener('release', function() { GPS_WAKELOCK = null; });
       }).catch(function(){});
     }
-    // Restart GPS watch if app was in background (browser may have killed it)
+    // Re-acquire wake lock for timer if lost
+    if (_timer.active && !_timer.paused && !_timer.wakeLock && 'wakeLock' in navigator) {
+      navigator.wakeLock.request('screen').then(function(lock) {
+        _timer.wakeLock = lock;
+        lock.addEventListener('release', function() { _timer.wakeLock = null; });
+      }).catch(function(){});
+    }
+    // Restart GPS watch only if it was killed by the browser
+    // (don't restart if it's still alive — avoids unnecessary interruptions)
     if (_gps.active && !_gps.paused) {
-      setTimeout(function() {
-        gpsSetStatus('🔄 A reconectar GPS...', '#FACC15');
-        gpsStartWatch();
-      }, 500);
+      // Shift startedAt by time spent in background for drift-free timer
+      if (_gps.startedAt && !_gps.pausedAt) {
+        // Timer was running — startedAt already correct (wall-clock based)
+        // Just update display immediately
+        _gps.seconds = Math.floor((Date.now() - _gps.startedAt) / 1000);
+        var _h=Math.floor(_gps.seconds/3600),_m=Math.floor((_gps.seconds%3600)/60),_s=_gps.seconds%60;
+        var _el=document.getElementById('gps-timer');
+        if(_el) _el.textContent=(_h>0?pad(_h)+':':'')+pad(_m)+':'+pad(_s);
+      }
+      // Only restart watch if no update received in last 8 seconds
+      // (means the watch died while in background)
+      var _timeSinceUpdate = _gps.lastUpdate ? (Date.now() - _gps.lastUpdate) : 99999;
+      if (_timeSinceUpdate > 8000) {
+        setTimeout(function() {
+          if (_gps.active && !_gps.paused) {
+            gpsSetStatus('🔄 A reconectar GPS...', '#FACC15');
+            gpsStartWatch();
+          }
+        }, 500);
+      }
     }
     // Flush any activities that failed to sync while in background
     setTimeout(flushPendingSync, 1500);
@@ -9783,8 +9847,10 @@ function inviteFriend(channel) {
 var _timer = {
   active: false, paused: false,
   seconds: 0,
+  startedAt: 0,
   interval: null,
   sport: null,
+  wakeLock: null,
 };
 
 var INDOOR_SPORTS = /gym|boxe|padel|calistenia|muscula|yoga|pilates|treino|força|workout|gin[aá]st/i;
@@ -9819,20 +9885,21 @@ function openTimerOverlay() {
 }
 
 function startTimerClock() {
-  _timer.active = true;
-  _timer.paused = false;
-  var dot = document.getElementById('timer-rec-dot');
+  _timer.active    = true;
+  _timer.paused    = false;
+  _timer.startedAt = Date.now() - (_timer.seconds * 1000); // account for resumed state
+  var dot      = document.getElementById('timer-rec-dot');
   var pauseBtn = document.getElementById('timer-pause-btn');
-  if (dot) dot.style.animation = 'gps-blink 1s infinite';
+  if (dot)      dot.style.animation  = 'gps-blink 1s infinite';
   if (pauseBtn) pauseBtn.textContent = '⏸';
 
   clearInterval(_timer.interval);
   _timer.interval = setInterval(function() {
-    if (_timer.active && !_timer.paused) {
-      _timer.seconds++;
-      updateTimerDisplay();
-    }
-  }, 1000);
+    if (!_timer.active || _timer.paused) return;
+    // Use wall-clock time — survives background throttling
+    _timer.seconds = Math.floor((Date.now() - _timer.startedAt) / 1000);
+    updateTimerDisplay();
+  }, 500); // 500ms poll — catchup faster after background
 }
 
 function updateTimerDisplay() {
@@ -9854,9 +9921,13 @@ function toggleTimerPause() {
   var dot      = document.getElementById('timer-rec-dot');
   var pauseBtn = document.getElementById('timer-pause-btn');
   if (_timer.paused) {
+    // Freeze: capture elapsed seconds at this exact moment
+    _timer.seconds = Math.floor((Date.now() - _timer.startedAt) / 1000);
     if (dot) dot.style.animation = 'none';
     if (pauseBtn) pauseBtn.textContent = '▶';
   } else {
+    // Resume: reset reference point accounting for elapsed seconds
+    _timer.startedAt = Date.now() - (_timer.seconds * 1000);
     if (dot) dot.style.animation = 'gps-blink 1s infinite';
     if (pauseBtn) pauseBtn.textContent = '⏸';
   }
