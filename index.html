@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Trendout PWA v1.0-beta | app.trendout.pt | Built with Claude AI | 18/03/2026 -->
+<!-- Trendout PWA v1.0-beta | app.trendout.es | Built with Claude AI | 18/03/2026 -->
 <html lang="pt">
 <head>
 <!-- 
@@ -390,7 +390,7 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
   <meta name="theme-color" content="#000000">
   <meta name="description" content="A unica app de fitness que mede como te sentes.">
   <meta property="og:title" content="Trendout">
-  <meta property="og:url" content="https://app.trendout.pt">
+  <meta property="og:url" content="https://app.trendout.es">
   <link rel="manifest" href="data:application/json,%7B%22name%22%3A%22Trendout%22%2C%22short_name%22%3A%22Trendout%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23000000%22%2C%22theme_color%22%3A%22%23000000%22%7D">
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -5647,16 +5647,16 @@ var _sysApps = [
   {ic:'💬', name:'Mensagens', color:'#22C55E', fn: function(t){ window.open('sms:' + (/iPhone|iPad|iPod/.test(navigator.userAgent)?'&':'?') + 'body='+encodeURIComponent(t)); }},
   {ic:'✉️', name:'Email',     color:'#3B82F6', fn: function(t){ window.open('mailto:?subject='+encodeURIComponent('Atividade trendout 💪')+'&body='+encodeURIComponent(t)); }},
   {ic:'💬', name:'WhatsApp',  color:'#25D366', fn: function(t){ window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank'); }},
-  {ic:'✈️', name:'Telegram',  color:'#2AABEE', fn: function(t){ window.open('https://t.me/share/url?url=https://trendout.pt&text='+encodeURIComponent(t),'_blank'); }},
+  {ic:'✈️', name:'Telegram',  color:'#2AABEE', fn: function(t){ window.open('https://t.me/share/url?url=https://app.trendout.es&text='+encodeURIComponent(t),'_blank'); }},
   {ic:'🐦', name:'X/Twitter', color:'#000',    fn: function(t){ window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(t),'_blank'); }},
-  {ic:'💼', name:'LinkedIn',  color:'#0A66C2', fn: function(t){ window.open('https://www.linkedin.com/sharing/share-offsite/?url=https://trendout.pt','_blank'); }},
+  {ic:'💼', name:'LinkedIn',  color:'#0A66C2', fn: function(t){ window.open('https://www.linkedin.com/sharing/share-offsite/?url=https://app.trendout.es','_blank'); }},
   {ic:'📌', name:'Pinterest', color:'#E60023', fn: function(t){ window.open('https://pinterest.com/pin/create/button/?description='+encodeURIComponent(t),'_blank'); }},
   {ic:'👻', name:'Snapchat',  color:'#FFFC00', fn: function(t){ window.open('snapchat://','_blank'); setTimeout(function(){window.open('https://snapchat.com','_blank');},800); }},
 ];
 
 var _sysActions = [
   {ic:'📋', name:'Copiar texto', fn: function(t){ if(navigator.clipboard){navigator.clipboard.writeText(t).then(function(){toast('📋 Copiado!');}); } else { toast('📋 Copiado!'); } }},
-  {ic:'🔗', name:'Copiar link',  fn: function(){ if(navigator.clipboard){navigator.clipboard.writeText('https://trendout.pt').then(function(){toast('🔗 Link copiado!');});} }},
+  {ic:'🔗', name:'Copiar link',  fn: function(){ if(navigator.clipboard){navigator.clipboard.writeText('https://app.trendout.es').then(function(){toast('🔗 Link copiado!');});} }},
 ];
 
 function openSystemSheet() {
@@ -5668,7 +5668,7 @@ function openSystemSheet() {
   var metaEl = document.getElementById('sys-act-meta');
   if (icEl) icEl.textContent = ic;
   if (titleEl && _shareAct) titleEl.textContent = _shareAct.title || _shareAct.type;
-  if (metaEl && _shareAct) metaEl.textContent = (_shareAct.dist||'') + '  ' + (_shareAct.dur||'') + '  ·  trendout.pt';
+  if (metaEl && _shareAct) metaEl.textContent = (_shareAct.dist||'') + '  ' + (_shareAct.dur||'') + '  ·  app.trendout.es';
 
   // Render apps row
   var row = document.getElementById('sys-apps-row');
@@ -5734,7 +5734,7 @@ function shareFbTo(type) {
   closeFbMenu();
   closeShareSheet();
   var text = buildShareText();
-  var url = 'https://trendout.pt';
+  var url = 'https://app.trendout.es';
   if (navigator.clipboard) navigator.clipboard.writeText(text);
   setTimeout(function() {
     var deepLink, webUrl;
@@ -6961,7 +6961,7 @@ function buildShareText() {
 
 function shareTo(platform) {
   var text = buildShareText();
-  var url = 'https://trendout.pt';
+  var url = 'https://app.trendout.es';
   closeShareSheet();
   setTimeout(function() {
     if (platform === 'whatsapp') {
