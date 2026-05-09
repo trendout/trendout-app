@@ -3344,7 +3344,7 @@ function openGpsPreview() {
 
 function enableStartBtn(btn) {
   if (!btn) return;
-  btn.style.background = '#22C55E'; btn.style.color = '#000'; btn.style.cursor = 'pointer';
+  btn.style.background = '#fff'; btn.style.color = '#000'; btn.style.cursor = 'pointer';
   var _isInd = _selAct && INDOOR_SPORTS.test(_selAct.lb);
   var _label = _selAct
     ? (_isInd
@@ -7075,7 +7075,7 @@ function selectAct(i) {
     } else {
       btn.textContent = '📍 Iniciar ' + _selAct.lb + ' com GPS →';
     }
-    btn.style.background = '#22C55E';
+    btn.style.background = '#fff';
     btn.style.color = '#000';
     btn.style.cursor = 'pointer';
   }
