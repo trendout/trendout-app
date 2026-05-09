@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Trendout PWA v1.0-beta | app.trendout.es | Built with Claude AI | 18/03/2026 -->
+<!-- Trendout PWA v1.0-beta | app.trendout.es | v19 | Built with Claude AI -->
 <html lang="pt">
 <head>
 <!-- 
@@ -391,7 +391,7 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
   <meta name="description" content="A unica app de fitness que mede como te sentes.">
   <meta property="og:title" content="Trendout">
   <meta property="og:url" content="https://app.trendout.es">
-  <link rel="manifest" href="data:application/json,%7B%22name%22%3A%22Trendout%22%2C%22short_name%22%3A%22Trendout%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23000000%22%2C%22theme_color%22%3A%22%23000000%22%7D">
+  <link rel="manifest" href="data:application/json,%7B%22name%22%3A%20%22Trendout%20Fitness%22%2C%20%22short_name%22%3A%20%22Trendout%22%2C%20%22start_url%22%3A%20%22./%22%2C%20%22display%22%3A%20%22standalone%22%2C%20%22background_color%22%3A%20%22%23000000%22%2C%20%22theme_color%22%3A%20%22%23000000%22%2C%20%22orientation%22%3A%20%22portrait%22%2C%20%22icons%22%3A%20%5B%7B%22src%22%3A%20%22data%3Aimage/svg%2Bxml%2C%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%20100%20100%27%3E%3Crect%20width%3D%27100%27%20height%3D%27100%27%20rx%3D%2720%27%20fill%3D%27%2523000%27/%3E%3Ctext%20y%3D%27.9em%27%20font-size%3D%2780%27%3E%5Cud83c%5Cudfc3%3C/text%3E%3C/svg%3E%22%2C%20%22sizes%22%3A%20%22192x192%22%2C%20%22type%22%3A%20%22image/svg%2Bxml%22%7D%2C%20%7B%22src%22%3A%20%22data%3Aimage/svg%2Bxml%2C%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%20100%20100%27%3E%3Crect%20width%3D%27100%27%20height%3D%27100%27%20rx%3D%2720%27%20fill%3D%27%2523000%27/%3E%3Ctext%20y%3D%27.9em%27%20font-size%3D%2780%27%3E%5Cud83c%5Cudfc3%3C/text%3E%3C/svg%3E%22%2C%20%22sizes%22%3A%20%22512x512%22%2C%20%22type%22%3A%20%22image/svg%2Bxml%22%7D%5D%7D">
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -2886,6 +2886,8 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
         // Render EnjoyPoints card with Supabase data
         renderEnjoyPage();
         renderStatsCard();
+        // Init notifications after user is settled in
+        setTimeout(function() { initNotifications(); }, 3000);
         // Restore avatar photo if saved
         if (_profile.photo) {
           var avatarEl     = document.getElementById('app-avatar');
@@ -3662,6 +3664,7 @@ function stopGps() {
   addActivity(act); renderProfile(); navTo('home');
   // Show PSE rating sheet after saving
   setTimeout(function() { openPseSheet(act); }, 600);
+  setTimeout(function() { sendPostActivityNotif(act); }, 2500);
 }
 
 function haversine(lat1,lng1,lat2,lng2){
@@ -5513,16 +5516,25 @@ function requestNotifPermission(callback) {
   });
 }
 
-function sendNotif(title, body, icon) {
+function sendNotif(title, body, icon, tag) {
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  var opts = {
+    body:     body || '',
+    icon:     icon || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%23000"/><text y=".9em" font-size="80">🏃</text></svg>',
+    badge:    'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23000"/><text y=".9em" font-size="80">T</text></svg>',
+    tag:      tag || 'trendout',
+    renotify: true,
+  };
   try {
-    new Notification(title, {
-      body: body,
-      icon: icon || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%23000"/><text y=".9em" font-size="80">🏃</text></svg>',
-      badge: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23000"/><text y=".9em" font-size="80">T</text></svg>',
-      tag: 'trendout',
-      renotify: true,
-    });
+    // Use Service Worker if available (works in background on Android/iOS PWA)
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.ready.then(function(reg) {
+        reg.showNotification(title, opts);
+      });
+    } else {
+      // Fallback — works only when app is open
+      new Notification(title, opts);
+    }
   } catch(e) { console.log('Notif error', e); }
 }
 
@@ -5579,13 +5591,37 @@ function notifOnCoupon() {
 function initNotifications() {
   if (!('Notification' in window)) return;
   _notifPermission = Notification.permission;
+
+  // Register Service Worker for background notifications
+  if ('serviceWorker' in navigator) {
+    var swCode = `
+self.addEventListener('push', function(e) {
+  var data = {}; try { data = e.data ? e.data.json() : {}; } catch(err) {}
+  e.waitUntil(self.registration.showNotification(data.title || 'Trendout', {
+    body: data.body || '', icon: data.icon || '', badge: data.badge || '',
+    tag: data.tag || 'trendout', renotify: true
+  }));
+});
+self.addEventListener('notificationclick', function(e) {
+  e.notification.close();
+  e.waitUntil(clients.openWindow('/'));
+});
+self.addEventListener('fetch', function() {});
+`;
+    var swBlob = new Blob([swCode], {type: 'application/javascript'});
+    var swUrl  = URL.createObjectURL(swBlob);
+    navigator.serviceWorker.register(swUrl, {scope: '/'}).then(function(reg) {
+      console.log('[Trendout] SW registered:', reg.scope);
+    }).catch(function(err) {
+      console.log('[Trendout] SW registration failed:', err);
+    });
+  }
+
   if (_notifPermission === 'granted') {
     scheduleNotifications();
   } else if (_notifPermission === 'default') {
-    // Ask after 3s so user is settled into the app
-    setTimeout(function() {
-      showNotifPrompt();
-    }, 3000);
+    // Ask after first activity or 10s
+    setTimeout(function() { showNotifPrompt(); }, 10000);
   }
 }
 
@@ -7806,6 +7842,47 @@ function saveManualActivity() {
   };
   closeManualEntry(); addActivity(act); navTo('home'); toast('✅ Actividade guardada!');
   setTimeout(function() { openPseSheet(act); }, 800);
+  setTimeout(function() { sendPostActivityNotif(act); }, 2500);
+}
+
+function sendPostActivityNotif(act) {
+  if (!act || !('Notification' in window) || Notification.permission !== 'granted') return;
+  var type = act.type || 'Atividade';
+  var dur  = act.dur  || '';
+  var dist = act.dist ? ' · ' + act.dist : '';
+  if (act._isPR) {
+    sendNotif('🏆 Novo recorde pessoal!', type + ' · ' + dur + dist, null, 'trendout-pr');
+    return;
+  }
+  var streak = calcStreak();
+  if (streak > 1 && streak % 3 === 0) {
+    sendNotif('🔥 ' + streak + ' dias seguidos!', 'Estás imparável! ' + type + ' concluído 💪', null, 'trendout-streak');
+    return;
+  }
+  var msgs = [
+    'Treino concluído! Continua assim 💪',
+    'Mais um treino no bolso. Boa forma! 🏃',
+    'Feito! O pior treino é sempre o que não aconteceu.',
+    'Trabalho feito! Descansa e volta mais forte ⚡',
+  ];
+  sendNotif('✅ ' + type + ' guardado!', dur + dist + ' · ' + msgs[Math.floor(Math.random()*msgs.length)], null, 'trendout-done');
+}
+
+function calcStreak() {
+  if (!_allActivities || !_allActivities.length) return 0;
+  var unique = Array.from(new Set(
+    _allActivities.map(function(a) {
+      if (!a.date) return null;
+      var p = a.date.split('/');
+      return p.length === 3 ? new Date(p[2], p[1]-1, p[0]).toDateString() : null;
+    }).filter(Boolean)
+  )).sort().reverse();
+  var streak = 0; var today = new Date();
+  for (var i = 0; i < unique.length; i++) {
+    var exp = new Date(today); exp.setDate(today.getDate() - i);
+    if (unique[i] === exp.toDateString()) { streak++; } else { break; }
+  }
+  return streak;
 }
 
 function launchApp(userData) {
@@ -8813,6 +8890,7 @@ function importGpxActivity() {
   navTo('home');
   toast('✅ ' + d.dist + ' importados do ficheiro!');
   setTimeout(function() { openPseSheet(act); }, 800);
+  setTimeout(function() { sendPostActivityNotif(act); }, 2500);
 }
 
 // ═══════════════════════════════════════════════
@@ -9988,6 +10066,7 @@ function stopTimer() {
 
   // PSE sheet
   setTimeout(function() { openPseSheet(act); }, 700);
+  setTimeout(function() { sendPostActivityNotif(act); }, 2500);
 }
 
 // ═══════════════════════════════════════════════
@@ -10132,6 +10211,7 @@ function finishIndoor() {
 
   // PSE after save
   setTimeout(function() { openPseSheet(act); }, 800);
+  setTimeout(function() { sendPostActivityNotif(act); }, 2500);
 }
 
 // ═══════════════════════════════════════════════════════════
