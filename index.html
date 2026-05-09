@@ -5106,9 +5106,17 @@ function openActDetail(btn) {
 function openShareSheetDet() {
   if (!_currentAct) return;
   _shareAct = _currentAct;
-  _shareFormat = _shareFormat || 'post';
+  _shareFormat = 'post'; // reset to post on each open
+  // (format is always post — story removed)
   var sheet = document.getElementById('share-sheet');
   if (sheet) { sheet.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+  // Show loader while image generates
+  var _ld = document.getElementById('share-canvas-loader');
+  if (_ld) _ld.style.display = 'flex';
+  // Generate canvas immediately — don't wait for user to tap Post
+  setTimeout(function() {
+    generateShareImage(_shareAct, 'post', null);
+  }, 80);
 }
 
 function renderActDetail(a) {
@@ -6930,13 +6938,17 @@ function openShareSheet(btn) {
   _shareFormat = _shareFormat || 'post';
   document.getElementById('share-sheet').style.display = 'flex';
   document.body.style.overflow = 'hidden';
-  // Generate preview for the share canvas
+  // Show loader while image generates
+  var _loader = document.getElementById('share-canvas-loader');
+  if (_loader) _loader.style.display = 'flex';
+  // Generate canvas immediately — renders directly to share-canvas
+  _shareFormat = 'post'; // reset format on each open
+  var fp = document.getElementById('fmt-post'), fs = document.getElementById('fmt-story');
+  if (fp) { fp.style.background = '#fff'; fp.style.color = '#000'; }
+  if (fs) { fs.style.background = 'rgba(255,255,255,.1)'; fs.style.color = 'rgba(255,255,255,.5)'; }
   setTimeout(function() {
-    if (_shareAct) generateShareImage(_shareAct, 'post', function(dataUrl) {
-      var prev = document.getElementById('share-canvas-preview');
-      if (prev && dataUrl) { prev.src = dataUrl; prev.style.display = 'block'; }
-    });
-  }, 120);
+    if (_shareAct) generateShareImage(_shareAct, 'post', null);
+  }, 80);
 }
 
 function closeShareSheet() {
@@ -9049,6 +9061,17 @@ function generateShareImage(act, format, callback) {
   try {
     var dataUrl = canvas.toDataURL('image/png');
     _shareImageDataUrl = dataUrl;
+    // Render into the share-canvas DOM element and hide loader
+    var domCanvas = document.getElementById('share-canvas');
+    var loader    = document.getElementById('share-canvas-loader');
+    if (domCanvas) {
+      // Set canvas resolution to match generated image
+      domCanvas.width  = W;
+      domCanvas.height = H;
+      var domCtx = domCanvas.getContext('2d');
+      domCtx.drawImage(canvas, 0, 0);
+    }
+    if (loader) loader.style.display = 'none';
     if (callback) callback(dataUrl);
   } catch(e) {
     console.error('[share image] toDataURL error:', e);
@@ -9093,13 +9116,10 @@ var _shareFormat = 'post'; // 'post' (1:1) or 'story' (9:16)
 var _shareImageDataUrl = null;
 
 function setShareFormat(fmt, btn) {
-  _shareFormat = fmt;
-  ['post','story'].forEach(function(f) {
-    var b = document.getElementById('fmt-' + f);
-    if (!b) return;
-    if (f === fmt) { b.style.background = '#fff'; b.style.color = '#000'; }
-    else { b.style.background = 'rgba(255,255,255,.1)'; b.style.color = 'rgba(255,255,255,.5)'; }
-  });
+  // Story removed — always post
+  _shareFormat = 'post';
+  var _fmtLd = document.getElementById('share-canvas-loader');
+  if (_fmtLd) _fmtLd.style.display = 'flex';
   generateShareImage(_shareAct, 'post', null);
 }
 
@@ -12883,21 +12903,21 @@ function stopIndoor() {
 
   <!-- ═══ SHARE SHEET ═══ -->
   <div id="share-sheet" onclick="if(event.target===this)closeShareSheet()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:700;align-items:flex-end;justify-content:center;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">
-    <div style="background:#111;border-radius:28px 28px 0 0;width:100%;max-width:430px;padding:0 0 max(env(safe-area-inset-bottom,0px),28px);animation:slideUp .3s cubic-bezier(.34,1.1,.64,1)">
-      <div style="display:flex;justify-content:center;padding:14px 0 0"><div style="width:36px;height:4px;background:rgba(255,255,255,.2);border-radius:2px"></div></div>
-      <div style="padding:16px 22px 6px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.07)">
-        <div style="font-size:18px;font-weight:800">Partilhar atividade</div>
-        <button onclick="closeShareSheet()" style="background:rgba(255,255,255,.1);border:none;border-radius:50%;width:30px;height:30px;color:#fff;font-size:15px;cursor:pointer;font-family:inherit">✕</button>
-      </div>
-      <div style="margin:12px 20px 8px">
-        <!-- Format toggle: Post / Story -->
-        <div style="display:flex;gap:6px;margin-bottom:10px">
-          <button onclick="setShareFormat('post',this)" id="fmt-post" style="flex:1;padding:8px;border-radius:10px;background:#fff;border:none;color:#000;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">📐 Post</button>
-          <button onclick="setShareFormat('story',this)" id="fmt-story" style="flex:1;padding:8px;border-radius:10px;background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.5);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">📱 Story</button>
+    <div style="background:#111;border-radius:28px 28px 0 0;width:100%;max-width:430px;max-height:90vh;display:flex;flex-direction:column;animation:slideUp .3s cubic-bezier(.34,1.1,.64,1)">
+      <!-- Header fixo — sempre visível -->
+      <div style="flex-shrink:0">
+        <div style="display:flex;justify-content:center;padding:14px 0 0"><div style="width:36px;height:4px;background:rgba(255,255,255,.2);border-radius:2px"></div></div>
+        <div style="padding:16px 22px 6px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.07)">
+          <div style="font-size:18px;font-weight:800">Partilhar atividade</div>
+          <button onclick="closeShareSheet()" style="background:rgba(255,255,255,.1);border:none;border-radius:50%;width:30px;height:30px;color:#fff;font-size:15px;cursor:pointer;font-family:inherit">✕</button>
         </div>
-        <!-- Share image canvas -->
-        <div style="position:relative;border-radius:14px;overflow:hidden;background:#000">
-          <canvas id="share-canvas" style="width:100%;display:block;border-radius:14px"></canvas>
+      </div>
+      <!-- Conteúdo scrollável -->
+      <div style="overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:max(env(safe-area-inset-bottom,0px),28px)">
+      <div style="margin:12px 20px 8px">
+        <!-- Share image canvas — 1:1 apenas, altura limitada -->
+        <div style="position:relative;border-radius:14px;overflow:hidden;background:#000;aspect-ratio:1/1;max-height:240px">
+          <canvas id="share-canvas" style="width:100%;height:100%;display:block;border-radius:14px"></canvas>
           <div id="share-canvas-loader" style="position:absolute;inset:0;background:#111;display:flex;align-items:center;justify-content:center;border-radius:14px">
             <div style="text-align:center"><div style="font-size:28px;margin-bottom:8px">🗺️</div><div style="font-size:12px;color:rgba(255,255,255,.4)">A gerar imagem...</div></div>
           </div>
@@ -12942,9 +12962,9 @@ function stopIndoor() {
             💬 SMS
           </button>
         </div>
-      </div>
-    </div>
-  </div>
+      </div><!-- fim conteúdo scrollável -->
+    </div><!-- fim sheet inner -->
+  </div><!-- fim share-sheet -->
   <!-- ═══ MANUAL ENTRY OVERLAY ═══ -->
   <div id="manual-entry-overlay" style="display:none;position:fixed;inset:0;background:#000;z-index:600;flex-direction:column;max-width:430px;margin:0 auto;overflow-y:auto">
     <div style="padding:max(env(safe-area-inset-top,0px),24px) 20px 40px">
