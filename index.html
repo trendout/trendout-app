@@ -2997,6 +2997,8 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
         // Render EnjoyPoints card with Supabase data
         renderEnjoyPage();
         renderStatsCard();
+        // Re-render home activity cards so pts badges use loaded enjoy_pts
+        renderHomeActs();
         // Init notifications after user is settled in
         setTimeout(function() { initNotifications(); }, 3000);
         // Restore avatar photo if saved
@@ -10587,7 +10589,6 @@ function openCoachPage(page) {
   if (_isPremium) {
     navTo('perf-adv');
   } else {
-    // Not premium — show upgrade
     var shell = document.getElementById('app-shell');
     var upgrade = document.getElementById('s-upgrade');
     if (shell) shell.style.display = 'none';
