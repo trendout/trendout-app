@@ -4192,18 +4192,23 @@ var _selectedPlan = 'annual';
 var _selectedPayment = 'mbway';
 
 function openUpgrade() {
-  window.location.href = '/premium';
+  _upgradeFromApp = true;
+  var shell = document.getElementById('app-shell');
+  var upgrade = document.getElementById('s-upgrade');
+  if (shell) shell.style.display = 'none';
+  if (upgrade) { upgrade.style.display = 'flex'; }
 }
 
 function closeUpgrade() {
-  var shell = document.getElementById('app-shell');
-  var wasInApp = shell && shell.classList.contains('was-active-before-upgrade');
-  // Remove upgrade screen
-  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  var upgrade = document.getElementById('s-upgrade');
+  if (upgrade) upgrade.style.display = 'none';
   if (_upgradeFromApp) {
-    // Return to app
-    if (shell) shell.classList.add('active');
+    // Return to app — restore app-shell
+    var shell = document.getElementById('app-shell');
+    if (shell) shell.style.display = '';
   } else {
+    // Return to welcome screen
+    document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
     go('s-welcome');
   }
 }
@@ -4382,7 +4387,7 @@ function renderPayPalButtons() {
         // Activate premium only after real approval
         _isPremium = true;
         updatePremiumUI();
-        toast('🎉 Premium activado! Bem-vindo!');
+        showPaymentSuccess();
         // Save to Supabase
         if (_db) {
           _db.auth.getUser().then(function(res) {
