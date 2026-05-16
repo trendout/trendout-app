@@ -1401,6 +1401,13 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
 
       </div>
 
+      <!-- Gerir Subscrição — só para premium -->
+      <div id="manage-sub-btn-wrap" style="display:none;margin-bottom:10px">
+        <button onclick="navTo('subscription')" style="width:100%;padding:14px;border-radius:14px;background:linear-gradient(135deg,rgba(250,204,21,.08),rgba(250,204,21,.04));border:1.5px solid rgba(250,204,21,.25);color:#FACC15;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px">
+          ⭐ Gerir minha Subscrição
+        </button>
+      </div>
+
       <!-- Informações úteis -->
       <button onclick="navTo('info')" style="width:100%;padding:14px;border-radius:14px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px">
         ℹ️ Informações úteis
@@ -2234,6 +2241,23 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
 </div><!-- end app-content -->
 
 <!-- ═══════════════════════════════════════════
+  PAGE — GERIR SUBSCRIÇÃO
+═══════════════════════════════════════════ -->
+<div class="app-page" id="page-subscription" style="padding-top:max(env(safe-area-inset-top,0px),24px);overflow-y:auto;padding-bottom:100px">
+
+  <!-- Header -->
+  <div style="display:flex;align-items:center;gap:12px;padding:0 18px 20px">
+    <button onclick="navTo('profile')" style="width:36px;height:36px;border-radius:12px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.1);color:#fff;font-size:16px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center">←</button>
+    <div style="font-size:18px;font-weight:800;color:#fff">A minha subscrição</div>
+  </div>
+
+  <div style="padding:0 18px" id="subscription-content">
+    <!-- Preenchido por renderSubscriptionPage() -->
+    <div style="text-align:center;padding:40px 0;color:rgba(255,255,255,.3)">A carregar...</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
   PAGE — INFORMAÇÕES ÚTEIS
 ═══════════════════════════════════════════ -->
 <div class="app-page" id="page-info" style="padding-top:max(env(safe-area-inset-top,0px),24px);overflow-y:auto;padding-bottom:100px">
@@ -2983,8 +3007,9 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
           updatePremiumUI();
         }
         // Store plan info for use in premium-ativo and UI
-        _premiumPlan = p.premium_plan || null;
-        _premiumSince = p.premium_since || null;
+        _premiumPlan           = p.premium_plan            || null;
+        _premiumSince          = p.premium_since           || null;
+        _premiumSubscriptionId = p.premium_subscription_id || null;
         userData.name  = ((p.name || '') + (p.last ? ' '+p.last : '')).trim() || user.email;
         userData.email = user.email;
       }
@@ -4186,8 +4211,9 @@ function showInsightsError() {
 // ── PREMIUM / PAYWALL ──
 var _isPremium      = false;
 var _upgradeFromApp = false;
-var _premiumPlan    = null;  // 'annual' | 'monthly'
-var _premiumSince   = null;  // ISO date string
+var _premiumPlan           = null;  // 'annual' | 'monthly' | 'lifetime'
+var _premiumSince          = null;  // ISO date string
+var _premiumSubscriptionId = null;  // PayPal subscription ID
 var _selectedPlan = 'annual';
 var _selectedPayment = 'mbway';
 
@@ -4698,6 +4724,9 @@ function updatePremiumUI() {
   document.querySelectorAll('.coach-price-label, .coach-price-value').forEach(function(el){
     el.style.display = 'none';
   });
+  // Show manage subscription button for premium users
+  var manageBtn = document.getElementById('manage-sub-btn-wrap');
+  if (manageBtn) manageBtn.style.display = 'block';
   // Fix onclick — redirect to actual coach pages instead of /recuperacao etc.
   document.querySelectorAll('[onclick*="location.href=\'/recuperacao\'"]').forEach(function(el){
     el.setAttribute('onclick', 'navTo(\'perf-adv\')');
@@ -8136,7 +8165,8 @@ function navTo(page) {
   document.querySelectorAll('.app-page').forEach(function(p) { p.classList.remove('active'); });
   var pg = document.getElementById('page-'+page);
   if (pg) pg.classList.add('active');
-  if (page === 'perf-adv') { setTimeout(initPerfAdv, 50); }
+  if (page === 'perf-adv')    { setTimeout(initPerfAdv, 50); }
+  if (page === 'subscription') { setTimeout(renderSubscriptionPage, 50); }
   if (page === 'perf') {
     setTimeout(function(){
       // Show 'today' if has activities today, else fallback to 'week'
@@ -10592,6 +10622,9 @@ function stopIndoor() {
 
 function openCoachPage(page) {
   if (_isPremium) {
+    if (page === 'insights')    { window.location.href = 'insights.html'; return; }
+    if (page === 'recuperacao') { window.location.href = 'recuperacao.html'; return; }
+    if (page === 'nutricao')    { window.location.href = 'nutricao.html'; return; }
     navTo('perf-adv');
   } else {
     var shell = document.getElementById('app-shell');
@@ -10652,6 +10685,155 @@ function recordCoachGeneration(coachId) {
 function getCoachGenerationsLeft(coachId) {
   var result = canGenerateCoach(coachId);
   return Math.max(0, 2 - result.count);
+}
+
+// ═══════════════════════════════════════════════
+// SUBSCRIÇÃO — Gestão
+// ═══════════════════════════════════════════════
+function renderSubscriptionPage() {
+  var el = document.getElementById('subscription-content');
+  if (!el) return;
+
+  var plan      = _premiumPlan    || 'monthly';
+  var since     = _premiumSince   ? new Date(_premiumSince) : new Date();
+  var isLifetime = plan === 'lifetime';
+  var isAnnual   = plan === 'annual';
+  var isOwner    = _premiumSubscriptionId === 'OWNER_LIFETIME';
+
+  // Calculate renewal date
+  var renewal = new Date(since);
+  if (isLifetime || isOwner) {
+    renewal = null;
+  } else if (isAnnual) {
+    renewal.setFullYear(renewal.getFullYear() + 1);
+  } else {
+    renewal.setMonth(renewal.getMonth() + 1);
+  }
+
+  var planLabel  = isLifetime || isOwner ? 'Vitalício'
+                 : isAnnual ? 'Anual · 39,99€/ano'
+                 : 'Mensal · 4,99€/mês';
+  var priceLabel = isLifetime || isOwner ? '—'
+                 : isAnnual ? '39,99 €' : '4,99 €';
+  var renewLabel = renewal
+                 ? renewal.toLocaleDateString('pt-PT')
+                 : 'Não renova — acesso permanente';
+
+  el.innerHTML =
+    // Status card
+    '<div style="background:linear-gradient(135deg,rgba(250,204,21,.08),rgba(250,204,21,.04));border:1.5px solid rgba(250,204,21,.2);border-radius:20px;padding:20px;margin-bottom:14px">' +
+      '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">' +
+        '<div style="width:44px;height:44px;background:rgba(250,204,21,.12);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">⭐</div>' +
+        '<div>' +
+          '<div style="font-size:15px;font-weight:800;color:#FACC15">Trendout Premium</div>' +
+          '<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Acesso activo</div>' +
+        '</div>' +
+        '<div style="margin-left:auto;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;color:#22C55E">ATIVO</div>' +
+      '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:10px">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center">' +
+          '<span style="font-size:13px;color:rgba(255,255,255,.5)">Plano</span>' +
+          '<span style="font-size:13px;font-weight:700;color:#fff">' + planLabel + '</span>' +
+        '</div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:center">' +
+          '<span style="font-size:13px;color:rgba(255,255,255,.5)">Início</span>' +
+          '<span style="font-size:13px;font-weight:700;color:#fff">' + since.toLocaleDateString('pt-PT') + '</span>' +
+        '</div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:center">' +
+          '<span style="font-size:13px;color:rgba(255,255,255,.5)">Renovação</span>' +
+          '<span style="font-size:13px;font-weight:700;color:#fff">' + renewLabel + '</span>' +
+        '</div>' +
+        '<div style="border-top:1px solid rgba(255,255,255,.07);padding-top:10px;display:flex;justify-content:space-between;align-items:center">' +
+          '<span style="font-size:13px;font-weight:700;color:#fff">Valor</span>' +
+          '<span style="font-size:15px;font-weight:900;color:#FACC15">' + priceLabel + '</span>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+
+    // Includes card
+    '<div style="background:#111;border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:18px;margin-bottom:14px">' +
+      '<div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">O teu acesso inclui</div>' +
+      '<div style="display:flex;flex-direction:column;gap:8px">' +
+        ['✦ Insights IA — Correlação humor × treino',
+         '✦ Coach de Recuperação — Plano semanal adaptado',
+         '✦ Coach de Alimentação — Refeições e nutrição',
+         '✦ Performance Avançada — Gráficos e análises',
+         '✦ Exportação PDF',
+         '✦ Análises ilimitadas'].map(function(f){
+          return '<div style="font-size:13px;color:rgba(255,255,255,.7)">' + f + '</div>';
+        }).join('') +
+      '</div>' +
+    '</div>' +
+
+    // Cancel button — not for lifetime/owner
+    (isLifetime || isOwner ? '' :
+      '<div style="background:rgba(239,68,68,.04);border:1px solid rgba(239,68,68,.15);border-radius:16px;padding:18px;margin-bottom:14px">' +
+        '<div style="font-size:13px;color:rgba(255,255,255,.5);line-height:1.6;margin-bottom:14px">Ao cancelares perdes o acesso a todos os coaches de IA e funcionalidades premium. As tuas atividades e dados ficam guardados.</div>' +
+        '<button onclick="confirmCancelSubscription()" style="width:100%;padding:13px;border-radius:12px;background:rgba(239,68,68,.1);border:1.5px solid rgba(239,68,68,.3);color:#EF4444;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">' +
+          '✕ Cancelar subscrição' +
+        '</button>' +
+      '</div>'
+    );
+}
+
+function confirmCancelSubscription() {
+  if (!confirm('Tens a certeza? Perdes acesso a todos os coaches de IA e funcionalidades premium.')) return;
+  cancelSubscription();
+}
+
+function cancelSubscription() {
+  if (!_db) { toast('❌ Erro de ligação'); return; }
+  toast('⏳ A cancelar subscrição...');
+
+  _db.auth.getUser().then(function(res) {
+    if (!res.data || !res.data.user) { toast('❌ Erro de autenticação'); return; }
+    var uid = res.data.user.id;
+
+    // Update Supabase — revoke premium
+    _db.from('profiles').update({
+      is_premium:          false,
+      subscription_status: 'cancelled',
+    }).eq('id', uid).then(function(result) {
+      if (result.error) {
+        toast('❌ Erro ao cancelar. Tenta novamente.');
+        return;
+      }
+
+      // Revoke locally
+      _isPremium    = false;
+      _premiumPlan  = null;
+      _premiumSince = null;
+
+      // Lock coaches back
+      lockPremiumUI();
+
+      // Navigate back to profile
+      navTo('profile');
+      toast('✅ Subscrição cancelada. Acesso premium removido.');
+    });
+  });
+}
+
+function lockPremiumUI() {
+  // Re-lock coach badges
+  document.querySelectorAll('.coach-lock-badge').forEach(function(el){
+    el.style.background = 'rgba(250,204,21,.1)';
+    el.style.border = '1.5px solid rgba(250,204,21,.3)';
+    el.textContent = '🔒';
+  });
+  // Show prices again
+  document.querySelectorAll('.coach-price-label, .coach-price-value').forEach(function(el){
+    el.style.display = '';
+  });
+  // Hide manage subscription button
+  var manageBtn = document.getElementById('manage-sub-btn-wrap');
+  if (manageBtn) manageBtn.style.display = 'none';
+  // Show upgrade CTA
+  var cta = document.getElementById('upgrade-cta');
+  if (cta) cta.style.display = '';
+  // Hide premium badge
+  var badge = document.getElementById('premium-badge');
+  if (badge) badge.style.display = 'none';
 }
 
 </script>
