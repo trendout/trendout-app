@@ -5324,20 +5324,8 @@ function renderActDetail(a) {
   // Title + date
   var titleEl = document.getElementById('det-title');
   var dateEl  = document.getElementById('det-date');
-  if (titleEl) titleEl.textContent = a.title || a.type || 'Atividade';
-
-  // Date + time + location
-  var dateStr = a.date || '';
-  var timeStr = a.startTime || '';
-  var locParts = [];
-  if (a.start_street || a.startStreet) locParts.push(a.start_street || a.startStreet);
-  if (a.city) locParts.push(a.city);
-  var locStr = locParts.join(', ');
-
-  var dateDisplay = dateStr;
-  if (timeStr) dateDisplay += ' · ' + timeStr;
-  if (locStr)  dateDisplay += ' · 📍 ' + locStr;
-  if (dateEl) dateEl.textContent = dateDisplay;
+  if (titleEl) titleEl.textContent = a.title || a.type || 'Actividade';
+  if (dateEl)  dateEl.textContent  = a.date || '';
 
   // Stats
   var timeEl  = document.getElementById('det-time');
@@ -5623,15 +5611,7 @@ function renderActSplits(a) {
   var section   = document.getElementById('det-splits-section');
   if (!container) return;
 
-  var splits = (a.splits || []).map(function(s, i, arr) {
-    // GPS saves {km, time} where time = total elapsed seconds
-    // Convert to {km, seconds} where seconds = split pace (time for this km)
-    if (s.time !== undefined && s.seconds === undefined) {
-      var prevTime = i > 0 ? (arr[i-1].time || 0) : 0;
-      return { km: s.km, seconds: s.time - prevTime, partial: s.partial };
-    }
-    return s;
-  });
+  var splits = a.splits || [];
 
   // If no real splits, generate from total pace
   // Resolve dist and duration from all possible field formats
@@ -9127,21 +9107,6 @@ function importGpxActivity() {
   };
 
   closeGpxImport();
-  // Reverse geocode start point
-  var _gpxStart = act.route && act.route.length > 0 ? act.route[0] : null;
-  if (_gpxStart && _gpxStart.lat) {
-    reverseGeocode(_gpxStart.lat, _gpxStart.lng, function(info) {
-      act.start_street = info.street;
-      act.city = info.city;
-      var _gpxEnd = act.route[act.route.length - 1];
-      if (_gpxEnd && _gpxEnd.lat) {
-        reverseGeocode(_gpxEnd.lat, _gpxEnd.lng, function(endInfo) {
-          act.end_street = endInfo.street;
-          dbSyncActivity(act);
-        });
-      }
-    });
-  }
   addActivity(act);
   navTo('home');
   toast('✅ ' + d.dist + ' importados do ficheiro!');
@@ -10474,22 +10439,6 @@ function finishIndoor() {
     route:       [],
   };
 
-  // Reverse geocode start + end points
-  var _startPt = act.route && act.route.length > 0   ? act.route[0]                    : null;
-  var _endPt   = act.route && act.route.length > 1   ? act.route[act.route.length - 1] : null;
-  if (_startPt && _startPt.lat) {
-    reverseGeocode(_startPt.lat, _startPt.lng, function(startInfo) {
-      act.start_street = startInfo.street;
-      act.city         = startInfo.city;
-      if (_endPt && _endPt.lat) {
-        reverseGeocode(_endPt.lat, _endPt.lng, function(endInfo) {
-          act.end_street = endInfo.street;
-          dbSyncActivity(act); // re-sync with location data
-        });
-      }
-    });
-  }
-
   addActivity(act);
   renderProfile();
   navTo('home');
@@ -10885,20 +10834,6 @@ function lockPremiumUI() {
   // Hide premium badge
   var badge = document.getElementById('premium-badge');
   if (badge) badge.style.display = 'none';
-}
-
-// ── Reverse geocoding — Nominatim (OpenStreetMap, free) ──
-function reverseGeocode(lat, lng, callback) {
-  var url = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&zoom=16&addressdetails=1';
-  fetch(url, { headers: { 'Accept-Language': 'pt' } })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      var addr = data.address || {};
-      var street = addr.road || addr.pedestrian || addr.path || addr.footway || '';
-      var city   = addr.city || addr.town || addr.village || addr.municipality || addr.county || '';
-      callback({ street: street, city: city });
-    })
-    .catch(function() { callback({ street: '', city: '' }); });
 }
 
 </script>
