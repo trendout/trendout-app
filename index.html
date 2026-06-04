@@ -2928,19 +2928,10 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
           : res.error.message));
         return false;
       }
-      // Create profile row in Supabase
+      // Profile is created automatically by the on_auth_user_created trigger
+      // Store name for use after email confirmation
       if (res.data && res.data.user) {
-        var nameParts = (name || '').trim().split(' ');
-        var firstName = nameParts[0] || '';
-        var lastName  = nameParts.slice(1).join(' ') || '';
-        await _db.from('profiles').upsert({
-          id:         res.data.user.id,
-          name:       firstName,
-          last:       lastName,
-          enjoy_pts:  0,
-          is_premium: false,
-          subscription_status: 'inactive'
-        }, { onConflict: 'id' });
+        sessionStorage.setItem('tr_reg_name', name || '');
       }
       toast('✅ Conta criada! Verifica o teu email para confirmar.');
       return true;
@@ -8151,6 +8142,21 @@ function calcStreak() {
 
 function launchApp(userData) {
   _user = userData;
+  // If name was stored from registration, update profile
+  var regName = sessionStorage.getItem('tr_reg_name');
+  if (regName && _db && userData.id) {
+    var np = regName.trim().split(' ');
+    _db.from('profiles').upsert({
+      id: userData.id,
+      name: np[0] || '',
+      last: np.slice(1).join(' ') || '',
+      enjoy_pts: 0,
+      is_premium: false,
+      subscription_status: 'inactive'
+    }, { onConflict: 'id' }).then(function() {
+      sessionStorage.removeItem('tr_reg_name');
+    });
+  }
   // Populate profile
   _profile.name = (userData.name||'').split(' ')[0];
   _profile.last = (userData.name||'').split(' ').slice(1).join(' ');
