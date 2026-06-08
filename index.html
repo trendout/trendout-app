@@ -2973,8 +2973,9 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
           if (a.center_lat)    a.centerLat    = a.center_lat;
           if (a.center_lng)    a.centerLng    = a.center_lng;
           if (a.has_gps !== undefined) a.hasGps = a.has_gps;
-          if (a.start_street)  a.startStreet  = a.start_street;
-          if (a.end_street)    a.endStreet    = a.end_street;
+          // Keep both snake_case and camelCase available
+          if (a.start_street) { a.startStreet = a.start_street; }
+          if (a.end_street)   { a.endStreet   = a.end_street;   }
           if (a.startTime === undefined && a['startTime']) a.startTime = a['startTime'];
           return a;
         });
@@ -5354,12 +5355,14 @@ function renderActDetail(a) {
   var dateEl  = document.getElementById('det-date');
   if (titleEl) titleEl.textContent = a.title || a.type || 'Atividade';
 
-  // Date + time + location
-  var dateStr = a.date || '';
-  var timeStr = a.startTime || '';
+  // Date + time + location — check both snake_case (DB) and camelCase (memory)
+  var dateStr  = a.date || '';
+  var timeStr  = a.startTime || '';
+  var street   = a.start_street || a.startStreet || '';
+  var city     = a.city || '';
   var locParts = [];
-  if (a.start_street || a.startStreet) locParts.push(a.start_street || a.startStreet);
-  if (a.city) locParts.push(a.city);
+  if (street) locParts.push(street);
+  if (city)   locParts.push(city);
   var locStr = locParts.join(', ');
 
   var dateDisplay = dateStr;
