@@ -2766,7 +2766,7 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
 
         <!-- Performance Avançada button -->
         <div style="padding:20px 18px 0">
-          <button onclick="if(!_isPremium){openUpgrade();}else{navTo('perf-adv');}" style="width:100%;padding:13px;border-radius:14px;background:rgba(250,204,21,.08);border:1.5px solid rgba(250,204,21,.2);color:#FACC15;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px">
+          <button onclick="if(!_isPremium){openUpgrade();}else{navTo('perf-adv');window.scrollTo(0,0);}" style="width:100%;padding:13px;border-radius:14px;background:rgba(250,204,21,.08);border:1.5px solid rgba(250,204,21,.2);color:#FACC15;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
             ✨ Performance Avançada
             <span id="det-prem-badge" style="font-size:10px;background:rgba(250,204,21,.15);border-radius:6px;padding:2px 7px">PREMIUM</span>
@@ -8232,6 +8232,9 @@ function navTo(page) {
   var pg = document.getElementById('page-'+page);
   if (pg) pg.classList.add('active');
   if (page === 'perf-adv')    { setTimeout(initPerfAdv, 50); }
+  // Ensure nav bar is visible
+  var nav = document.getElementById('app-nav');
+  if (nav && !['act-detail'].includes(page)) nav.style.display = '';
   if (page === 'subscription') { setTimeout(renderSubscriptionPage, 50); }
   if (page === 'perf') {
     setTimeout(function(){
