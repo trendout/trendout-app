@@ -3117,28 +3117,36 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
         _pendingSync.push(act); savePendingSync(); return;
       }
       var uid = sessionRes.data.session.user.id;
-      var res = await _db.from('activities').insert({
-        type:        act.type,
-        title:       act.title,
-        dist:        act.dist,
-        dur:         act.dur,
-        pace:        act.pace,
-        cal:         act.cal ? String(act.cal) : null,
-        date:        act.date,
-        startTime:   act.startTime || null,
-        source:      act.source || 'manual',
-        user_id:     uid,
-        route:       act.route && act.route.length > 0 ? JSON.stringify(act.route) : null,
-        splits:      act.splits && act.splits.length > 0 ? JSON.stringify(act.splits) : null,
+      var payload = {
+        type:         act.type,
+        title:        act.title,
+        dist:         act.dist,
+        dur:          act.dur,
+        pace:         act.pace,
+        cal:          act.cal ? String(act.cal) : null,
+        date:         act.date,
+        startTime:    act.startTime || null,
+        source:       act.source || 'manual',
+        user_id:      uid,
+        route:        act.route && act.route.length > 0 ? JSON.stringify(act.route) : null,
+        splits:       act.splits && act.splits.length > 0 ? JSON.stringify(act.splits) : null,
         total_seconds: act.totalSeconds || null,
-        dist_km:     act.distKm || null,
-        center_lat:  act.centerLat || null,
-        center_lng:  act.centerLng || null,
-        has_gps:     act.hasGps || false,
-        start_street: act.startStreet || null,
-        end_street:  act.endStreet || null,
-        city:        act.city || null
-      }).select('id').single();
+        dist_km:      act.distKm || null,
+        center_lat:   act.centerLat || null,
+        center_lng:   act.centerLng || null,
+        has_gps:      act.hasGps || false,
+        start_street: act.start_street || act.startStreet || null,
+        end_street:   act.end_street  || act.endStreet   || null,
+        city:         act.city || null
+      };
+      var res;
+      if (act.id) {
+        // Update existing record (e.g. geocoding update)
+        res = await _db.from('activities').update(payload).eq('id', act.id).select('id').single();
+      } else {
+        // New activity — insert
+        res = await _db.from('activities').insert(payload).select('id').single();
+      }
       if (res.data && res.data.id) act.id = res.data.id;
       console.log('[sync] Activity saved:', act.date, act.type);
     } catch(e) {
@@ -4225,7 +4233,8 @@ function showInsightsError() {
 
 // ── PREMIUM / PAYWALL ──
 var _isPremium      = false;
-var _upgradeFromApp = false;
+var _upgradeFromApp  = false;
+var _upgradeFromPage = 'home';
 var _premiumPlan           = null;  // 'annual' | 'monthly' | 'lifetime'
 var _premiumSince          = null;  // ISO date string
 var _premiumSubscriptionId = null;  // PayPal subscription ID
@@ -4234,6 +4243,9 @@ var _selectedPayment = 'mbway';
 
 function openUpgrade() {
   _upgradeFromApp = true;
+  // Remember which page was active so we can return to it
+  var activePage = document.querySelector('.app-page.active');
+  _upgradeFromPage = activePage ? activePage.id.replace('page-', '') : 'home';
   var shell = document.getElementById('app-shell');
   var upgrade = document.getElementById('s-upgrade');
   if (shell) shell.style.display = 'none';
@@ -4244,9 +4256,10 @@ function closeUpgrade() {
   var upgrade = document.getElementById('s-upgrade');
   if (upgrade) upgrade.style.display = 'none';
   if (_upgradeFromApp) {
-    // Return to app — restore app-shell
+    // Return to the page that opened the upgrade
     var shell = document.getElementById('app-shell');
     if (shell) shell.style.display = '';
+    navTo(_upgradeFromPage || 'home');
   } else {
     // Return to welcome screen
     document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
