@@ -3599,6 +3599,8 @@ function startGpsRecording() {
   _gps.timer = setInterval(gpsTimerTick, 1000);
   // Check for GPS stall every 5 seconds
   _gps.reconnectTimer = setInterval(gpsReconnectCheck, 5000);
+  // Start silent audio to keep browser alive in background
+  startBgAudio();
 
   // Request Wake Lock to keep screen on
   if ('wakeLock' in navigator) {
@@ -3793,6 +3795,7 @@ function stopGps() {
   if(_gps.timer)          clearInterval(_gps.timer);
   if(_gps.simTimer)       clearInterval(_gps.simTimer);
   if(_gps.reconnectTimer) clearInterval(_gps.reconnectTimer);
+  stopBgAudio(); // release audio keep-alive
   if(_gps.watchId)        navigator.geolocation.clearWatch(_gps.watchId);
   if(GPS_WAKELOCK)        { GPS_WAKELOCK.release().catch(function(){}); GPS_WAKELOCK = null; }
   _gps.active=false;
@@ -10298,6 +10301,7 @@ function startTimerClock() {
   if (pauseBtn) pauseBtn.textContent = '⏸';
 
   clearInterval(_timer.interval);
+  startBgAudio(); // keep browser alive during indoor timer
   _timer.interval = setInterval(function() {
     if (!_timer.active || _timer.paused) return;
     // Use wall-clock time — survives background throttling
@@ -10339,6 +10343,7 @@ function toggleTimerPause() {
 
 function cancelTimer() {
   clearInterval(_timer.interval);
+  stopBgAudio();
   _timer.active = false;
   var overlay = document.getElementById('timer-overlay');
   if (overlay) overlay.style.display = 'none';
@@ -10958,6 +10963,42 @@ function reverseGeocode(lat, lng, callback) {
       callback({ street: street, city: city });
     })
     .catch(function() { callback({ street: '', city: '' }); });
+}
+
+// ── Background keep-alive audio trick ──
+// Plays a silent audio loop via Web Audio API
+// Prevents browser from suspending JS/GPS when screen locks
+var _bgAudioCtx   = null;
+var _bgAudioNode  = null;
+var _bgAudioActive = false;
+
+function startBgAudio() {
+  if (_bgAudioActive) return;
+  try {
+    _bgAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // Create silent oscillator
+    var oscillator = _bgAudioCtx.createOscillator();
+    var gainNode   = _bgAudioCtx.createGain();
+    gainNode.gain.value = 0.001; // near-silent — won't be heard
+    oscillator.connect(gainNode);
+    gainNode.connect(_bgAudioCtx.destination);
+    oscillator.start();
+    _bgAudioNode   = oscillator;
+    _bgAudioActive = true;
+    console.log('[Trendout] Background audio active — GPS keep-alive');
+  } catch(e) {
+    console.log('[Trendout] Background audio failed:', e);
+  }
+}
+
+function stopBgAudio() {
+  if (!_bgAudioActive) return;
+  try {
+    if (_bgAudioNode)  { _bgAudioNode.stop(); _bgAudioNode = null; }
+    if (_bgAudioCtx)   { _bgAudioCtx.close();  _bgAudioCtx  = null; }
+    _bgAudioActive = false;
+    console.log('[Trendout] Background audio stopped');
+  } catch(e) {}
 }
 
 </script>
@@ -13217,7 +13258,7 @@ function reverseGeocode(lat, lng, callback) {
         <div>
           <div id="gps-sport-name" style="font-size:14px;font-weight:700;color:#fff">Corrida</div>
           <div id="gps-status" style="font-size:11px;color:rgba(255,255,255,.4)">A obter GPS...</div>
-          <div id="gps-screen-warn" style="display:none;font-size:10px;color:#F97316;margin-top:2px">⚠️ Mantém o ecrã activo para não perder o GPS</div>
+          <div id="gps-screen-warn" style="display:none;font-size:10px;color:#F97316;margin-top:2px">⚠️ Mantém o ecrã activo para não perder o GPS. Instala a app no ecrã inicial para melhor desempenho.</div>
         </div>
       </div>
       <div id="gps-rec-dot" style="display:flex;align-items:center;gap:6px;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);border-radius:100px;padding:5px 11px">
