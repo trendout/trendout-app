@@ -4579,6 +4579,8 @@ function showPaymentSuccess() {
   `;
 
   document.body.appendChild(overlay);
+  // Reset upgrade page tracker after successful payment
+  _upgradeFromPage = 'home';
   // Set personalised name
   var nameEl = document.getElementById('prem-welcome-name');
   if (nameEl) {
