@@ -950,6 +950,41 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
         </button>
       </div>
 
+      <!-- Premium coaches — só para membros premium -->
+      <div id="home-premium-coaches" style="display:none;margin-bottom:16px">
+        <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">Os teus coaches IA</div>
+
+        <!-- Insights IA -->
+        <div onclick="openCoachPage('insights')" style="display:flex;align-items:center;gap:14px;background:#111;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 16px;margin-bottom:8px;cursor:pointer">
+          <div style="width:44px;height:44px;background:linear-gradient(135deg,#6366F1,#4F46E5);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">✦</div>
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:800;color:#fff">Insights IA</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.45);margin-top:1px">Correlação humor × treino</div>
+          </div>
+          <div style="width:30px;height:30px;background:rgba(34,197,94,.12);border:1.5px solid rgba(34,197,94,.3);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#22C55E">→</div>
+        </div>
+
+        <!-- Coach de Recuperação -->
+        <div onclick="openCoachPage('recuperacao')" style="display:flex;align-items:center;gap:14px;background:#111;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 16px;margin-bottom:8px;cursor:pointer">
+          <div style="width:44px;height:44px;background:linear-gradient(135deg,#22C55E,#16A34A);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🌱</div>
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:800;color:#fff">Coach de Recuperação</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.45);margin-top:1px">Treino adaptado ao teu estado mental</div>
+          </div>
+          <div style="width:30px;height:30px;background:rgba(34,197,94,.12);border:1.5px solid rgba(34,197,94,.3);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#22C55E">→</div>
+        </div>
+
+        <!-- Coach de Alimentação -->
+        <div onclick="openCoachPage('nutricao')" style="display:flex;align-items:center;gap:14px;background:#111;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 16px;margin-bottom:8px;cursor:pointer">
+          <div style="width:44px;height:44px;background:linear-gradient(135deg,#F97316,#EA580C);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🥗</div>
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:800;color:#fff">Coach de Alimentação</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.45);margin-top:1px">Nutrição adaptada ao teu treino e humor</div>
+          </div>
+          <div style="width:30px;height:30px;background:rgba(34,197,94,.12);border:1.5px solid rgba(34,197,94,.3);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#22C55E">→</div>
+        </div>
+      </div>
+
       <!-- EnjoyLife card -->
       <div onclick="navTo('enjoy')" style="background:linear-gradient(135deg,#1a1a1a,#111);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:16px 18px;margin-bottom:16px;cursor:pointer;display:flex;align-items:center;gap:14px;-webkit-tap-highlight-color:transparent">
         <div style="width:42px;height:42px;background:rgba(255,255,255,.08);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">⭐</div>
@@ -4761,6 +4796,9 @@ function updatePremiumUI() {
   // Show manage subscription button for premium users
   var manageBtn = document.getElementById('manage-sub-btn-wrap');
   if (manageBtn) manageBtn.style.display = 'block';
+  // Show premium coaches on homepage
+  var homeCoaches = document.getElementById('home-premium-coaches');
+  if (homeCoaches) homeCoaches.style.display = 'block';
   // Fix onclick — redirect to actual coach pages instead of /recuperacao etc.
   document.querySelectorAll('[onclick*="location.href=\'/recuperacao\'"]').forEach(function(el){
     el.setAttribute('onclick', 'navTo(\'perf-adv\')');
@@ -10945,6 +10983,9 @@ function lockPremiumUI() {
   // Hide manage subscription button
   var manageBtn = document.getElementById('manage-sub-btn-wrap');
   if (manageBtn) manageBtn.style.display = 'none';
+  // Hide premium coaches on homepage
+  var homeCoaches = document.getElementById('home-premium-coaches');
+  if (homeCoaches) homeCoaches.style.display = 'none';
   // Show upgrade CTA
   var cta = document.getElementById('upgrade-cta');
   if (cta) cta.style.display = '';
