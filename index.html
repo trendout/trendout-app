@@ -3338,7 +3338,7 @@ var _gps = {
   lastLat:null, lastLng:null,
   lastKm:0, kmSplits:[],
   hr:65, elev:0, elevDir:1,
-  watchId:null, reconnectTimer:null,
+  watchId:null, watchIdLow:null, reconnectTimer:null,
   centerLat:38.7169, centerLng:-9.1399,
   hasGps:false,
   route:[],    // [{lat,lng}]
@@ -3562,7 +3562,7 @@ function closeGpsPreview() {
 
 // GPS quality thresholds
 var GPS_MAX_ACCURACY = 30;   // metres — ignore points worse than this
-var GPS_RECONNECT_MS = 20000; // reconnect if no update in 10s
+var GPS_RECONNECT_MS = 25000; // reconnect if no update in 10s
 var GPS_WAKELOCK     = null;  // Screen Wake Lock reference
 
 function gpsSetStatus(txt, color) {
@@ -3572,18 +3572,35 @@ function gpsSetStatus(txt, color) {
 
 function gpsStartWatch() {
   if (_gps.watchId) { navigator.geolocation.clearWatch(_gps.watchId); _gps.watchId = null; }
+  if (_gps.watchIdLow) { navigator.geolocation.clearWatch(_gps.watchIdLow); _gps.watchIdLow = null; }
+
+  var errorFn = function(err) {
+    if (err.code === 1) {
+      gpsSetStatus('🚫 GPS: sem permissão. Activa nas definições.', '#EF4444');
+    } else {
+      gpsSetStatus('⚠️ GPS: sinal fraco — a tentar reconectar...', '#F97316');
+    }
+  };
+
+  // Primary watch — high accuracy (best for outdoor/open sky)
   _gps.watchId = navigator.geolocation.watchPosition(
     onGpsPosition,
-    function(err) {
-      if (err.code === 1) {
-        // Permissão negada — não tentar reconectar
-        gpsSetStatus('🚫 GPS: sem permissão. Activa nas definições.', '#EF4444');
-      } else {
-        // Sinal perdido ou timeout — gpsReconnectCheck (cada 5s) trata do restart
-        gpsSetStatus('⚠️ GPS: ' + (err.code === 2 ? 'sinal perdido' : 'timeout') + ' — a aguardar...', '#F97316');
+    errorFn,
+    { enableHighAccuracy: true, maximumAge: 0, timeout: 60000 }
+  );
+
+  // Secondary watch — low accuracy fallback (survives background/mochila better)
+  // Uses network/cell tower positioning which works with screen off
+  _gps.watchIdLow = navigator.geolocation.watchPosition(
+    function(pos) {
+      // Only use low-accuracy if high-accuracy hasn't updated recently
+      var staleSince = _gps.lastUpdate ? (Date.now() - _gps.lastUpdate) : 99999;
+      if (staleSince > 15000) {
+        onGpsPosition(pos); // use low-accuracy as fallback
       }
     },
-    { enableHighAccuracy: true, maximumAge: 3000, timeout: 30000 }
+    function() {}, // silent error
+    { enableHighAccuracy: false, maximumAge: 10000, timeout: 60000 }
   );
 }
 
@@ -3593,7 +3610,7 @@ function gpsReconnectCheck() {
   // Restart GPS if no position received within threshold
   if (_gps.lastUpdate && (now - _gps.lastUpdate) > GPS_RECONNECT_MS) {
     gpsSetStatus('🔄 A reconectar GPS...', '#FACC15');
-    gpsStartWatch();
+    gpsStartWatch(); // restarts both high and low accuracy watches
   }
   // Re-acquire Wake Lock if lost (e.g. screen briefly locked)
   if (!GPS_WAKELOCK && 'wakeLock' in navigator) {
@@ -8844,17 +8861,13 @@ document.addEventListener('visibilitychange', function() {
         var _el=document.getElementById('gps-timer');
         if(_el) _el.textContent=(_h>0?pad(_h)+':':'')+pad(_m)+':'+pad(_s);
       }
-      // Only restart watch if no update received in last 8 seconds
-      // (means the watch died while in background)
-      var _timeSinceUpdate = _gps.lastUpdate ? (Date.now() - _gps.lastUpdate) : 99999;
-      if (_timeSinceUpdate > 8000) {
-        setTimeout(function() {
-          if (_gps.active && !_gps.paused) {
-            gpsSetStatus('🔄 A reconectar GPS...', '#FACC15');
-            gpsStartWatch();
-          }
-        }, 500);
-      }
+      // Restart both GPS watches when app comes back from background
+      setTimeout(function() {
+        if (_gps.active && !_gps.paused) {
+          gpsSetStatus('🔄 A reconectar GPS...', '#FACC15');
+          gpsStartWatch(); // always restart on visibility — ensures both watches are live
+        }
+      }, 300);
     }
     // Flush any activities that failed to sync while in background
     setTimeout(flushPendingSync, 1500);
