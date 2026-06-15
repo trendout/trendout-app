@@ -9478,19 +9478,50 @@ function generateShareImage(act, format, callback) {
   var logoW = Math.round(logoH * (1102 / 185)); // maintain aspect ratio
   var logoY = footY - logoH + Math.round(W * 0.005);
 
-  // Draw PNG logo — draw onto a temp canvas first, then composite
-  var _drawLogoAndFinish = function() {
+  // Draw PNG logo — wait for it to load if not ready yet
+  var _drawLogoOnCanvas = function() {
     if (window._shareLogoImg && window._shareLogoImg.complete && window._shareLogoImg.naturalWidth > 0) {
       ctx.drawImage(window._shareLogoImg, pad, logoY, logoW, logoH);
+      // Now compute dataUrl with logo included
+      var dataUrl = canvas.toDataURL('image/png');
+      _shareImageDataUrl = dataUrl;
+      // Composite to DOM canvas
+      var domCanvas = document.getElementById('share-canvas');
+      if (domCanvas) {
+        domCanvas.width  = W; domCanvas.height = H;
+        var domCtx = domCanvas.getContext('2d');
+        domCtx.drawImage(canvas, 0, 0);
+      }
+      var loader = document.getElementById('share-canvas-loader');
+      if (loader) loader.style.display = 'none';
+      if (callback) callback(dataUrl);
     } else {
-      // Fallback: TRENDOUT in white text
+      // Fallback — use text TRENDOUT
       ctx.font = 'bold ' + Math.round(W * 0.032) + 'px Helvetica Neue, Helvetica, Arial, sans-serif';
       ctx.textAlign = 'left';
       ctx.fillStyle = '#fff';
       ctx.fillText('TRENDOUT', pad, footY);
+      // Fallback dataUrl
+      var dataUrl = canvas.toDataURL('image/png');
+      _shareImageDataUrl = dataUrl;
+      var domCanvas = document.getElementById('share-canvas');
+      if (domCanvas) {
+        domCanvas.width  = W; domCanvas.height = H;
+        var domCtx = domCanvas.getContext('2d');
+        domCtx.drawImage(canvas, 0, 0);
+      }
+      var loader = document.getElementById('share-canvas-loader');
+      if (loader) loader.style.display = 'none';
+      if (callback) callback(dataUrl);
     }
   };
-  _drawLogoAndFinish();
+
+  if (window._shareLogoImg && !window._shareLogoImg.complete) {
+    // Logo still loading — wait for it
+    window._shareLogoImg.onload = function() { _drawLogoOnCanvas(); };
+  } else {
+    _drawLogoOnCanvas();
+  }
 
   ctx.textAlign = 'right';
   ctx.fillStyle = 'rgba(255,255,255,.3)';
@@ -9499,20 +9530,7 @@ function generateShareImage(act, format, callback) {
 
   // ── Export ──
   try {
-    var dataUrl = canvas.toDataURL('image/png');
-    _shareImageDataUrl = dataUrl;
-    // Render into the share-canvas DOM element and hide loader
-    var domCanvas = document.getElementById('share-canvas');
-    var loader    = document.getElementById('share-canvas-loader');
-    if (domCanvas) {
-      // Set canvas resolution to match generated image
-      domCanvas.width  = W;
-      domCanvas.height = H;
-      var domCtx = domCanvas.getContext('2d');
-      domCtx.drawImage(canvas, 0, 0);
-    }
-    if (loader) loader.style.display = 'none';
-    if (callback) callback(dataUrl);
+    // toDataURL and composite happen inside _drawLogoOnCanvas after logo is drawn
   } catch(e) {
     console.error('[share image] toDataURL error:', e);
     if (callback) callback(null);
@@ -10981,28 +10999,22 @@ function cancelSubscription() {
 }
 
 function lockPremiumUI() {
-  // Re-lock coach badges
   document.querySelectorAll('.coach-lock-badge').forEach(function(el){
     el.style.background = 'rgba(250,204,21,.1)';
     el.style.border = '1.5px solid rgba(250,204,21,.3)';
     el.textContent = '🔒';
   });
-  // Show prices again
   document.querySelectorAll('.coach-price-label, .coach-price-value').forEach(function(el){
     el.style.display = '';
   });
-  // Hide manage subscription button
-  var manageBtn = document.getElementById('manage-sub-btn-wrap');
-  if (manageBtn) manageBtn.style.display = 'none';
-  // Hide premium coaches on homepage
-  var homeCoaches = document.getElementById('home-premium-coaches');
+  var manageBtn    = document.getElementById('manage-sub-btn-wrap');
+  var badge        = document.getElementById('premium-badge');
+  var cta          = document.getElementById('upgrade-cta');
+  var homeCoaches  = document.getElementById('home-premium-coaches');
+  if (manageBtn)   manageBtn.style.display   = 'none';
+  if (badge)       badge.style.display       = 'none';
+  if (cta)         cta.style.display         = '';
   if (homeCoaches) homeCoaches.style.display = 'none';
-  // Show upgrade CTA
-  var cta = document.getElementById('upgrade-cta');
-  if (cta) cta.style.display = '';
-  // Hide premium badge
-  var badge = document.getElementById('premium-badge');
-  if (badge) badge.style.display = 'none';
 }
 
 // ── Reverse geocoding — Nominatim (OpenStreetMap, free) ──
