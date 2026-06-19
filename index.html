@@ -3009,8 +3009,10 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
           if (a.center_lng)    a.centerLng    = a.center_lng;
           if (a.has_gps !== undefined) a.hasGps = a.has_gps;
           // Keep both snake_case and camelCase available
+          // Keep both formats — snake_case (DB) and camelCase (app)
           if (a.start_street) { a.startStreet = a.start_street; }
           if (a.end_street)   { a.endStreet   = a.end_street;   }
+          // city is already correct in both
           if (a.startTime === undefined && a['startTime']) a.startTime = a['startTime'];
           return a;
         });
@@ -8270,20 +8272,37 @@ function autoSplash() {
 function doLogout() {
   supaLogout();
   _user = null;
+
+  // ── Clear ALL in-memory data — critical to avoid stale data on next login ──
+  _allActivities        = [];
+  _enjoyPts             = 0;
+  _enjoyLog             = [];
+  _isPremium            = false;
+  _premiumPlan          = null;
+  _premiumSince         = null;
+  _premiumSubscriptionId = null;
+  _profile              = { name:'', last:'', bio:'', city:'', dob:'', photo:'', sports:[] };
+  _shareImageDataUrl    = null;
+  _shareAct             = null;
+  _currentAct           = null;
+
   var shell = document.getElementById('app-shell');
   if (shell) shell.classList.remove('active');
-  // Reset login button to active state
+
+  // Reset login button
   var loginBtn = document.getElementById('login-btn');
   if (loginBtn) {
     loginBtn.disabled = false;
     loginBtn.style.opacity = '1';
     loginBtn.textContent = 'Entrar';
   }
+
   // Clear login fields
   var emailEl = document.getElementById('login-email');
   var passEl  = document.getElementById('login-pass');
   if (emailEl) emailEl.value = '';
   if (passEl)  passEl.value  = '';
+
   go('s-welcome');
 }
 
