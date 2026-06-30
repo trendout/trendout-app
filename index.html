@@ -3884,6 +3884,32 @@ function stopGps() {
   // Show PSE rating sheet after saving
   setTimeout(function() { openPseSheet(act); }, 600);
   setTimeout(function() { sendPostActivityNotif(act); }, 2500);
+
+  // Reverse geocode asynchronously — updates act in _allActivities after response
+  var _startPt = act.route && act.route.length > 0 ? act.route[0] : null;
+  var _endPt   = act.route && act.route.length > 1 ? act.route[act.route.length - 1] : null;
+  if (_startPt && _startPt.lat) {
+    reverseGeocode(_startPt.lat, _startPt.lng, function(startInfo) {
+      act.start_street = startInfo.street;
+      act.city         = startInfo.city;
+      // Update the stored activity reference
+      if (_allActivities[0] === act) {
+        _allActivities[0].start_street = startInfo.street;
+        _allActivities[0].city         = startInfo.city;
+      }
+      if (_endPt && _endPt.lat) {
+        reverseGeocode(_endPt.lat, _endPt.lng, function(endInfo) {
+          act.end_street = endInfo.street;
+          if (_allActivities[0] === act) _allActivities[0].end_street = endInfo.street;
+          dbSyncActivity(act); // persist to Supabase with location
+          renderHomeActs();    // refresh cards with location
+        });
+      } else {
+        dbSyncActivity(act);
+        renderHomeActs();
+      }
+    });
+  }
 }
 
 function haversine(lat1,lng1,lat2,lng2){
@@ -9812,17 +9838,20 @@ function _drawShareStats(ctx, W, H, statsY, statsH, act) {
     var s4x = pad + 3 * colW > W - pad ? pad : pad + 3 * colW;
   }
 
-  // Trendout branding
-  var brandY = H - Math.round(statsH * 0.12);
-  ctx.textAlign = 'left';
-  ctx.font = 'bold ' + Math.round(W * 0.032) + 'px -apple-system,Helvetica Neue,Arial,sans-serif';
-
-  // Wordmark
-  ctx.fillStyle = '#22C55E';
-  ctx.fillText('TRENDOUT', pad, brandY);
-  var twid = ctx.measureText('TRENDOUT').width;
-  ctx.fillStyle = 'rgba(255,255,255,.3)';
-  ctx.fillText('  app.trendout.es', pad + twid, brandY);
+  // Trendout branding — PNG logo
+  var logoH_b = Math.round(W * 0.036);
+  var logoW_b = Math.round(logoH_b * (1102 / 185));
+  // Anchor logo bottom edge with safe margin from canvas bottom
+  var logoY_b = H - logoH_b - Math.round(H * 0.025);
+  if (window._shareLogoImg && window._shareLogoImg.complete && window._shareLogoImg.naturalWidth > 0) {
+    ctx.drawImage(window._shareLogoImg, pad, logoY_b, logoW_b, logoH_b);
+  } else {
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'left';
+    ctx.font = 'bold ' + Math.round(W * 0.032) + 'px -apple-system,Helvetica Neue,Arial,sans-serif';
+    ctx.fillText('TRENDOUT', pad, H - Math.round(H * 0.03));
+  }
+  var brandY = logoY_b + logoH_b; // for hashtag vertical alignment below
 
   // Hashtags right
   ctx.textAlign = 'right';
