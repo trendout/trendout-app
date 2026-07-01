@@ -3715,7 +3715,7 @@ function onGpsPosition(pos) {
   // Buffer each good reading. When we have 3, use their average as the
   // committed point. This smooths GPS noise without introducing lag
   // and prevents the straight-line jumps caused by momentary signal loss.
-  _gps.buf.push({ lat: pos.coords.latitude, lng: pos.coords.longitude, acc: acc });
+  _gps.buf.push({ lat: pos.coords.latitude, lng: pos.coords.longitude, acc: acc, alt: pos.coords.altitude != null ? Math.round(pos.coords.altitude) : null });
   if (_gps.buf.length < 3) {
     // Not enough readings yet — update status but don't commit a point
     var accStr = acc < 10 ? '🟢' : acc < 20 ? '🟡' : '🟠';
@@ -3727,15 +3727,17 @@ function onGpsPosition(pos) {
   if (_gps.buf.length > 3) _gps.buf.shift();
 
   // Weighted average — weight by inverse of accuracy (better accuracy = more weight)
-  var wLat = 0, wLng = 0, wSum = 0;
+  var wLat = 0, wLng = 0, wAlt = 0, wSum = 0, wAltN = 0;
   _gps.buf.forEach(function(p) {
     var w = 1 / Math.max(p.acc, 1);
     wLat += p.lat * w;
     wLng += p.lng * w;
     wSum += w;
+    if (p.alt != null) { wAlt += p.alt; wAltN++; }
   });
   var avgLat = wLat / wSum;
   var avgLng = wLng / wSum;
+  var avgAlt = wAltN > 0 ? Math.round(wAlt / wAltN) : null;
   var avgAcc = _gps.buf.reduce(function(s, p) { return s + p.acc; }, 0) / _gps.buf.length;
 
   // Sanity check: reject if the averaged point is impossibly far from last committed
@@ -3767,7 +3769,7 @@ function simulateGpsStep() {
 function updateGpsPosition(lat, lng) {
   if (_gps.lastLat!==null) _gps.distKm+=haversine(_gps.lastLat,_gps.lastLng,lat,lng);
   _gps.lastLat=lat; _gps.lastLng=lng;
-  _gps.route.push({lat:lat,lng:lng});
+  _gps.route.push({lat:avgLat, lng:avgLng, alt:avgAlt});
 
   // ── Two-layer map: tiles only when center shifts, route every update ──
   var tileThresholdKm = 0.05; // only reload tiles if moved >50m from last tile draw
@@ -3872,6 +3874,7 @@ function stopGps() {
     source: 'gps',
     route: _gps.route.slice(),
     splits: _gps.kmSplits.slice(),
+    elevations: _gps.route.filter(function(p){ return p.alt != null; }).map(function(p){ return p.alt; }),
     totalSeconds: _gps.seconds,
     distKm: _gps.distKm,
     centerLat: _gps.centerLat,
@@ -9511,6 +9514,41 @@ function generateShareImage(act, format, callback) {
     ctx.fillText(s.lbl, x, statsRowY + Math.round(W * 0.05));
   });
 
+  // ── Elevation chart — discrete strip below map ──
+  var _elevs = act.elevations && act.elevations.length > 3 ? act.elevations :
+               (act.route ? act.route.filter(function(p){ return p && p.alt != null; }).map(function(p){ return p.alt || 0; }) : []);
+  if (_elevs.length > 3) {
+    var eH = Math.round(mapH * 0.075); // height of elevation strip
+    var eY = mapH - eH;                // sits at bottom of map area
+    var eMin = Math.min.apply(null, _elevs);
+    var eMax = Math.max.apply(null, _elevs);
+    var eRange = (eMax - eMin) || 1;
+    var eW = W - pad * 2;
+    var eStep = eW / (_elevs.length - 1);
+    // Fill
+    ctx.beginPath();
+    ctx.moveTo(pad, eY + eH);
+    for (var ei = 0; ei < _elevs.length; ei++) {
+      var ex = pad + ei * eStep;
+      var ey = eY + eH - ((_elevs[ei] - eMin) / eRange) * eH;
+      ctx.lineTo(ex, ey);
+    }
+    ctx.lineTo(pad + (_elevs.length - 1) * eStep, eY + eH);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(34,197,94,0.10)';
+    ctx.fill();
+    // Line
+    ctx.beginPath();
+    for (var ei2 = 0; ei2 < _elevs.length; ei2++) {
+      var ex2 = pad + ei2 * eStep;
+      var ey2 = eY + eH - ((_elevs[ei2] - eMin) / eRange) * eH;
+      if (ei2 === 0) ctx.moveTo(ex2, ey2); else ctx.lineTo(ex2, ey2);
+    }
+    ctx.strokeStyle = 'rgba(34,197,94,0.45)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+
   // Separator line
   var sepY = statsRowY + Math.round(W * 0.09);
   ctx.strokeStyle = 'rgba(255,255,255,.1)';
@@ -9798,15 +9836,15 @@ function _drawShareStats(ctx, W, H, statsY, statsH, act) {
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
 
-  // Athlete name
-  ctx.font = 'bold ' + Math.round(W * 0.042) + 'px -apple-system,Helvetica Neue,Arial,sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,.55)';
-  ctx.fillText(name + ' completou', pad, statsY + Math.round(statsH * 0.14));
+  // Athlete name — smaller, subtle
+  ctx.font = Math.round(W * 0.022) + 'px -apple-system,Helvetica Neue,Arial,sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,.5)';
+  ctx.fillText(name + ' completou', pad, statsY + Math.round(statsH * 0.11));
 
-  // Activity type
-  ctx.font = 'bold ' + Math.round(W * 0.075) + 'px -apple-system,Helvetica Neue,Arial,sans-serif';
+  // Activity type — medium, not oversized
+  ctx.font = 'bold ' + Math.round(W * 0.038) + 'px -apple-system,Helvetica Neue,Arial,sans-serif';
   ctx.fillStyle = '#fff';
-  ctx.fillText(ic + ' ' + (act.type || 'Atividade'), pad, statsY + Math.round(statsH * 0.32));
+  ctx.fillText(ic + ' ' + (act.type || 'Atividade'), pad, statsY + Math.round(statsH * 0.28));
 
   // Divider
   ctx.fillStyle = 'rgba(255,255,255,.1)';
