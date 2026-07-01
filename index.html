@@ -1,7 +1,16 @@
 <!DOCTYPE html>
-<!-- Trendout PWA v1.0-beta | app.trendout.es | v19 | Built with Claude AI -->
+<!-- Trendout PWA v1.0-beta | app.trendout.es | v21| -->
 <html lang="pt">
 <head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FN0FZ8CBM5"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-FN0FZ8CBM5');
+</script>
 <!-- 
   TRENDOUT FITNESS PWA — v17
   Build: 2026-04-25
@@ -9500,53 +9509,89 @@ function generateShareImage(act, format, callback) {
     }
   }
 
+  // ── Second stats row: altitude min/max (only if elevation data exists) ──
+  var _elevs2 = act.elevations && act.elevations.length > 3 ? act.elevations :
+                (act.route ? act.route.filter(function(p){ return p && p.alt != null; }).map(function(p){ return p.alt; }) : []);
+  var altItems = null;
+  if (_elevs2.length > 3) {
+    var altMin2 = Math.round(Math.min.apply(null, _elevs2));
+    var altMax2 = Math.round(Math.max.apply(null, _elevs2));
+    altItems = [
+      { val: altMin2 + ' m', lbl: '↓ ALT. MÍN' },
+      { val: altMax2 + ' m', lbl: '↑ ALT. MÁX' },
+    ];
+  }
+
   var colW = Math.round((W - pad * 2) / statItems.length);
+  // ── Stats row 1: main metrics ──
+  var valSize  = Math.round(W * 0.044); // valor principal
+  var lblSize  = Math.round(W * 0.020); // label abaixo
+  var valSpac  = Math.round(W * 0.052); // espaço entre label e valor
+
   statItems.forEach(function(s, i) {
     var x = pad + i * colW;
-    // Value
-    ctx.font = 'bold ' + Math.round(W * 0.062) + 'px Helvetica Neue, Helvetica, Arial, sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillStyle = '#fff';
-    ctx.fillText(s.val, x, statsRowY);
-    // Label
-    ctx.font = 'bold ' + Math.round(W * 0.028) + 'px Helvetica Neue, Helvetica, Arial, sans-serif';
+    // Label primeiro (em cima)
+    ctx.font      = lblSize + 'px Helvetica Neue, Helvetica, Arial, sans-serif';
     ctx.fillStyle = 'rgba(255,255,255,.4)';
-    ctx.fillText(s.lbl, x, statsRowY + Math.round(W * 0.05));
+    ctx.fillText(s.lbl, x, statsRowY);
+    // Valor a seguir
+    ctx.font      = 'bold ' + valSize + 'px Helvetica Neue, Helvetica, Arial, sans-serif';
+    ctx.fillStyle = '#fff';
+    ctx.fillText(s.val, x, statsRowY + valSpac);
   });
 
-  // ── Elevation chart — discrete strip below map ──
+  // ── Stats row 2: altitude mín/máx (só se houver dados) ──
+  if (altItems) {
+    var r2Y      = statsRowY + Math.round(W * 0.088);
+    var r2ColW   = Math.round((W - pad * 2) / altItems.length);
+    var r2ValSz  = Math.round(W * 0.030);
+    var r2LblSz  = Math.round(W * 0.018);
+    var r2Spac   = Math.round(W * 0.038);
+    altItems.forEach(function(s, i) {
+      var ax = pad + i * r2ColW;
+      ctx.font      = r2LblSz + 'px Helvetica Neue, Helvetica, Arial, sans-serif';
+      ctx.fillStyle = 'rgba(255,255,255,.35)';
+      ctx.fillText(s.lbl, ax, r2Y);
+      ctx.font      = 'bold ' + r2ValSz + 'px Helvetica Neue, Helvetica, Arial, sans-serif';
+      ctx.fillStyle = 'rgba(255,255,255,.8)';
+      ctx.fillText(s.val, ax, r2Y + r2Spac);
+    });
+  }
+
+  // ── Elevation bar chart — discrete strip at bottom of map ──
   var _elevs = act.elevations && act.elevations.length > 3 ? act.elevations :
                (act.route ? act.route.filter(function(p){ return p && p.alt != null; }).map(function(p){ return p.alt || 0; }) : []);
   if (_elevs.length > 3) {
-    var eH = Math.round(mapH * 0.075); // height of elevation strip
-    var eY = mapH - eH;                // sits at bottom of map area
-    var eMin = Math.min.apply(null, _elevs);
-    var eMax = Math.max.apply(null, _elevs);
+    var eH    = Math.round(mapH * 0.10); // chart height
+    var eY    = mapH - eH;               // bottom of map
+    var eMin  = Math.min.apply(null, _elevs);
+    var eMax  = Math.max.apply(null, _elevs);
     var eRange = (eMax - eMin) || 1;
-    var eW = W - pad * 2;
-    var eStep = eW / (_elevs.length - 1);
-    // Fill
-    ctx.beginPath();
-    ctx.moveTo(pad, eY + eH);
-    for (var ei = 0; ei < _elevs.length; ei++) {
-      var ex = pad + ei * eStep;
-      var ey = eY + eH - ((_elevs[ei] - eMin) / eRange) * eH;
-      ctx.lineTo(ex, ey);
+    var eW    = W - pad * 2;
+    var nBars = Math.min(_elevs.length, 60); // max 60 bars
+    // Downsample if needed
+    var barData = [];
+    for (var bi = 0; bi < nBars; bi++) {
+      var si = Math.round(bi * (_elevs.length - 1) / (nBars - 1));
+      barData.push(_elevs[si]);
     }
-    ctx.lineTo(pad + (_elevs.length - 1) * eStep, eY + eH);
-    ctx.closePath();
-    ctx.fillStyle = 'rgba(34,197,94,0.10)';
-    ctx.fill();
-    // Line
-    ctx.beginPath();
-    for (var ei2 = 0; ei2 < _elevs.length; ei2++) {
-      var ex2 = pad + ei2 * eStep;
-      var ey2 = eY + eH - ((_elevs[ei2] - eMin) / eRange) * eH;
-      if (ei2 === 0) ctx.moveTo(ex2, ey2); else ctx.lineTo(ex2, ey2);
+    var barW   = Math.floor(eW / nBars);
+    var barGap = Math.max(1, Math.round(barW * 0.15));
+    for (var bi2 = 0; bi2 < nBars; bi2++) {
+      var bx  = pad + bi2 * barW;
+      var bh  = Math.max(2, Math.round(((barData[bi2] - eMin) / eRange) * (eH - 4)));
+      var by  = eY + eH - bh;
+      // Gradient colour: low=dark green, high=bright green
+      var t   = (barData[bi2] - eMin) / eRange;
+      var alpha = 0.25 + t * 0.45;
+      ctx.fillStyle = 'rgba(34,197,94,' + alpha.toFixed(2) + ')';
+      ctx.beginPath();
+      var r = Math.min(2, barW * 0.3);
+      ctx.roundRect ? ctx.roundRect(bx, by, barW - barGap, bh, [r, r, 0, 0])
+                    : ctx.rect(bx, by, barW - barGap, bh);
+      ctx.fill();
     }
-    ctx.strokeStyle = 'rgba(34,197,94,0.45)';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
   }
 
   // Separator line
