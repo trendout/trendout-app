@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Trendout PWA v1.0-beta | app.trendout.es | v21| -->
+<!-- Trendout PWA v1.0-beta | app.trendout.es | v21 |  -->
 <html lang="pt">
 <head>
 <!-- Google tag (gtag.js) -->
@@ -9504,9 +9504,6 @@ function generateShareImage(act, format, callback) {
       { val: act.dur  || '—', lbl: 'TEMPO'     },
       { val: act.pace || '—', lbl: 'RITMO/KM'  },
     ];
-    if (act.cal && parseInt(act.cal) > 0) {
-      statItems.push({ val: act.cal + ' kcal', lbl: 'CALORIAS' });
-    }
   }
 
   // ── Second stats row: altitude min/max (only if elevation data exists) ──
@@ -9516,46 +9513,54 @@ function generateShareImage(act, format, callback) {
   if (_elevs2.length > 3) {
     var altMin2 = Math.round(Math.min.apply(null, _elevs2));
     var altMax2 = Math.round(Math.max.apply(null, _elevs2));
+    // Calculate total elevation gain (sum of positive steps)
+    var elevGain = 0;
+    for (var gi = 1; gi < _elevs2.length; gi++) {
+      var diff = _elevs2[gi] - _elevs2[gi-1];
+      if (diff > 0) elevGain += diff;
+    }
+    elevGain = Math.round(elevGain);
     altItems = [
-      { val: altMin2 + ' m', lbl: '↓ ALT. MÍN' },
-      { val: altMax2 + ' m', lbl: '↑ ALT. MÁX' },
+      { val: altMin2 + ' m',   lbl: '↓ ALT. MÍN' },
+      { val: altMax2 + ' m',   lbl: '↑ ALT. MÁX' },
+      { val: '+' + elevGain + ' m', lbl: '⬆ GANHO' },
     ];
   }
 
   var colW = Math.round((W - pad * 2) / statItems.length);
-  // ── Stats row 1: main metrics ──
-  var valSize  = Math.round(W * 0.044); // valor principal
-  var lblSize  = Math.round(W * 0.020); // label abaixo
-  var valSpac  = Math.round(W * 0.052); // espaço entre label e valor
+  // ── Stats rows — cinza escuro bold ──
+  var grayColor = '#666666'; // cinza
+  var lblSize   = Math.round(W * 0.019);
+  var valSize   = Math.round(W * 0.038);
+  var valSpac   = Math.round(W * 0.026);
 
+  // Row 1: Dist / Tempo / Ritmo
   statItems.forEach(function(s, i) {
     var x = pad + i * colW;
     ctx.textAlign = 'left';
-    // Label primeiro (em cima)
-    ctx.font      = lblSize + 'px Helvetica Neue, Helvetica, Arial, sans-serif';
-    ctx.fillStyle = 'rgba(255,255,255,.4)';
+    // Label a cinza
+    ctx.font      = 'bold ' + lblSize + 'px Helvetica Neue, Helvetica, Arial, sans-serif';
+    ctx.fillStyle = grayColor;
     ctx.fillText(s.lbl, x, statsRowY);
-    // Valor a seguir
+    // Valor a branco
     ctx.font      = 'bold ' + valSize + 'px Helvetica Neue, Helvetica, Arial, sans-serif';
-    ctx.fillStyle = '#fff';
+    ctx.fillStyle = '#ffffff';
     ctx.fillText(s.val, x, statsRowY + valSpac);
   });
 
-  // ── Stats row 2: altitude mín/máx (só se houver dados) ──
+  // Row 2: Alt mín (col 0) + Alt máx (col 1 = alinhado com Tempo)
   if (altItems) {
-    var r2Y      = statsRowY + Math.round(W * 0.088);
-    var r2ColW   = Math.round((W - pad * 2) / altItems.length);
-    var r2ValSz  = Math.round(W * 0.030);
-    var r2LblSz  = Math.round(W * 0.018);
-    var r2Spac   = Math.round(W * 0.038);
+    var r2Y = statsRowY + Math.round(W * 0.082);
     altItems.forEach(function(s, i) {
-      var ax = pad + i * r2ColW;
-      ctx.font      = r2LblSz + 'px Helvetica Neue, Helvetica, Arial, sans-serif';
-      ctx.fillStyle = 'rgba(255,255,255,.35)';
+      var ax = pad + i * colW;
+      // Label a cinza
+      ctx.font      = 'bold ' + lblSize + 'px Helvetica Neue, Helvetica, Arial, sans-serif';
+      ctx.fillStyle = grayColor;
       ctx.fillText(s.lbl, ax, r2Y);
-      ctx.font      = 'bold ' + r2ValSz + 'px Helvetica Neue, Helvetica, Arial, sans-serif';
-      ctx.fillStyle = 'rgba(255,255,255,.8)';
-      ctx.fillText(s.val, ax, r2Y + r2Spac);
+      // Valor a branco
+      ctx.font      = 'bold ' + valSize + 'px Helvetica Neue, Helvetica, Arial, sans-serif';
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(s.val, ax, r2Y + valSpac);
     });
   }
 
@@ -9883,13 +9888,31 @@ function _drawShareStats(ctx, W, H, statsY, statsH, act) {
 
   // Athlete name — smaller, subtle
   ctx.font = Math.round(W * 0.022) + 'px -apple-system,Helvetica Neue,Arial,sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,.5)';
+  ctx.fillStyle = '#666666';
   ctx.fillText(name + ' completou', pad, statsY + Math.round(statsH * 0.11));
 
   // Activity type — medium, not oversized
   ctx.font = 'bold ' + Math.round(W * 0.038) + 'px -apple-system,Helvetica Neue,Arial,sans-serif';
   ctx.fillStyle = '#fff';
   ctx.fillText(ic + ' ' + (act.type || 'Atividade'), pad, statsY + Math.round(statsH * 0.28));
+
+  // ── Location + date line ──
+  var _locParts = [];
+  if (act.city) _locParts.push(act.city);
+  else if (act.start_street || act.startStreet) _locParts.push(act.start_street || act.startStreet);
+  var _locStr = _locParts.join(' · ');
+  var _dateStr = act.date || '';
+  var _timeStr = act.startTime || '';
+  var _metaLine = '';
+  if (_locStr && _dateStr) _metaLine = _locStr + '  ·  ' + _dateStr + (_timeStr ? ' · ' + _timeStr : '');
+  else if (_locStr)        _metaLine = _locStr;
+  else if (_dateStr)       _metaLine = _dateStr + (_timeStr ? ' · ' + _timeStr : '');
+
+  if (_metaLine) {
+    ctx.font      = Math.round(W * 0.022) + 'px Helvetica Neue, Helvetica, Arial, sans-serif';
+    ctx.fillStyle = '#666666';
+    ctx.fillText(_metaLine, pad, statsY + Math.round(statsH * 0.36));
+  }
 
   // Divider
   ctx.fillStyle = 'rgba(255,255,255,.1)';
