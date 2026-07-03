@@ -3756,7 +3756,7 @@ function onGpsPosition(pos) {
 
   var accStr = avgAcc < 10 ? '🟢' : avgAcc < 20 ? '🟡' : '🟠';
   gpsSetStatus(accStr + ' GPS ±' + Math.round(avgAcc) + 'm', '#fff');
-  updateGpsPosition(avgLat, avgLng, avgAlt);
+  updateGpsPosition(avgLat, avgLng);
 }
 
 function simulateGpsStep() {
@@ -3766,10 +3766,10 @@ function simulateGpsStep() {
   updateGpsPosition(_gps.lastLat+Math.cos(angle)*speed, _gps.lastLng+Math.sin(angle)*speed);
 }
 
-function updateGpsPosition(lat, lng, alt) {
+function updateGpsPosition(lat, lng) {
   if (_gps.lastLat!==null) _gps.distKm+=haversine(_gps.lastLat,_gps.lastLng,lat,lng);
   _gps.lastLat=lat; _gps.lastLng=lng;
-  _gps.route.push({lat:lat, lng:lng, alt:alt||null});
+  _gps.route.push({lat:avgLat, lng:avgLng, alt:avgAlt});
 
   // ── Two-layer map: tiles only when center shifts, route every update ──
   var tileThresholdKm = 0.05; // only reload tiles if moved >50m from last tile draw
