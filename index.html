@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Trendout PWA v1.0-beta | app.trendout.es | v19 | Built with Claude AI -->
+<!-- Trendout PWA v1.0-beta | app.trendout.es | v19 | -->
 <html lang="pt">
 <head>
 <!-- Google tag (gtag.js) -->
@@ -9504,99 +9504,58 @@ function generateShareImage(act, format, callback) {
       { val: act.dur  || '—', lbl: 'TEMPO'     },
       { val: act.pace || '—', lbl: 'RITMO/KM'  },
     ];
-  }
-
-  // ── Second stats row: altitude min/max (only if elevation data exists) ──
-  var _elevs2 = act.elevations && act.elevations.length > 3 ? act.elevations :
-                (act.route ? act.route.filter(function(p){ return p && p.alt != null; }).map(function(p){ return p.alt; }) : []);
-  var altItems = null;
-  if (_elevs2.length > 3) {
-    var altMin2 = Math.round(Math.min.apply(null, _elevs2));
-    var altMax2 = Math.round(Math.max.apply(null, _elevs2));
-    // Calculate total elevation gain (sum of positive steps)
-    var elevGain = 0;
-    for (var gi = 1; gi < _elevs2.length; gi++) {
-      var diff = _elevs2[gi] - _elevs2[gi-1];
-      if (diff > 0) elevGain += diff;
+    if (act.cal && parseInt(act.cal) > 0) {
+      statItems.push({ val: act.cal + ' kcal', lbl: 'CALORIAS' });
     }
-    elevGain = Math.round(elevGain);
-    altItems = [
-      { val: altMin2 + ' m',   lbl: '↓ ALT. MÍN' },
-      { val: altMax2 + ' m',   lbl: '↑ ALT. MÁX' },
-      { val: '+' + elevGain + ' m', lbl: '⬆ GANHO' },
-    ];
   }
 
   var colW = Math.round((W - pad * 2) / statItems.length);
-  // ── Stats rows — cinza escuro bold ──
-  var grayColor = '#666666'; // cinza
-  var lblSize   = Math.round(W * 0.019);
-  var valSize   = Math.round(W * 0.038);
-  var valSpac   = Math.round(W * 0.026);
-
-  // Row 1: Dist / Tempo / Ritmo
   statItems.forEach(function(s, i) {
     var x = pad + i * colW;
+    // Value
+    ctx.font = 'bold ' + Math.round(W * 0.062) + 'px Helvetica Neue, Helvetica, Arial, sans-serif';
     ctx.textAlign = 'left';
-    // Label a cinza
-    ctx.font      = 'bold ' + lblSize + 'px Helvetica Neue, Helvetica, Arial, sans-serif';
-    ctx.fillStyle = grayColor;
-    ctx.fillText(s.lbl, x, statsRowY);
-    // Valor a branco
-    ctx.font      = 'bold ' + valSize + 'px Helvetica Neue, Helvetica, Arial, sans-serif';
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText(s.val, x, statsRowY + valSpac);
+    ctx.fillStyle = '#fff';
+    ctx.fillText(s.val, x, statsRowY);
+    // Label
+    ctx.font = 'bold ' + Math.round(W * 0.028) + 'px Helvetica Neue, Helvetica, Arial, sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,.4)';
+    ctx.fillText(s.lbl, x, statsRowY + Math.round(W * 0.05));
   });
 
-  // Row 2: Alt mín (col 0) + Alt máx (col 1 = alinhado com Tempo)
-  if (altItems) {
-    var r2Y = statsRowY + Math.round(W * 0.082);
-    altItems.forEach(function(s, i) {
-      var ax = pad + i * colW;
-      // Label a cinza
-      ctx.font      = 'bold ' + lblSize + 'px Helvetica Neue, Helvetica, Arial, sans-serif';
-      ctx.fillStyle = grayColor;
-      ctx.fillText(s.lbl, ax, r2Y);
-      // Valor a branco
-      ctx.font      = 'bold ' + valSize + 'px Helvetica Neue, Helvetica, Arial, sans-serif';
-      ctx.fillStyle = '#ffffff';
-      ctx.fillText(s.val, ax, r2Y + valSpac);
-    });
-  }
-
-  // ── Elevation bar chart — discrete strip at bottom of map ──
+  // ── Elevation chart — discrete strip below map ──
   var _elevs = act.elevations && act.elevations.length > 3 ? act.elevations :
                (act.route ? act.route.filter(function(p){ return p && p.alt != null; }).map(function(p){ return p.alt || 0; }) : []);
   if (_elevs.length > 3) {
-    var eH    = Math.round(mapH * 0.10); // chart height
-    var eY    = mapH - eH;               // bottom of map
-    var eMin  = Math.min.apply(null, _elevs);
-    var eMax  = Math.max.apply(null, _elevs);
+    var eH = Math.round(mapH * 0.075); // height of elevation strip
+    var eY = mapH - eH;                // sits at bottom of map area
+    var eMin = Math.min.apply(null, _elevs);
+    var eMax = Math.max.apply(null, _elevs);
     var eRange = (eMax - eMin) || 1;
-    var eW    = W - pad * 2;
-    var nBars = Math.min(_elevs.length, 60); // max 60 bars
-    // Downsample if needed
-    var barData = [];
-    for (var bi = 0; bi < nBars; bi++) {
-      var si = Math.round(bi * (_elevs.length - 1) / (nBars - 1));
-      barData.push(_elevs[si]);
+    var eW = W - pad * 2;
+    var eStep = eW / (_elevs.length - 1);
+    // Fill
+    ctx.beginPath();
+    ctx.moveTo(pad, eY + eH);
+    for (var ei = 0; ei < _elevs.length; ei++) {
+      var ex = pad + ei * eStep;
+      var ey = eY + eH - ((_elevs[ei] - eMin) / eRange) * eH;
+      ctx.lineTo(ex, ey);
     }
-    var barW   = Math.floor(eW / nBars);
-    var barGap = Math.max(1, Math.round(barW * 0.15));
-    for (var bi2 = 0; bi2 < nBars; bi2++) {
-      var bx  = pad + bi2 * barW;
-      var bh  = Math.max(2, Math.round(((barData[bi2] - eMin) / eRange) * (eH - 4)));
-      var by  = eY + eH - bh;
-      // Gradient colour: low=dark green, high=bright green
-      var t   = (barData[bi2] - eMin) / eRange;
-      var alpha = 0.25 + t * 0.45;
-      ctx.fillStyle = 'rgba(34,197,94,' + alpha.toFixed(2) + ')';
-      ctx.beginPath();
-      var r = Math.min(2, barW * 0.3);
-      ctx.roundRect ? ctx.roundRect(bx, by, barW - barGap, bh, [r, r, 0, 0])
-                    : ctx.rect(bx, by, barW - barGap, bh);
-      ctx.fill();
+    ctx.lineTo(pad + (_elevs.length - 1) * eStep, eY + eH);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(34,197,94,0.10)';
+    ctx.fill();
+    // Line
+    ctx.beginPath();
+    for (var ei2 = 0; ei2 < _elevs.length; ei2++) {
+      var ex2 = pad + ei2 * eStep;
+      var ey2 = eY + eH - ((_elevs[ei2] - eMin) / eRange) * eH;
+      if (ei2 === 0) ctx.moveTo(ex2, ey2); else ctx.lineTo(ex2, ey2);
     }
+    ctx.strokeStyle = 'rgba(34,197,94,0.45)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
   }
 
   // Separator line
@@ -9888,31 +9847,13 @@ function _drawShareStats(ctx, W, H, statsY, statsH, act) {
 
   // Athlete name — smaller, subtle
   ctx.font = Math.round(W * 0.022) + 'px -apple-system,Helvetica Neue,Arial,sans-serif';
-  ctx.fillStyle = '#666666';
+  ctx.fillStyle = 'rgba(255,255,255,.5)';
   ctx.fillText(name + ' completou', pad, statsY + Math.round(statsH * 0.11));
 
   // Activity type — medium, not oversized
   ctx.font = 'bold ' + Math.round(W * 0.038) + 'px -apple-system,Helvetica Neue,Arial,sans-serif';
   ctx.fillStyle = '#fff';
   ctx.fillText(ic + ' ' + (act.type || 'Atividade'), pad, statsY + Math.round(statsH * 0.28));
-
-  // ── Location + date line ──
-  var _locParts = [];
-  if (act.city) _locParts.push(act.city);
-  else if (act.start_street || act.startStreet) _locParts.push(act.start_street || act.startStreet);
-  var _locStr = _locParts.join(' · ');
-  var _dateStr = act.date || '';
-  var _timeStr = act.startTime || '';
-  var _metaLine = '';
-  if (_locStr && _dateStr) _metaLine = _locStr + '  ·  ' + _dateStr + (_timeStr ? ' · ' + _timeStr : '');
-  else if (_locStr)        _metaLine = _locStr;
-  else if (_dateStr)       _metaLine = _dateStr + (_timeStr ? ' · ' + _timeStr : '');
-
-  if (_metaLine) {
-    ctx.font      = Math.round(W * 0.022) + 'px Helvetica Neue, Helvetica, Arial, sans-serif';
-    ctx.fillStyle = '#666666';
-    ctx.fillText(_metaLine, pad, statsY + Math.round(statsH * 0.36));
-  }
 
   // Divider
   ctx.fillStyle = 'rgba(255,255,255,.1)';
