@@ -2850,6 +2850,12 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
 
   // Init Supabase after DOM ready
   document.addEventListener('DOMContentLoaded', function() {
+  // Handle return from perf-adv.html standalone
+  if (window.location.hash === '#perf') {
+    history.replaceState(null, '', window.location.pathname);
+    // Will be handled in launchApp after auth
+    window._returnToPerf = true;
+  }
     try {
       _db = supabase.createClient(SUPA_URL, SUPA_KEY, {
         auth: {
@@ -8290,8 +8296,9 @@ function calcStreak() {
 function launchApp(userData) {
   _user = userData;
   // Handle deep-link from standalone pages (e.g. perf-adv.html?from=perf)
-  if (window.location.hash === '#perf') {
+  if (window.location.hash === '#perf' || window._returnToPerf) {
     history.replaceState(null, '', window.location.pathname);
+    window._returnToPerf = false;
     setTimeout(function() { navTo('perf'); }, 300);
   }
   // If name was stored from registration, update profile
