@@ -3709,9 +3709,16 @@ function gpsTimerTick() {
   _gps.hr+=(Math.random()>.5?1:-1)*Math.floor(Math.random()*3);
   _gps.hr=Math.max(120,Math.min(185,_gps.hr));
   var hrEl=document.getElementById('gps-hr'); if(hrEl) hrEl.textContent=_gps.hr;
-  _gps.elev+=_gps.elevDir*Math.random()*0.4;
-  if(_gps.elev>80) _gps.elevDir=-1; if(_gps.elev<0) _gps.elevDir=1;
-  var elevEl=document.getElementById('gps-elev'); if(elevEl) elevEl.textContent=Math.round(_gps.elev);
+  // Show real GPS altitude if available, otherwise hide
+  var elevEl=document.getElementById('gps-elev');
+  if(elevEl) {
+    var lastPt = _gps.route.length > 0 ? _gps.route[_gps.route.length-1] : null;
+    if (lastPt && lastPt.alt != null) {
+      elevEl.textContent = Math.round(lastPt.alt) + 'm';
+    } else {
+      elevEl.textContent = '—';
+    }
+  }
   var calEl=document.getElementById('gps-cal'); if(calEl) calEl.textContent=Math.round(_gps.distKm*65+_gps.seconds*0.05);
 }
 
@@ -3811,13 +3818,15 @@ function updateGpsPosition(lat, lng, alt) {
   }
   if (needTiles) {
     _gps.lastTileCenter = { lat: lat, lng: lng };
-    drawTileMap('map-canvas', lat, lng, 16, null, function() {
-      // Tiles done — draw route on top layer
+    drawTileMap('map-canvas', lat, lng, 16, _gps.route, function() {
+      // Tiles done — draw route on top layer too (second canvas)
       drawRouteOnCanvas('map-route-canvas', lat, lng, 16, _gps.route);
     }, true); // hideDot=true on tile layer
   } else {
-    // Tiles unchanged — just refresh route layer
-    drawRouteOnCanvas('map-route-canvas', lat, lng, 16, _gps.route);
+    // Tiles unchanged — redraw route on tile canvas AND route canvas
+    drawTileMap('map-canvas', lat, lng, 16, _gps.route, function() {
+      drawRouteOnCanvas('map-route-canvas', lat, lng, 16, _gps.route);
+    }, true);
   }
 
   var distEl=document.getElementById('gps-dist'); if(distEl) distEl.textContent=_gps.distKm.toFixed(2);
