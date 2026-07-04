@@ -3646,9 +3646,26 @@ function startGpsRecording() {
   _gps.sportIc = (_selAct && _selAct.ic) ? _selAct.ic : '🏃';
   _gps.sportLb = (_selAct && _selAct.lb) ? _selAct.lb : 'Corrida';
 
+  // Force canvas dimensions AFTER overlay is visible
   setTimeout(function(){
-    drawTileMap('map-canvas', _gps.centerLat, _gps.centerLng, 16, _gps.route, null);
-  }, 50);
+    var mapCanvas = document.getElementById('map-canvas');
+    var routeCanvas = document.getElementById('map-route-canvas');
+    if (mapCanvas) {
+      var parent = mapCanvas.parentElement;
+      var W = parent ? parent.offsetWidth  : window.innerWidth;
+      var H = parent ? parent.offsetHeight : Math.round(window.innerHeight * 0.45);
+      var dpr = window.devicePixelRatio || 1;
+      mapCanvas.width   = W * dpr; mapCanvas.height   = H * dpr;
+      mapCanvas.style.width = W + 'px'; mapCanvas.style.height = H + 'px';
+      if (routeCanvas) {
+        routeCanvas.width  = W * dpr; routeCanvas.height  = H * dpr;
+        routeCanvas.style.width = W + 'px'; routeCanvas.style.height = H + 'px';
+      }
+    }
+    if (_gps.centerLat && _gps.centerLng) {
+      drawTileMap('map-canvas', _gps.centerLat, _gps.centerLng, 16, _gps.route, null);
+    }
+  }, 150);
 
   _gps.timer = setInterval(gpsTimerTick, 1000);
   // Check for GPS stall every 5 seconds
@@ -3703,6 +3720,20 @@ function onGpsPosition(pos) {
   var acc = pos.coords.accuracy;
   _gps.lastUpdate = Date.now();
 
+  // On first GPS position — ensure canvas is sized correctly
+  if (_gps.route.length === 0) {
+    var _mc = document.getElementById('map-route-canvas');
+    if (_mc && (_mc.width === 0 || _mc.height === 0)) {
+      var _mp = _mc.parentElement;
+      var _W = _mp ? _mp.offsetWidth  : window.innerWidth;
+      var _H = _mp ? _mp.offsetHeight : 300;
+      var _dpr = window.devicePixelRatio || 1;
+      _mc.width = _W * _dpr; _mc.height = _H * _dpr;
+      var _mc2 = document.getElementById('map-canvas');
+      if (_mc2) { _mc2.width = _W * _dpr; _mc2.height = _H * _dpr; }
+    }
+  }
+
   // Reject points with poor accuracy
   if (acc > GPS_MAX_ACCURACY) {
     _gps.badPoints = (_gps.badPoints || 0) + 1;
@@ -3756,7 +3787,7 @@ function onGpsPosition(pos) {
 
   var accStr = avgAcc < 10 ? '🟢' : avgAcc < 20 ? '🟡' : '🟠';
   gpsSetStatus(accStr + ' GPS ±' + Math.round(avgAcc) + 'm', '#fff');
-  updateGpsPosition(avgLat, avgLng);
+  updateGpsPosition(avgLat, avgLng, avgAlt);
 }
 
 function simulateGpsStep() {
@@ -3766,10 +3797,10 @@ function simulateGpsStep() {
   updateGpsPosition(_gps.lastLat+Math.cos(angle)*speed, _gps.lastLng+Math.sin(angle)*speed);
 }
 
-function updateGpsPosition(lat, lng) {
+function updateGpsPosition(lat, lng, alt) {
   if (_gps.lastLat!==null) _gps.distKm+=haversine(_gps.lastLat,_gps.lastLng,lat,lng);
   _gps.lastLat=lat; _gps.lastLng=lng;
-  _gps.route.push({lat:avgLat, lng:avgLng, alt:avgAlt});
+  _gps.route.push({lat:lat, lng:lng, alt:alt||null});
 
   // ── Two-layer map: tiles only when center shifts, route every update ──
   var tileThresholdKm = 0.05; // only reload tiles if moved >50m from last tile draw
@@ -10080,16 +10111,16 @@ function renderActInsight(a) {
 function drawRouteOnCanvas(canvasId, lat, lng, zoom, route) {
   var canvas = document.getElementById(canvasId);
   if (!canvas) return;
-  var W = canvas.parentElement.offsetWidth  || 400;
-  var H = canvas.parentElement.offsetHeight || 300;
-  if (canvas.width !== W * window.devicePixelRatio) {
-    canvas.width  = W * window.devicePixelRatio;
-    canvas.height = H * window.devicePixelRatio;
-    canvas.style.width  = W + 'px';
-    canvas.style.height = H + 'px';
-  }
-  var ctx = canvas.getContext('2d');
   var dpr = window.devicePixelRatio || 1;
+  var parent = canvas.parentElement;
+  var W = (parent && parent.offsetWidth  > 0) ? parent.offsetWidth  : (canvas.offsetWidth  || 400);
+  var H = (parent && parent.offsetHeight > 0) ? parent.offsetHeight : (canvas.offsetHeight || 300);
+  // Always set canvas dimensions to avoid stale size
+  canvas.width  = Math.round(W * dpr);
+  canvas.height = Math.round(H * dpr);
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+  var ctx = canvas.getContext('2d');
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, W, H);
   if (!route || route.length < 1) return;
