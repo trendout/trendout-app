@@ -2921,6 +2921,10 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
           var alreadyIn = shell && shell.classList.contains('active');
           if (!alreadyIn) {
             supaLoadData(session.user);
+          } else if (window._returnToPerf) {
+            // User returned from perf-adv.html standalone
+            window._returnToPerf = false;
+            setTimeout(function() { navTo('perf'); }, 300);
           }
           return;
         }
