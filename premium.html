@@ -33,7 +33,7 @@ html,body{background:#000;color:#fff;font-family:'Helvetica Neue',Helvetica,Aria
   <div style="max-width:430px;margin:0 auto;padding:max(env(safe-area-inset-top,0px),20px) 20px max(env(safe-area-inset-bottom,0px),32px)">
 
     <!-- Back -->
-    <button onclick="history.back()" style="background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.12);border-radius:12px;width:36px;height:36px;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-bottom:28px">←</button>
+    <button onclick="window.location.href='app.html'" style="background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.12);border-radius:12px;width:36px;height:36px;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-bottom:28px">←</button>
 
     <!-- Hero -->
     <div style="text-align:center;margin-bottom:32px;position:relative">
@@ -234,8 +234,7 @@ function pad(n) { return n < 10 ? '0' + n : '' + n; }
 
 // ── Navigation ──
 function closeUpgrade() {
-  if (document.referrer && document.referrer.indexOf('trendout') >= 0) history.back();
-  else window.location.href = 'app.html';
+  window.location.href = 'app.html';
 }
 function navTo() {}
 
@@ -264,7 +263,7 @@ async function activatePremiumInDB(subscriptionId) {
   }
   setTimeout(function() {
     var since = new Date().toISOString();
-    window.location.href = '/premium-ativo?plan=' + (_selectedPlan || 'annual') + '&since=' + encodeURIComponent(since);
+    window.location.href = 'premium-ativo.html?plan=' + (_selectedPlan || 'annual') + '&since=' + encodeURIComponent(since);
   }, 1800);
 }
 
