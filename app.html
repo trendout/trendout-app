@@ -8299,7 +8299,7 @@ function launchApp(userData) {
   if (window.location.hash === '#perf' || window._returnToPerf) {
     history.replaceState(null, '', window.location.pathname);
     window._returnToPerf = false;
-    setTimeout(function() { navTo('perf'); }, 300);
+    setTimeout(function() { navTo('perf'); renderStatsCard(); }, 600);
   }
   // If name was stored from registration, update profile
   var regName = sessionStorage.getItem('tr_reg_name');
