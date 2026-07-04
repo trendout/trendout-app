@@ -2,6 +2,15 @@
 <!-- Trendout PWA v1.0-beta | app.trendout.es | v19 | Built with Claude AI -->
 <html lang="pt">
 <head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FN0FZ8CBM5"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-FN0FZ8CBM5');
+</script>
 <!-- 
   TRENDOUT FITNESS PWA — v17
   Build: 2026-04-25
@@ -2850,10 +2859,8 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
 
   // Init Supabase after DOM ready
   document.addEventListener('DOMContentLoaded', function() {
-  // Handle return from perf-adv.html standalone
-  if (window.location.hash === '#perf') {
-    history.replaceState(null, '', window.location.pathname);
-    // Will be handled in launchApp after auth
+  // Handle return from standalone pages
+  if (sessionStorage.getItem('tr_return') === 'perf') {
     window._returnToPerf = true;
   }
     try {
@@ -2922,9 +2929,9 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
           if (!alreadyIn) {
             supaLoadData(session.user);
           } else if (window._returnToPerf) {
-            // User returned from perf-adv.html standalone
+            sessionStorage.removeItem('tr_return');
             window._returnToPerf = false;
-            setTimeout(function() { navTo('perf'); }, 300);
+            setTimeout(function() { navTo('perf'); }, 400);
           }
           return;
         }
@@ -8300,10 +8307,10 @@ function calcStreak() {
 function launchApp(userData) {
   _user = userData;
   // Handle deep-link from standalone pages (e.g. perf-adv.html?from=perf)
-  if (window.location.hash === '#perf' || window._returnToPerf) {
-    history.replaceState(null, '', window.location.pathname);
+  if (window._returnToPerf) {
+    sessionStorage.removeItem('tr_return');
     window._returnToPerf = false;
-    setTimeout(function() { navTo('perf'); renderStatsCard(); }, 600);
+    setTimeout(function() { navTo('perf'); }, 400);
   }
   // If name was stored from registration, update profile
   var regName = sessionStorage.getItem('tr_reg_name');

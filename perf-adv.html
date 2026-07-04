@@ -161,7 +161,7 @@ html,body{background:#050505;color:#fff;font-family:'DM Sans',system-ui,sans-ser
   <div style="font-size:48px;margin-bottom:20px">📊</div>
   <h2>Inicia sessão para continuar</h2>
   <p>A Performance Avançada está disponível para todos os utilizadores Trendout.</p>
-  <a href="app.html#perf">← Voltar à app</a>
+  <a href="app.html" onclick="sessionStorage.setItem('tr_return','perf');return true;">← Voltar à app</a>
 </div>
 
 <!-- Main app -->
@@ -169,7 +169,7 @@ html,body{background:#050505;color:#fff;font-family:'DM Sans',system-ui,sans-ser
 
   <!-- Header -->
   <div class="hdr fade-up">
-    <a href="app.html#perf" class="back-btn">←</a>
+    <a href="app.html" onclick="sessionStorage.setItem('tr_return','perf');return true;" class="back-btn">←</a>
     <div class="hdr-center">
       <div class="hdr-title">Performance Avançada</div>
       <div class="hdr-sub">Análise completa</div>
@@ -382,7 +382,7 @@ html,body{background:#050505;color:#fff;font-family:'DM Sans',system-ui,sans-ser
 
 <!-- Bottom nav -->
 <div class="bottom-nav">
-  <a href="app.html#perf" class="back-to-app">← Voltar à app</a>
+  <a href="app.html" onclick="sessionStorage.setItem('tr_return','perf');return true;" class="back-to-app">← Voltar à app</a>
 </div>
 
 <script>
