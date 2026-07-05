@@ -2977,6 +2977,19 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
       if (res.data && res.data.user) {
         sessionStorage.setItem('tr_reg_name', name || '');
       }
+      // ── Notify admin of new user ──
+      try {
+        fetch('https://btzcyvksxlmkosluytaz.supabase.co/functions/v1/notify-admin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event:      'new_user',
+            user_email: email,
+            user_name:  name || ''
+          })
+        }).catch(function(){});
+      } catch(e) {}
+
       toast('✅ Conta criada! Verifica o teu email para confirmar.');
       return true;
     } catch(e) {
@@ -4578,6 +4591,26 @@ function renderPayPalButtons() {
         _isPremium = true;
         updatePremiumUI();
         showPaymentSuccess();
+        // ── Notify admin of new premium ──
+        try {
+          _db.auth.getUser().then(function(adminRes) {
+            if (!adminRes.data || !adminRes.data.user) return;
+            var _ue = adminRes.data.user.email || '';
+            var _un = (_profile && _profile.name ? _profile.name + ' ' + (_profile.last||'') : '').trim();
+            fetch('https://btzcyvksxlmkosluytaz.supabase.co/functions/v1/notify-admin', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                event:           'subscription_activated',
+                user_email:      _ue,
+                user_name:       _un,
+                plan:            _selectedPlan || 'monthly',
+                subscription_id: data.subscriptionID || ''
+              })
+            }).catch(function(){});
+          });
+        } catch(e) {}
+
         // Save to Supabase
         if (_db) {
           _db.auth.getUser().then(function(res) {
@@ -11190,6 +11223,24 @@ function cancelSubscription() {
 
       // Lock coaches back
       lockPremiumUI();
+
+      // ── Notify admin ──
+      try {
+        var _userEmail = res.data.user.email || '';
+        var _userName  = (_profile && _profile.name ? _profile.name + ' ' + (_profile.last||'') : '').trim();
+        fetch('https://btzcyvksxlmkosluytaz.supabase.co/functions/v1/notify-admin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event:           'subscription_cancelled',
+            user_email:      _userEmail,
+            user_name:       _userName,
+            plan:            _premiumPlan || 'monthly',
+            subscription_id: _premiumSubscriptionId || '',
+            since:           _premiumSince || ''
+          })
+        }).catch(function(){});
+      } catch(e) {}
 
       // Navigate back to profile
       navTo('profile');
