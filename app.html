@@ -2855,6 +2855,10 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
   if (sessionStorage.getItem('tr_return') === 'perf') {
     window._returnToPerf = true;
   }
+  // Handle direct action from landing page
+  var _urlAction = new URLSearchParams(window.location.search).get('action');
+  if (_urlAction === 'login')    { sessionStorage.setItem('tr_action', 'login'); }
+  if (_urlAction === 'register') { sessionStorage.setItem('tr_action', 'register'); }
     try {
       _db = supabase.createClient(SUPA_URL, SUPA_KEY, {
         auth: {
@@ -4412,7 +4416,11 @@ function closeUpgrade() {
   } else {
     // Return to welcome screen
     document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
-    go('s-welcome');
+    // Check if coming from landing with specific action
+    var _act = sessionStorage.getItem('tr_action');
+    if (_act === 'login')         { sessionStorage.removeItem('tr_action'); go('s-login'); }
+    else if (_act === 'register') { sessionStorage.removeItem('tr_action'); go('s-register'); }
+    else { go('s-welcome'); }
   }
 }
 
