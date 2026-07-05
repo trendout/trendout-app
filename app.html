@@ -1,8 +1,15 @@
 <!DOCTYPE html>
-<!-- Trendout PWA v1.0-beta | app.trendout.es | v19 | Built with Claude AI -->
+<!-- Trendout PWA v1.0-beta | app.trendout.es | v19 | -->
 <html lang="pt">
 <head>
-<!-- Google tag (gtag.js) --> <script async src="https://www.googletagmanager.com/gtag/js?id=G-FN0FZ8CBM5"></script> <script>   window.dataLayer = window.dataLayer || [];   function gtag(){dataLayer.push(arguments);}   gtag('js', new Date());    gtag('config', 'G-FN0FZ8CBM5'); </script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FN0FZ8CBM5"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-FN0FZ8CBM5');
+</script>
 <!-- 
   TRENDOUT FITNESS PWA — v17
   Build: 2026-04-25
@@ -2900,6 +2907,14 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
           if (res.data && res.data.session) {
             var user = res.data.session.user;
             supaLoadData(user);
+          } else {
+            // No session — show correct screen based on landing action
+            var _act = sessionStorage.getItem('tr_action');
+            sessionStorage.removeItem('tr_action');
+            document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+            if (_act === 'login')         { go('s-login'); }
+            else if (_act === 'register') { go('s-register'); }
+            else                          { go('s-welcome'); }
           }
         });
       }
