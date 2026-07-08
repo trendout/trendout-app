@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Trendout PWA v1.0-beta | app.trendout.es | v19 | -->
+<!-- Trendout PWA v1.0-beta | app.trendout.es | v21-->
 <html lang="pt">
 <head>
 <!-- Google tag (gtag.js) -->
@@ -2134,11 +2134,11 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
     <div style="display:grid;grid-template-columns:1fr 2fr;gap:12px">
       <button id="timer-pause-btn" onclick="toggleTimerPause()"
         style="padding:18px;border-radius:18px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.12);color:#fff;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit">
-        ⏸
+        Pausa
       </button>
       <button onclick="stopTimer()"
         style="padding:18px;border-radius:18px;background:#fff;border:none;color:#000;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit">
-        ⏹ Terminar
+        Terminar
       </button>
     </div>
   </div>
@@ -2204,12 +2204,12 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
 
     <!-- Pause / Resume -->
     <button id="indoor-pause-btn" onclick="toggleIndoorPause()" style="width:100%;padding:16px;border-radius:18px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.12);color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;transition:all .2s">
-      <span id="indoor-pause-ic">⏸</span> Pausar
+      <span id="indoor-pause-ic">Pausar
     </button>
 
     <!-- Finish -->
     <button onclick="finishIndoor()" style="width:100%;padding:16px;border-radius:18px;background:#fff;border:none;color:#000;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:10px">
-      ⏹ Terminar treino
+      Terminar treino
     </button>
   </div>
 </div>
@@ -2271,7 +2271,7 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
     <div style="display:grid;grid-template-columns:1fr 2fr;gap:10px">
       <button onclick="toggleIndoorPause()" id="ind-pause-btn"
         style="padding:16px;border-radius:18px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.15);color:#fff;font-size:22px;cursor:pointer;font-family:inherit">
-        ⏸
+        Pausa
       </button>
       <button onclick="stopIndoor()"
         style="padding:16px;border-radius:18px;background:#fff;border:none;color:#000;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:10px">
@@ -3002,7 +3002,7 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
       try {
         fetch('https://btzcyvksxlmkosluytaz.supabase.co/functions/v1/notify-admin', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ0emN5dmtzeGxta29zbHV5dGF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NDU3NzYsImV4cCI6MjA4OTQyMTc3Nn0.f9pjtUyp7SlJ8dal5xJ180TD9TWvVWDj86u9ZLmyUs0' },
           body: JSON.stringify({
             event:      'new_user',
             user_email: email,
@@ -3606,7 +3606,7 @@ function closeGpsPreview() {
 }
 
 // GPS quality thresholds
-var GPS_MAX_ACCURACY = 30;   // metres — ignore points worse than this
+var GPS_MAX_ACCURACY = 65;   // metres — relaxed for pocket/armband usen this
 var GPS_RECONNECT_MS = 25000; // reconnect if no update in 10s
 var GPS_WAKELOCK     = null;  // Screen Wake Lock reference
 
@@ -3784,13 +3784,19 @@ function onGpsPosition(pos) {
     }
   }
 
-  // Reject points with poor accuracy
+  // Reject points with poor accuracy — adaptive threshold for armband/pocket use
   if (acc > GPS_MAX_ACCURACY) {
     _gps.badPoints = (_gps.badPoints || 0) + 1;
-    gpsSetStatus('📶 Sinal fraco (' + Math.round(acc) + 'm) — a aguardar...', '#FACC15');
-    return;
+    // After 5 consecutive bad points, accept anyway to avoid GPS gaps
+    if (_gps.badPoints < 5) {
+      gpsSetStatus('📶 Sinal fraco (' + Math.round(acc) + 'm) — a aguardar...', '#FACC15');
+      return;
+    }
+    // Accept bad point to avoid gap in route
+    gpsSetStatus('📶 Sinal fraco (' + Math.round(acc) + 'm) — a usar posição aproximada', '#FACC15');
+  } else {
+    _gps.badPoints = 0;
   }
-  _gps.badPoints = 0;
 
   // ── 3-reading rolling average ──
   // Buffer each good reading. When we have 3, use their average as the
@@ -3923,7 +3929,7 @@ function toggleGpsPause() {
   var btn      = document.getElementById('gps-pause-btn');
   var recLabel = document.getElementById('gps-rec-label');
   var dot      = document.getElementById('gps-rec-dot') ? document.getElementById('gps-rec-dot').querySelector('div') : null;
-  if (btn)      btn.textContent      = _gps.paused ? '▶ Retomar' : '⏸ Pausa';
+  if (btn)      btn.textContent      = _gps.paused ? 'Retomar' : 'Pausa';
   if (recLabel) recLabel.textContent = _gps.paused ? 'PAUSA' : 'REC';
   if (dot)      dot.style.background = _gps.paused ? '#FACC15' : '#EF4444';
   var stEl = document.getElementById('gps-status');
@@ -4092,7 +4098,7 @@ function generateNutritionPlan() {
 
   fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ0emN5dmtzeGxta29zbHV5dGF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NDU3NzYsImV4cCI6MjA4OTQyMTc3Nn0.f9pjtUyp7SlJ8dal5xJ180TD9TWvVWDj86u9ZLmyUs0' },
     body: JSON.stringify({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 1500,
@@ -4317,7 +4323,7 @@ function generateAIInsights() {
 
   fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ0emN5dmtzeGxta29zbHV5dGF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NDU3NzYsImV4cCI6MjA4OTQyMTc3Nn0.f9pjtUyp7SlJ8dal5xJ180TD9TWvVWDj86u9ZLmyUs0' },
     body: JSON.stringify({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 1000,
@@ -4625,7 +4631,7 @@ function renderPayPalButtons() {
             var _un = (_profile && _profile.name ? _profile.name + ' ' + (_profile.last||'') : '').trim();
             fetch('https://btzcyvksxlmkosluytaz.supabase.co/functions/v1/notify-admin', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ0emN5dmtzeGxta29zbHV5dGF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NDU3NzYsImV4cCI6MjA4OTQyMTc3Nn0.f9pjtUyp7SlJ8dal5xJ180TD9TWvVWDj86u9ZLmyUs0' },
               body: JSON.stringify({
                 event:           'subscription_activated',
                 user_email:      _ue,
@@ -4720,7 +4726,7 @@ function showPaymentSuccess() {
           <div style="font-size:13px;font-weight:800;color:#22C55E">${_selectedPlan==='annual'?'Plano Anual · 39,99€/ano':'Plano Mensal · 4,99€/mês'}</div>
           <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">ativo desde ${new Date().toLocaleDateString('pt-PT')}</div>
         </div>
-        <div style="width:24px;height:24px;background:#22C55E;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;color:#000;font-weight:800;flex-shrink:0">✓</div>
+        <div style="width:24px;height:24px;background:#22C55E;color:#000;font-weight:700;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;color:#000;font-weight:800;flex-shrink:0">✓</div>
       </div>
 
       <!-- Stats row -->
@@ -10802,12 +10808,12 @@ function toggleIndoorPause() {
   if (_indoor.paused) {
     if (ic)     ic.textContent         = '▶';
     if (btn)    btn.childNodes[1].data  = ' Retomar';
-    if (status) status.textContent      = '⏸ Pausado';
+    if (status) status.textContent      = 'Pausado';
     if (dot)    dot.style.animation     = 'none';
     if (dot)    dot.style.background    = '#F97316';
   } else {
     if (ic)     ic.textContent         = '⏸';
-    if (btn)    btn.childNodes[1].data  = ' Pausar';
+    if (btn)    btn.childNodes[1].data  = 'Pausar';
     if (status) status.textContent      = '⏱ A gravar';
     if (dot)    dot.style.animation     = 'gps-blink 1s infinite';
     if (dot)    dot.style.background    = '#EF4444';
@@ -11256,7 +11262,7 @@ function cancelSubscription() {
         var _userName  = (_profile && _profile.name ? _profile.name + ' ' + (_profile.last||'') : '').trim();
         fetch('https://btzcyvksxlmkosluytaz.supabase.co/functions/v1/notify-admin', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ0emN5dmtzeGxta29zbHV5dGF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NDU3NzYsImV4cCI6MjA4OTQyMTc3Nn0.f9pjtUyp7SlJ8dal5xJ180TD9TWvVWDj86u9ZLmyUs0' },
           body: JSON.stringify({
             event:           'subscription_cancelled',
             user_email:      _userEmail,
@@ -13653,8 +13659,8 @@ function stopBgAudio() {
 
     <!-- CONTROLS -->
     <div style="display:flex;gap:12px;padding:16px 18px max(env(safe-area-inset-bottom,0px),20px);flex-shrink:0" id="gps-controls">
-      <button id="gps-pause-btn" onclick="toggleGpsPause()" style="flex:1;padding:16px;border-radius:16px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.15);color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">⏸ Pausa</button>
-      <button onclick="stopGps()" style="flex:2;padding:16px;border-radius:16px;background:#EF4444;border:none;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">⏹ Parar e Guardar</button>
+      <button id="gps-pause-btn" onclick="toggleGpsPause()" style="flex:1;padding:16px;border-radius:16px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.15);color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">Pausa</button>
+      <button onclick="stopGps()" style="flex:2;padding:16px;border-radius:16px;background:#22C55E;border:none;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">Parar e Guardar</button>
     </div>
   </div>
 
