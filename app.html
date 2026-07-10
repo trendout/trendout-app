@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Trendout PWA v1.0-beta | app.trendout.es | v21-->
+<!-- Trendout PWA v1.0-beta | app.trendout.es | v19 | Built with Claude AI -->
 <html lang="pt">
 <head>
 <!-- Google tag (gtag.js) -->
@@ -1085,7 +1085,7 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
         <div style="display:flex;gap:12px">
           <div style="width:32px;height:32px;background:rgba(255,255,255,.08);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🎁</div>
           <div><div style="font-size:13px;font-weight:700;color:#fff">Desbloqueia recompensas</div>
-            <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px;line-height:1.7">🔓 Cupão <strong style="color:#fff">5% desconto</strong> desbloqueado a <strong style="color:#fff">50 pts</strong> — usa em trendout.pt</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px;line-height:1.7">🔓 Cupões de desconto até <strong style="color:#fff">25%</strong> — desbloqueia a cada nível EnjoyLife</div>
           </div>
         </div>
         <div style="height:1px;background:rgba(255,255,255,.06)"></div>
@@ -6038,8 +6038,11 @@ function notifOnEnjoyPoints(pts, label) {
   sendNotif('⭐ +' + pts + ' EnjoyLife Points!', label + ' — Continua assim!');
 }
 
-function notifOnCoupon() {
-  sendNotif('🎁 Cupão desbloqueado!', 'Atingiste 50 EnjoyLife Points. O teu cupão ENJOY5 está disponível!');
+function notifOnCoupon(pts) {
+  var reward = _ejRewards.find(function(r) { return r.pts === pts; });
+  if (reward) {
+    sendNotif('🎁 Cupão desbloqueado!', 'Atingiste ' + pts + ' EnjoyLife Points. O teu cupão ' + reward.code + ' está disponível!');
+  }
 }
 
 function initNotifications() {
@@ -6115,7 +6118,10 @@ function dismissNotifPrompt() {
 }
 
 // ── COUPON MODAL ──
-function showCouponModal() {
+function showCouponModal(code) {
+  var reward = (code && _ejRewards.find(function(r){ return r.code === code; })) || _ejRewards.find(function(r){ return _enjoyPts >= r.pts; }) || _ejRewards[0];
+  var activeCode = reward ? reward.code : 'ENJOY5';
+  var activeLabel = reward ? reward.label : '5% desconto';
   var el = document.getElementById('coupon-modal');
   if (el) el.style.display = 'flex';
 }
@@ -7791,7 +7797,11 @@ var _ejLevels = [
 ];
 
 var _ejRewards = [
-  {pts:50,  label:'5% desconto',  code:'ENJOY5',  desc:'Cupão de desconto em trendout.pt'},
+  {pts:50,   label:'5% desconto',  code:'ENJOY5',  desc:'Cupão 5% desconto em trendout.pt — nível Iniciante'},
+  {pts:150,  label:'10% desconto', code:'ENJOY10', desc:'Cupão 10% desconto em trendout.pt — nível Ativo'},
+  {pts:300,  label:'15% desconto', code:'ENJOY15', desc:'Cupão 15% desconto em trendout.pt — nível Dedicado'},
+  {pts:600,  label:'20% desconto', code:'ENJOY20', desc:'Cupão 20% desconto em trendout.pt — nível Campeão'},
+  {pts:1000, label:'25% desconto', code:'ENJOY25', desc:'Cupão 25% desconto em trendout.pt — nível Elite'},
 ];
 var _couponUnlocked = false;
 
@@ -7979,13 +7989,15 @@ addActivity = function(act) {
 };
 
 function checkCouponUnlock() {
-  if (!_couponUnlocked && _enjoyPts >= 50) {
-    _couponUnlocked = true;
-    notifOnCoupon();
-    setTimeout(function() {
-      showCouponModal();
-    }, 600);
-  }
+  _ejRewards.forEach(function(r) {
+    var key = '_unlocked_' + r.code;
+    if (_enjoyPts >= r.pts && !window[key]) {
+      window[key] = true;
+      notifOnCoupon(r.pts);
+      // Show modal for the highest unlocked reward
+      setTimeout(function() { showCouponModal(r.code); }, 600);
+    }
+  });
 }
 
 // ── ACTIVITIES ──
