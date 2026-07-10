@@ -993,6 +993,16 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
         </div>
       </div>
 
+      <!-- Humor shortcut card -->
+      <div onclick="openHumorModal()" style="background:linear-gradient(135deg,rgba(250,204,21,.08),rgba(250,204,21,.03));border:1px solid rgba(250,204,21,.15);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;margin-bottom:12px;transition:border-color .2s" onmouseover="this.style.borderColor='rgba(250,204,21,.35)'" onmouseout="this.style.borderColor='rgba(250,204,21,.15)'">
+        <div style="width:40px;height:40px;background:rgba(250,204,21,.12);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">😊</div>
+        <div style="flex:1">
+          <div style="font-size:11px;color:rgba(250,204,21,.6);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Medidor de Felicidade</div>
+          <div style="font-size:15px;font-weight:700;color:#fff;margin-top:2px">Como te sentes hoje?</div>
+        </div>
+        <div style="font-size:13px;color:rgba(250,204,21,.5);font-weight:600">Registar →</div>
+      </div>
+
       <!-- EnjoyLife card -->
       <div onclick="navTo('enjoy')" style="background:linear-gradient(135deg,#1a1a1a,#111);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:16px 18px;margin-bottom:16px;cursor:pointer;display:flex;align-items:center;gap:14px;-webkit-tap-highlight-color:transparent">
         <div style="width:42px;height:42px;background:rgba(255,255,255,.08);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">⭐</div>
@@ -7821,6 +7831,11 @@ function getCurrentLevel() {
   return 0;
 }
 
+function openHumorModal() {
+  // Open the happiness log sheet directly
+  openHappinessLog();
+}
+
 function renderEnjoyPage() {
   var lvlIdx = getCurrentLevel();
   var lvl = _ejLevels[lvlIdx];
@@ -10314,6 +10329,25 @@ function openPseSheet(act) {
   _pseValue    = null;
 
   buildPseScale();
+
+  // Update activity chip for standalone mood mode
+  var chip = document.getElementById('pse-act-chip');
+  var icon = document.getElementById('pse-act-icon');
+  var actName = document.getElementById('pse-act-name');
+  var actSub  = document.getElementById('pse-act-sub');
+  if (!act) {
+    // Standalone mood registration
+    if (icon)    icon.textContent   = '😊';
+    if (actName) actName.textContent = 'Medidor de Felicidade';
+    if (actSub)  actSub.textContent  = 'Como te sentes hoje?';
+    if (chip)    chip.style.background = 'rgba(250,204,21,.06)';
+    if (chip)    chip.style.borderColor = 'rgba(250,204,21,.15)';
+    if (icon)    icon.style.background  = 'rgba(250,204,21,.12)';
+  } else {
+    if (chip)    chip.style.background = 'rgba(255,255,255,.05)';
+    if (chip)    chip.style.borderColor = 'rgba(255,255,255,.08)';
+    if (icon)    icon.style.background  = 'rgba(34,197,94,.12)';
+  }
 
   // Reset buttons
   for (var i = 0; i <= 10; i++) {
