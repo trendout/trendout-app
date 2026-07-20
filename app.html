@@ -6129,9 +6129,21 @@ function dismissNotifPrompt() {
 
 // ── COUPON MODAL ──
 function showCouponModal(code) {
-  var reward = (code && _ejRewards.find(function(r){ return r.code === code; })) || _ejRewards.find(function(r){ return _enjoyPts >= r.pts; }) || _ejRewards[0];
-  var activeCode = reward ? reward.code : 'ENJOY5';
+  // Find highest unlocked reward
+  var unlockedRewards = _ejRewards.filter(function(r){ return _enjoyPts >= r.pts; });
+  var reward = (code && _ejRewards.find(function(r){ return r.code === code; }))
+               || (unlockedRewards.length > 0 ? unlockedRewards[unlockedRewards.length-1] : null)
+               || _ejRewards[0];
+  var activeCode  = reward ? reward.code  : 'ENJOY5';
   var activeLabel = reward ? reward.label : '5% desconto';
+  var activeDesc  = reward ? reward.desc  : '';
+  // Update modal content if elements exist
+  var codeEl  = document.getElementById('coupon-code-display');
+  var labelEl = document.getElementById('coupon-label-display');
+  var descEl  = document.getElementById('coupon-desc-display');
+  if (codeEl)  codeEl.textContent  = activeCode;
+  if (labelEl) labelEl.textContent = activeLabel;
+  if (descEl)  descEl.textContent  = activeDesc;
   var el = document.getElementById('coupon-modal');
   if (el) el.style.display = 'flex';
 }
@@ -8004,12 +8016,12 @@ addActivity = function(act) {
 };
 
 function checkCouponUnlock() {
+  var uid = _user ? _user.id : 'guest';
   _ejRewards.forEach(function(r) {
-    var key = '_unlocked_' + r.code;
-    if (_enjoyPts >= r.pts && !window[key]) {
-      window[key] = true;
+    var key = 'tr_coupon_' + uid + '_' + r.code;
+    if (_enjoyPts >= r.pts && !localStorage.getItem(key)) {
+      localStorage.setItem(key, '1');
       notifOnCoupon(r.pts);
-      // Show modal for the highest unlocked reward
       setTimeout(function() { showCouponModal(r.code); }, 600);
     }
   });
