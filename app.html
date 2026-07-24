@@ -9890,14 +9890,14 @@ function generateTransparentShareImage(act) {
   var _locStr = act.city || act.start_street || act.startStreet || '';
   var _metaLine = (_locStr ? _locStr + '  ·  ' : '') + (act.date||'') + (act.startTime ? ' · ' + act.startTime : '');
 
-  // Line heights — increased spacing to avoid overlap
-  var lhName  = Math.round(W*0.042);  // name → activity gap
-  var lhAct   = Math.round(W*0.074);  // activity → meta/stats gap (emoji needs more room)
-  var lhMeta  = _metaLine.trim() ? Math.round(W*0.036) : 0;
-  var lhGap   = 24;
-  var lhStats = Math.round(W*0.088);
-  var lhLogo  = Math.round(W*0.062);
-  var pillPad = 44;
+  // Line heights — more space + more black
+  var lhName  = Math.round(W*0.058);  // bigger gap: name → activity
+  var lhAct   = Math.round(W*0.078);
+  var lhMeta  = _metaLine.trim() ? Math.round(W*0.038) : 0;
+  var lhGap   = 28;
+  var lhStats = Math.round(W*0.090);
+  var lhLogo  = Math.round(W*0.065);
+  var pillPad = 52;
 
   var contentH = pillPad + lhName + lhAct + lhMeta + lhGap + lhStats + lhLogo + pillPad;
   var pillY = H - contentH;
@@ -9905,7 +9905,7 @@ function generateTransparentShareImage(act) {
   // Dark pill
   ctx.beginPath();
   ctx.roundRect(0, pillY, W, contentH, [32, 32, 0, 0]);
-  ctx.fillStyle = 'rgba(0,0,0,0.88)';
+  ctx.fillStyle = 'rgba(0,0,0,0.94)';
   ctx.fill();
 
   ctx.textAlign = 'left';
