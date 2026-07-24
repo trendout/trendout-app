@@ -7450,9 +7450,21 @@ function openShareSheet(btn) {
   if (_loader) _loader.style.display = 'flex';
   // Ensure logo is loaded before generating
   _shareFormat = 'post'; // reset format on each open
+  _shareFormatMode = 'standard';
   var fp = document.getElementById('fmt-post'), fs = document.getElementById('fmt-story');
   if (fp) { fp.style.background = '#fff'; fp.style.color = '#000'; }
   if (fs) { fs.style.background = 'rgba(255,255,255,.1)'; fs.style.color = 'rgba(255,255,255,.5)'; }
+  // Reset tabs
+  var tabStd = document.getElementById('share-tab-standard');
+  var tabTrp = document.getElementById('share-tab-transparent');
+  var hint   = document.getElementById('share-transparent-hint');
+  var label  = document.getElementById('share-save-label');
+  var wrap   = document.getElementById('share-canvas-wrap');
+  if (tabStd) { tabStd.style.background = '#fff'; tabStd.style.color = '#000'; }
+  if (tabTrp) { tabTrp.style.background = 'rgba(255,255,255,.1)'; tabTrp.style.color = 'rgba(255,255,255,.5)'; }
+  if (hint)   hint.style.display = 'none';
+  if (label)  label.textContent = 'Guardar imagem';
+  if (wrap)   wrap.style.background = '#000';
   setTimeout(function() {
     if (_shareAct) generateShareImage(_shareAct, 'post', null);
   }, 80);
@@ -9822,6 +9834,129 @@ function generateShareImage(act, format, callback) {
   }
 }
 
+// ── Share format selector ──
+var _shareFormatMode = 'standard'; // 'standard' or 'transparent'
+
+function selectShareFormat(mode) {
+  _shareFormatMode = mode;
+  var tabStd  = document.getElementById('share-tab-standard');
+  var tabTrp  = document.getElementById('share-tab-transparent');
+  var hint    = document.getElementById('share-transparent-hint');
+  var label   = document.getElementById('share-save-label');
+  var wrap    = document.getElementById('share-canvas-wrap');
+
+  if (mode === 'standard') {
+    if (tabStd)  { tabStd.style.background = '#fff'; tabStd.style.color = '#000'; }
+    if (tabTrp)  { tabTrp.style.background = 'rgba(255,255,255,.1)'; tabTrp.style.color = 'rgba(255,255,255,.5)'; }
+    if (hint)    hint.style.display = 'none';
+    if (wrap)    wrap.style.background = '#000';
+    if (label)   label.textContent = 'Guardar imagem';
+    // Regenerate standard image
+    if (_shareAct) {
+      var loader = document.getElementById('share-canvas-loader');
+      if (loader) loader.style.display = 'flex';
+      setTimeout(function() { generateShareImage(_shareAct, 'post', null); }, 80);
+    }
+  } else {
+    if (tabStd)  { tabStd.style.background = 'rgba(255,255,255,.1)'; tabStd.style.color = 'rgba(255,255,255,.5)'; }
+    if (tabTrp)  { tabTrp.style.background = '#fff'; tabTrp.style.color = '#000'; }
+    if (hint)    hint.style.display = 'block';
+    if (wrap)    wrap.style.background = 'repeating-conic-gradient(#222 0% 25%, #1a1a1a 0% 50%) 0 0 / 16px 16px';
+    if (label)   label.textContent = 'Guardar PNG transparente';
+    // Generate transparent image
+    if (_shareAct) generateTransparentShareImage(_shareAct);
+  }
+}
+
+function generateTransparentShareImage(act) {
+  var canvas = document.getElementById('share-canvas');
+  var loader = document.getElementById('share-canvas-loader');
+  if (!canvas) return;
+  if (loader) loader.style.display = 'flex';
+
+  var W = 1080, H = 1080;
+  canvas.width  = W;
+  canvas.height = H;
+  var ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, W, H); // transparent background
+
+  var pad = 80;
+  var pillY = H * 0.65;
+  var pillH = H - pillY;
+
+  // Dark pill — no horizontal lines
+  ctx.beginPath();
+  ctx.roundRect(0, pillY - 30, W, pillH + 30, [32, 32, 0, 0]);
+  ctx.fillStyle = 'rgba(0,0,0,0.88)';
+  ctx.fill();
+
+  var name = (_profile.name + ' ' + (_profile.last||'')).trim() || 'Atleta';
+  var ic   = _actIcons[act.type] || '🏅';
+  var _imgIndoor = /gym|boxe|padel|calistenia|muscula|yoga|pilates|treino|força|workout|gin[aá]st/i.test(act.type||'');
+
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+
+  var y = pillY + 20;
+
+  // Athlete name
+  ctx.font = Math.round(W*0.023) + 'px -apple-system,Helvetica Neue,Arial,sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,.6)';
+  ctx.fillText(name + ' completou', pad, y);
+  y += Math.round(W*0.032);
+
+  // Activity — emoji + name
+  ctx.font = 'bold ' + Math.round(W*0.050) + 'px -apple-system,Helvetica Neue,Arial,sans-serif';
+  ctx.fillStyle = '#fff';
+  ctx.fillText(ic + ' ' + (act.type || 'Atividade'), pad, y);
+  y += Math.round(W*0.060);
+
+  // Date + location
+  var _locStr = act.city || act.start_street || act.startStreet || '';
+  var _metaLine = (_locStr ? _locStr + '  ·  ' : '') + (act.date||'') + (act.startTime ? ' · ' + act.startTime : '');
+  if (_metaLine.trim()) {
+    ctx.font = Math.round(W*0.022) + 'px -apple-system,Helvetica Neue,Arial,sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,.5)';
+    ctx.fillText(_metaLine, pad, y);
+    y += Math.round(W*0.030);
+  }
+  y += 16;
+
+  // Stats
+  var statItems;
+  if (_imgIndoor) {
+    statItems = [{val: act.dur||'—', lbl:'TEMPO'}];
+    if (act.cal && parseInt(act.cal)>0) statItems.push({val:act.cal+' kcal', lbl:'CALORIAS'});
+  } else {
+    statItems = [{val:act.dist||'—',lbl:'DISTÂNCIA'},{val:act.dur||'—',lbl:'TEMPO'},{val:act.pace||'—',lbl:'RITMO'}];
+  }
+  var colW = Math.round((W - pad*2) / statItems.length);
+  statItems.forEach(function(s,i) {
+    var x = pad + i*colW;
+    ctx.font = 'bold ' + Math.round(W*0.019) + 'px -apple-system,Helvetica Neue,Arial,sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,.5)';
+    ctx.fillText(s.lbl, x, y);
+    ctx.font = 'bold ' + Math.round(W*0.048) + 'px -apple-system,Helvetica Neue,Arial,sans-serif';
+    ctx.fillStyle = '#fff';
+    ctx.fillText(s.val, x, y + Math.round(W*0.056));
+  });
+
+  // Logo + hashtags
+  var logoY = H - Math.round(H*0.055);
+  var logoH = Math.round(W*0.036);
+  var logoW = Math.round(logoH*(1102/185));
+  if (window._shareLogoImg && window._shareLogoImg.complete) {
+    ctx.drawImage(window._shareLogoImg, pad, logoY, logoW, logoH);
+  }
+  ctx.font = Math.round(W*0.020) + 'px -apple-system,Helvetica Neue,Arial,sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,.3)';
+  ctx.textAlign = 'right';
+  ctx.fillText('#trendout  #enjoylife', W-pad, logoY+logoH);
+
+  _shareImageDataUrl = canvas.toDataURL('image/png');
+  if (loader) loader.style.display = 'none';
+}
+
 function downloadShareImage(format) {
   if (!_shareAct) return;
   var btn = document.getElementById('share-img-btn-' + format);
@@ -10119,10 +10254,25 @@ function _drawShareStats(ctx, W, H, statsY, statsH, act) {
 }
 
 function saveShareImage() {
-  if (!_shareImageDataUrl) { generateShareImage(_shareAct, 'post', null); return; }
-  var link = document.createElement('a');
   var name = (_profile.name || 'trendout').toLowerCase().replace(/\s+/g, '_');
   var act  = _shareAct ? (_shareAct.type || 'atividade').toLowerCase().replace(/\s+/g, '_') : 'atividade';
+
+  if (_shareFormatMode === 'transparent') {
+    // Generate transparent PNG
+    if (_shareAct) generateTransparentShareImage(_shareAct);
+    setTimeout(function() {
+      if (!_shareImageDataUrl) { toast('❌ Erro ao gerar imagem'); return; }
+      var link = document.createElement('a');
+      link.download = 'trendout_' + act + '_transparente.png';
+      link.href = _shareImageDataUrl;
+      link.click();
+      toast('✅ PNG transparente guardado!');
+    }, 400);
+    return;
+  }
+
+  if (!_shareImageDataUrl) { generateShareImage(_shareAct, 'post', null); return; }
+  var link = document.createElement('a');
   link.download = 'trendout_' + act + '_' + name + '.png';
   link.href = _shareImageDataUrl;
   link.click();
@@ -14015,17 +14165,27 @@ function stopBgAudio() {
       <!-- Conteúdo scrollável -->
       <div style="overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:max(env(safe-area-inset-bottom,0px),28px)">
       <div style="margin:12px 20px 8px">
+        <!-- Format selector tabs -->
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <button id="share-tab-standard" onclick="selectShareFormat('standard')" style="flex:1;padding:8px;border-radius:10px;background:#fff;color:#000;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">Padrão</button>
+          <button id="share-tab-transparent" onclick="selectShareFormat('transparent')" style="flex:1;padding:8px;border-radius:10px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.5);border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">Transparente</button>
+        </div>
+
         <!-- Share image canvas — 1:1 apenas, altura limitada -->
-        <div style="position:relative;border-radius:14px;overflow:hidden;background:#000">
+        <div style="position:relative;border-radius:14px;overflow:hidden;background:#000" id="share-canvas-wrap">
           <canvas id="share-canvas" style="width:100%;display:block;border-radius:14px"></canvas>
           <div id="share-canvas-loader" style="position:absolute;inset:0;background:#111;display:flex;align-items:center;justify-content:center;border-radius:14px">
             <div style="text-align:center"><div style="font-size:28px;margin-bottom:8px">🗺️</div><div style="font-size:12px;color:rgba(255,255,255,.4)">A gerar imagem...</div></div>
           </div>
         </div>
+
+        <!-- Transparent format hint -->
+        <div id="share-transparent-hint" style="display:none;margin-top:6px;font-size:11px;color:rgba(255,255,255,.35);text-align:center">PNG transparente — para sobrepor em fotos e vídeos</div>
+
         <!-- Save image button -->
         <button onclick="saveShareImage()" style="width:100%;margin-top:10px;padding:13px;border-radius:12px;background:linear-gradient(135deg,#22C55E,#16A34A);border:none;color:#000;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Guardar imagem
+          <span id="share-save-label">Guardar imagem</span>
         </button>
       </div>
       <!-- Instagram section removed — image generated via canvas save button -->
