@@ -9881,46 +9881,58 @@ function generateTransparentShareImage(act) {
   ctx.clearRect(0, 0, W, H); // transparent background
 
   var pad = 80;
-  var pillY = H * 0.65;
-  var pillH = H - pillY;
 
-  // Dark pill — no horizontal lines
-  ctx.beginPath();
-  ctx.roundRect(0, pillY - 30, W, pillH + 30, [32, 32, 0, 0]);
-  ctx.fillStyle = 'rgba(0,0,0,0.88)';
-  ctx.fill();
-
+  // Calculate content height first to size the pill correctly
   var name = (_profile.name + ' ' + (_profile.last||'')).trim() || 'Atleta';
   var ic   = _actIcons[act.type] || '🏅';
   var _imgIndoor = /gym|boxe|padel|calistenia|muscula|yoga|pilates|treino|força|workout|gin[aá]st/i.test(act.type||'');
 
+  var _locStr = act.city || act.start_street || act.startStreet || '';
+  var _metaLine = (_locStr ? _locStr + '  ·  ' : '') + (act.date||'') + (act.startTime ? ' · ' + act.startTime : '');
+
+  // Line heights — increased spacing to avoid overlap
+  var lhName  = Math.round(W*0.042);  // name → activity gap
+  var lhAct   = Math.round(W*0.074);  // activity → meta/stats gap (emoji needs more room)
+  var lhMeta  = _metaLine.trim() ? Math.round(W*0.036) : 0;
+  var lhGap   = 24;
+  var lhStats = Math.round(W*0.088);
+  var lhLogo  = Math.round(W*0.062);
+  var pillPad = 44;
+
+  var contentH = pillPad + lhName + lhAct + lhMeta + lhGap + lhStats + lhLogo + pillPad;
+  var pillY = H - contentH;
+
+  // Dark pill
+  ctx.beginPath();
+  ctx.roundRect(0, pillY, W, contentH, [32, 32, 0, 0]);
+  ctx.fillStyle = 'rgba(0,0,0,0.88)';
+  ctx.fill();
+
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
 
-  var y = pillY + 20;
+  var y = pillY + pillPad;
 
   // Athlete name
   ctx.font = Math.round(W*0.023) + 'px -apple-system,Helvetica Neue,Arial,sans-serif';
   ctx.fillStyle = 'rgba(255,255,255,.6)';
   ctx.fillText(name + ' completou', pad, y);
-  y += Math.round(W*0.032);
+  y += lhName;
 
   // Activity — emoji + name
   ctx.font = 'bold ' + Math.round(W*0.050) + 'px -apple-system,Helvetica Neue,Arial,sans-serif';
   ctx.fillStyle = '#fff';
   ctx.fillText(ic + ' ' + (act.type || 'Atividade'), pad, y);
-  y += Math.round(W*0.060);
+  y += lhAct;
 
   // Date + location
-  var _locStr = act.city || act.start_street || act.startStreet || '';
-  var _metaLine = (_locStr ? _locStr + '  ·  ' : '') + (act.date||'') + (act.startTime ? ' · ' + act.startTime : '');
   if (_metaLine.trim()) {
     ctx.font = Math.round(W*0.022) + 'px -apple-system,Helvetica Neue,Arial,sans-serif';
     ctx.fillStyle = 'rgba(255,255,255,.5)';
     ctx.fillText(_metaLine, pad, y);
-    y += Math.round(W*0.030);
+    y += lhMeta;
   }
-  y += 16;
+  y += lhGap;
 
   // Stats
   var statItems;
@@ -9942,8 +9954,8 @@ function generateTransparentShareImage(act) {
   });
 
   // Logo + hashtags
-  var logoY = H - Math.round(H*0.055);
   var logoH = Math.round(W*0.036);
+  var logoY = pillY + contentH - pillPad - logoH;
   var logoW = Math.round(logoH*(1102/185));
   if (window._shareLogoImg && window._shareLogoImg.complete) {
     ctx.drawImage(window._shareLogoImg, pad, logoY, logoW, logoH);
