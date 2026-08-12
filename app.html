@@ -3228,7 +3228,8 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
         has_gps:      act.hasGps || false,
         start_street: act.start_street || act.startStreet || null,
         end_street:   act.end_street  || act.endStreet   || null,
-        city:         act.city || null
+        city:         act.city || null,
+        updated_at:   new Date().toISOString()
       };
       var res;
       if (act.id) {
@@ -3689,7 +3690,6 @@ function startGpsRecording() {
   _gps.route=[]; _gps.lastKm=0; _gps.kmSplits=[];
   _gps.lastUpdate=null; _gps.badPoints=0; _gps.buf=[];
   _gps.hr=60+Math.floor(Math.random()*20);
-  _gps.elev=10+Math.floor(Math.random()*30); _gps.elevDir=1;
 
   var ic=document.getElementById('gps-sport-ic');
   var nm=document.getElementById('gps-sport-name');
