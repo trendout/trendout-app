@@ -2217,6 +2217,13 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
       <span id="indoor-pause-ic">Pausar
     </button>
 
+    <!-- Calistenia exercise log -->
+    <div id="cali-log-section" style="display:none;width:100%;margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;text-align:left">Exercícios</div>
+      <div id="cali-log-list" style="display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;margin-bottom:8px"></div>
+      <button onclick="openAddExercise()" style="width:100%;padding:10px;border-radius:12px;background:rgba(34,197,94,.1);border:1.5px solid rgba(34,197,94,.25);color:#22C55E;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">+ Adicionar exercício</button>
+    </div>
+
     <!-- Finish -->
     <button onclick="finishIndoor()" style="width:100%;padding:16px;border-radius:18px;background:#fff;border:none;color:#000;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:10px">
       Terminar treino
@@ -2356,6 +2363,59 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
 
 </div>
 
+
+<!-- ═══ EXERCISE LOG MODAL ═══ -->
+<div id="exercise-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);z-index:700;align-items:flex-end;justify-content:center">
+  <div style="width:100%;max-width:430px;background:#0a0a0a;border-top:1px solid rgba(255,255,255,.08);border-radius:28px 28px 0 0;padding:24px 22px max(env(safe-area-inset-bottom,0px),32px)">
+    <div style="font-size:17px;font-weight:800;color:#fff;margin-bottom:20px">Adicionar exercício</div>
+
+    <!-- Exercise picker -->
+    <div style="margin-bottom:16px">
+      <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Exercício</div>
+      <select id="ex-name" style="width:100%;padding:12px;background:#111;border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#fff;font-size:14px;font-family:inherit;outline:none">
+        <option value="Flexões">💪 Flexões</option>
+        <option value="Dominadas">🏋️ Dominadas</option>
+        <option value="Fundos">🤸 Fundos</option>
+        <option value="Abdominais">⚡ Abdominais</option>
+        <option value="Agachamentos">🦵 Agachamentos</option>
+        <option value="Lunges">🚶 Lunges</option>
+        <option value="Prancha">🧘 Prancha</option>
+        <option value="Burpees">🔥 Burpees</option>
+        <option value="Mountain Climbers">⛰️ Mountain Climbers</option>
+        <option value="Superman">🦸 Superman</option>
+        <option value="Dips">💺 Dips</option>
+        <option value="Pike Push-ups">🔺 Pike Push-ups</option>
+        <option value="L-sit">⚖️ L-sit</option>
+        <option value="Muscle-up">🎯 Muscle-up</option>
+      </select>
+    </div>
+
+    <!-- Series + Reps -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+      <div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Séries</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button onclick="changeVal('ex-sets',-1)" style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.08);border:none;color:#fff;font-size:18px;cursor:pointer">−</button>
+          <div id="ex-sets" style="flex:1;text-align:center;font-size:22px;font-weight:800;color:#fff">3</div>
+          <button onclick="changeVal('ex-sets',1)" style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.08);border:none;color:#fff;font-size:18px;cursor:pointer">+</button>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Reps</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button onclick="changeVal('ex-reps',-1)" style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.08);border:none;color:#fff;font-size:18px;cursor:pointer">−</button>
+          <div id="ex-reps" style="flex:1;text-align:center;font-size:22px;font-weight:800;color:#fff">10</div>
+          <button onclick="changeVal('ex-reps',1)" style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.08);border:none;color:#fff;font-size:18px;cursor:pointer">+</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button onclick="closeExerciseModal()" style="padding:13px;border-radius:12px;background:rgba(255,255,255,.08);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">Cancelar</button>
+      <button onclick="saveExercise()" style="padding:13px;border-radius:12px;background:#22C55E;border:none;color:#000;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit">Guardar</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
 
@@ -3982,6 +4042,7 @@ function stopGps() {
   };
   document.getElementById('gps-overlay').style.display='none';
   document.body.style.overflow='';
+  if (_caliLog.length > 0) act.exercises = _caliLog.slice();
   addActivity(act); renderProfile(); navTo('home');
   // Show PSE rating sheet after saving
   setTimeout(function() { openPseSheet(act); }, 600);
@@ -5536,6 +5597,58 @@ async function doUpdatePassword() {
   }
 }
 
+
+
+// ── CALISTENIA EXERCISE LOG ──
+var _caliLog = []; // [{name, sets, reps}]
+
+function isCalistenia() {
+  return /calistenia/i.test(_selAct && _selAct.lb || '');
+}
+
+function openAddExercise() {
+  document.getElementById('exercise-modal').style.display = 'flex';
+  document.getElementById('ex-sets').textContent = '3';
+  document.getElementById('ex-reps').textContent = '10';
+}
+
+function closeExerciseModal() {
+  document.getElementById('exercise-modal').style.display = 'none';
+}
+
+function changeVal(id, delta) {
+  var el = document.getElementById(id);
+  var val = parseInt(el.textContent) + delta;
+  if (val < 1) val = 1;
+  if (val > 99) val = 99;
+  el.textContent = val;
+}
+
+function saveExercise() {
+  var name = document.getElementById('ex-name').value;
+  var sets = parseInt(document.getElementById('ex-sets').textContent);
+  var reps = parseInt(document.getElementById('ex-reps').textContent);
+  _caliLog.push({name: name, sets: sets, reps: reps});
+  renderCaliLog();
+  closeExerciseModal();
+}
+
+function renderCaliLog() {
+  var list = document.getElementById('cali-log-list');
+  if (!list) return;
+  list.innerHTML = _caliLog.map(function(ex, i) {
+    return '<div style="background:#111;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between">'
+      + '<div><div style="font-size:13px;font-weight:700;color:#fff">' + ex.name + '</div>'
+      + '<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">' + ex.sets + ' séries × ' + ex.reps + ' reps · ' + (ex.sets*ex.reps) + ' total</div></div>'
+      + '<button onclick="removeCaliEx(' + i + ')" style="background:rgba(239,68,68,.1);border:none;color:#EF4444;border-radius:8px;width:28px;height:28px;cursor:pointer;font-size:14px">×</button>'
+      + '</div>';
+  }).join('');
+}
+
+function removeCaliEx(i) {
+  _caliLog.splice(i, 1);
+  renderCaliLog();
+}
 
 // ── ACTIVITY DETAIL ──
 var _currentAct = null;
@@ -10983,6 +11096,12 @@ function startIndoorTimer() {
   _indoor.active  = true;
   _indoor.paused  = false;
   _indoor.seconds = 0;
+
+  // Show exercise log for calistenia
+  _caliLog = [];
+  renderCaliLog();
+  var caliSection = document.getElementById('cali-log-section');
+  if (caliSection) caliSection.style.display = isCalistenia() ? 'block' : 'none';
 
   // Show overlay
   overlay.style.display = 'flex';
