@@ -5603,7 +5603,9 @@ async function doUpdatePassword() {
 var _caliLog = []; // [{name, sets, reps}]
 
 function isCalistenia() {
-  return /calistenia/i.test(_selAct && _selAct.lb || '');
+  if (!_selAct) return false;
+  var name = (_selAct.lb || _selAct.type || '').toLowerCase();
+  return name.indexOf('calistenia') >= 0;
 }
 
 function openAddExercise() {
@@ -11100,8 +11102,10 @@ function startIndoorTimer() {
   // Show exercise log for calistenia
   _caliLog = [];
   renderCaliLog();
-  var caliSection = document.getElementById('cali-log-section');
-  if (caliSection) caliSection.style.display = isCalistenia() ? 'block' : 'none';
+  setTimeout(function() {
+    var caliSection = document.getElementById('cali-log-section');
+    if (caliSection) caliSection.style.display = isCalistenia() ? 'block' : 'none';
+  }, 100);
 
   // Show overlay
   overlay.style.display = 'flex';
