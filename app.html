@@ -2217,17 +2217,17 @@ html,body{height:100%;background:#111;color:#fff;font-family:'Helvetica Neue',He
       <span id="indoor-pause-ic">Pausar
     </button>
 
-    <!-- Calistenia exercise log -->
-    <div id="cali-log-section" style="display:none;width:100%;margin-bottom:16px">
-      <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;text-align:left">Exercícios</div>
-      <div id="cali-log-list" style="display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;margin-bottom:8px"></div>
-      <button onclick="openAddExercise()" style="width:100%;padding:10px;border-radius:12px;background:rgba(34,197,94,.1);border:1.5px solid rgba(34,197,94,.25);color:#22C55E;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">+ Adicionar exercício</button>
-    </div>
-
     <!-- Finish -->
     <button onclick="finishIndoor()" style="width:100%;padding:16px;border-radius:18px;background:#fff;border:none;color:#000;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:10px">
       Terminar treino
     </button>
+
+    <!-- Calistenia exercise log -->
+    <div id="cali-log-section" style="display:none;width:100%;padding:0 16px;margin-top:12px">
+      <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Exercícios</div>
+      <div id="cali-log-list" style="display:flex;flex-direction:column;gap:6px;max-height:180px;overflow-y:auto;margin-bottom:8px"></div>
+      <button onclick="openAddExercise()" style="width:100%;padding:10px;border-radius:12px;background:rgba(34,197,94,.1);border:1.5px solid rgba(34,197,94,.25);color:#22C55E;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">+ Adicionar exercício</button>
+    </div>
   </div>
 </div>
 
@@ -5603,8 +5603,9 @@ async function doUpdatePassword() {
 var _caliLog = []; // [{name, sets, reps}]
 
 function isCalistenia() {
-  if (!_selAct) return false;
+  if (!_selAct) { console.log('[cali] _selAct is null'); return false; }
   var name = (_selAct.lb || _selAct.type || '').toLowerCase();
+  console.log('[cali] checking sport:', name, '→', name.indexOf('calistenia') >= 0);
   return name.indexOf('calistenia') >= 0;
 }
 
@@ -11104,8 +11105,9 @@ function startIndoorTimer() {
   renderCaliLog();
   setTimeout(function() {
     var caliSection = document.getElementById('cali-log-section');
+    console.log('[cali] section found:', !!caliSection, 'isCali:', isCalistenia());
     if (caliSection) caliSection.style.display = isCalistenia() ? 'block' : 'none';
-  }, 100);
+  }, 200);
 
   // Show overlay
   overlay.style.display = 'flex';
