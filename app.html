@@ -11316,6 +11316,16 @@ function startIndoorTimer() {
 
   _indoor.active = true;
   _indoor.timer  = setInterval(indoorTick, 1000);
+
+  // Show exercise log for calistenia
+  _caliLog = [];
+  renderCaliLog();
+  setTimeout(function() {
+    var caliSection = document.getElementById('cali-log-section');
+    var isCali = isCalistenia();
+    if (caliSection) caliSection.style.display = isCali ? 'block' : 'none';
+    if (isCali) toast('🤸 Log de exercícios disponível abaixo');
+  }, 300);
 }
 
 function indoorTick() {
