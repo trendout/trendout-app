@@ -5603,9 +5603,8 @@ async function doUpdatePassword() {
 var _caliLog = []; // [{name, sets, reps}]
 
 function isCalistenia() {
-  if (!_selAct) { console.log('[cali] _selAct is null'); return false; }
+  if (!_selAct) return false;
   var name = (_selAct.lb || _selAct.type || '').toLowerCase();
-  console.log('[cali] checking sport:', name, '→', name.indexOf('calistenia') >= 0);
   return name.indexOf('calistenia') >= 0;
 }
 
@@ -11105,8 +11104,9 @@ function startIndoorTimer() {
   renderCaliLog();
   setTimeout(function() {
     var caliSection = document.getElementById('cali-log-section');
-    console.log('[cali] section found:', !!caliSection, 'isCali:', isCalistenia());
-    if (caliSection) caliSection.style.display = isCalistenia() ? 'block' : 'none';
+    var isCali = isCalistenia();
+    toast('🤸 Sport: ' + (_selAct ? _selAct.lb : 'null') + ' | Cali: ' + isCali + ' | Section: ' + !!caliSection);
+    if (caliSection) caliSection.style.display = isCali ? 'block' : 'none';
   }, 200);
 
   // Show overlay
